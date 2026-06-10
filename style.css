@@ -5,7 +5,9 @@
 }
 
 html {
-    font-size: 14px;
+    font-size: 15px;
+    max-width: 1440px;
+    margin: 0 auto;
 }
 
 body {
@@ -21,7 +23,10 @@ body {
 
 /* NAVBAR */
 nav {
-    padding: 16px 52px;
+    padding: 16px 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .nav-inner {
