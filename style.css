@@ -90,12 +90,11 @@ nav {
 /* HERO */
 .hero {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    padding: 60px 120px;
+    padding: 60px 110px;
     min-height: 80vh;
     position: relative;
-    gap: 80px;
 }
 
 .hero-text {
