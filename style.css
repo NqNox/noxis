@@ -530,6 +530,170 @@ nav {
     color: #0a0a0a;
 }
 
+/* FINAL CTA */
+.cta {
+    padding: 80px 110px;
+}
+
+.cta-inner {
+    background: #111111;
+    border: 1px solid #00d4d4;
+    border-radius: 24px;
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(0, 212, 212, 0.08);
+}
+
+.cta-inner h2 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.cta-inner p {
+    font-size: 16px;
+    color: #888888;
+}
+
+.cta-form {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.cta-input {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 14px 20px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    width: 280px;
+    transition: border-color 0.2s ease;
+    outline: none;
+}
+
+.cta-input:focus {
+    border-color: #00d4d4;
+}
+
+.cta-input::placeholder {
+    color: #444444;
+}
+
+.cta-btn {
+    background: #00d4d4;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    color: #0a0a0a;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.cta-btn:hover {
+    background: #ffffff;
+}
+
+.cta-sub {
+    font-size: 12px;
+    color: #444444;
+}
+
+/* FOOTER */
+footer {
+    border-top: 1px solid #2a2a2a;
+    padding: 40px 110px;
+}
+
+.footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+
+.footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.footer-sub {
+    font-size: 11px;
+    color: #888888;
+}
+
+.footer-links {
+    display: flex;
+    gap: 32px;
+}
+
+.footer-links a {
+    color: #888888;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+}
+
+.footer-copy {
+    font-size: 12px;
+    color: #444444;
+}
+
+/* CTA + FOOTER MOBILE */
+@media (max-width: 768px) {
+    .cta {
+        padding: 40px 24px;
+    }
+
+    .cta-inner {
+        padding: 40px 24px;
+    }
+
+    .cta-inner h2 {
+        font-size: 28px;
+    }
+
+    .cta-form {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .cta-input {
+        width: 100%;
+    }
+
+    .footer-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 32px;
+    }
+
+    .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+    }
+
+    footer {
+        padding: 40px 24px;
+    }
+}
+
 @media (max-width: 768px) {
     .pricing {
         padding: 60px 24px;
