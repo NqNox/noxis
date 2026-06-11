@@ -5,7 +5,7 @@
 }
 
 html {
-    font-size: 18px;
+    font-size: 16px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -23,7 +23,7 @@ body {
 
 /* NAVBAR */
 nav {
-    padding: 16px 48px;
+    padding: 24px 48px 0px 48px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -40,7 +40,7 @@ nav {
 }
 
 .logo-text {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     display: block;
 }
@@ -60,7 +60,7 @@ nav {
 .nav-links a {
     color: #cccccc;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 16px;
     transition: color 0.2s ease;
 }
 
@@ -82,19 +82,26 @@ nav {
 }
 
 .btn-early:hover {
-    background: #ffffff;
-    color: #0a0a0a;
-    transition: all 0.2s ease;
+    background: transparent;
+    color: #ffffff;
 }
 
 /* HERO */
 .hero {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     padding: 60px 110px;
-    min-height: 80vh;
+    min-height: 70vh;
     position: relative;
+    gap: 48px;
+    justify-content: center;
+}
+
+.hero-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 80px;
 }
 
 .hero-text {
@@ -102,7 +109,7 @@ nav {
 }
 
 .hero-text h1 {
-    font-size: 38px;
+    font-size: 44px;
     font-weight: 700;
     line-height: 1.1;
     margin-bottom: 16px;
@@ -122,12 +129,15 @@ nav {
 .btn-early {
     display: inline-block;
     margin-top: 16px;
+    background: #ffffff;
     border: 1px solid #ffffff;
     padding: 12px 24px;
     border-radius: 6px;
-    color: #ffffff;
+    color: #0a0a0a;
     text-decoration: none;
     font-size: 14px;
+    font-weight: bolder;
+    transition: all 0.2s ease;
 }
 
 /* HERO CARDS */
@@ -163,6 +173,45 @@ nav {
     right: 0;
     z-index: 2;
 }
+
+/*HERO STATS*/
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+}
+
+.stat-card {
+    background: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.stat-card:hover {
+    border-color: #00d4d4;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 212, 212, 0.1);
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #00d4d4;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #888888;
+}
+
+
 
 /* GLOW BACKGROUND */
 .bg-blobs {
