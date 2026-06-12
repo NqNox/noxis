@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noxis — Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+    </div>
+
+    <div class="auth-container">
+        <a href="index.html" class="auth-logo">noxis.ai</a>
+        <div class="auth-card">
+            <h1>Create your account</h1>
+            <p class="auth-sub">Start your journey to consistent trading.</p>
+
+            <div class="auth-form">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" />
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Min. 8 characters" />
+                </div>
+                <button class="auth-btn" id="signupBtn">Create account</button>
+                <p class="auth-error" id="errorMsg"></p>
+            </div>
+
+            <p class="auth-switch">Already have an account? <a href="login.html">Log in</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>
