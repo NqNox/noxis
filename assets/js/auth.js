@@ -1,4 +1,4 @@
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const noxisClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // SIGNUP
 const signupBtn = document.getElementById('signupBtn');
@@ -21,7 +21,7 @@ if (signupBtn) {
         signupBtn.textContent = 'Creating account...';
         signupBtn.disabled = true;
 
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await noxisClient.auth.signUp({ email, password });
 
         if (error) {
             errorMsg.textContent = error.message;
@@ -51,7 +51,7 @@ if (loginBtn) {
         loginBtn.textContent = 'Logging in...';
         loginBtn.disabled = true;
 
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await noxisClient.auth.signInWithPassword({ email, password });
 
         if (error) {
             errorMsg.textContent = error.message;
@@ -64,18 +64,16 @@ if (loginBtn) {
 }
 
 // Password toggle
-document.addEventListener('DOMContentLoaded', () => {
-    const eyeToggle = document.getElementById('eyeToggle');
-    if (eyeToggle) {
-        eyeToggle.addEventListener('click', () => {
-            const passwordInput = document.getElementById('password');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeToggle.textContent = '🙈';
-            } else {
-                passwordInput.type = 'password';
-                eyeToggle.textContent = '👁';
-            }
-        });
-    }
-});
+const eyeToggle = document.getElementById('eyeToggle');
+if (eyeToggle) {
+    eyeToggle.addEventListener('click', () => {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeToggle.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            eyeToggle.textContent = '👁';
+        }
+    });
+}
