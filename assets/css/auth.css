@@ -177,15 +177,36 @@ body {
     gap: 8px;
     font-size: 13px;
     color: #888888;
+    cursor: pointer;
 }
 
 .remember-me input {
-    accent-color: #00d4d4;
-    width: 15px;
-    height: 15px;
-    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #444444;
+    border-radius: 4px;
     background: #0a0a0a;
-    border: 1px solid #2a2a2a;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.remember-me input:checked {
+    background: #00d4d4;
+    border-color: #00d4d4;
+}
+
+.remember-me input:checked::after {
+    content: '✓';
+    position: absolute;
+    color: #0a0a0a;
+    font-size: 11px;
+    font-weight: 700;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .remember-me label {
