@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noxis — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">noxis</div>
+        <div class="sidebar-divider"></div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">⊞</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="checklist">
+                <span class="nav-icon">✅</span>
+                <span class="nav-label">Checklist</span>
+            </a>
+            <a href="#" class="nav-item" data-page="journal">
+                <span class="nav-icon">📓</span>
+                <span class="nav-label">Journal</span>
+            </a>
+            <a href="#" class="nav-item" data-page="streak">
+                <span class="nav-icon">🔥</span>
+                <span class="nav-label">Streak</span>
+            </a>
+            <a href="#" class="nav-item" data-page="ai">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI Insights</span>
+            </a>
+        </nav>
+        <div class="sidebar-bottom">
+            <a href="#" class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </a>
+            <div class="sidebar-user">
+                <div class="user-avatar">N</div>
+                <div class="user-info">
+                    <span class="user-name">Noam</span>
+                    <span class="user-plan">Free Plan</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="page active" id="page-dashboard">
+            <h1>Dashboard</h1>
+        </div>
+        <div class="page" id="page-checklist">
+            <h1>Checklist</h1>
+        </div>
+        <div class="page" id="page-journal">
+            <h1>Journal</h1>
+        </div>
+        <div class="page" id="page-streak">
+            <h1>Streak</h1>
+        </div>
+        <div class="page" id="page-ai">
+            <h1>AI Insights</h1>
+        </div>
+        <div class="page" id="page-settings">
+            <h1>Settings</h1>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+</body>
+</html>
