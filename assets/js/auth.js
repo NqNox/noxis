@@ -41,6 +41,7 @@ if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const remember = document.getElementById('remember').checked;
         const errorMsg = document.getElementById('errorMsg');
 
         if (!email || !password) {
@@ -51,14 +52,20 @@ if (loginBtn) {
         loginBtn.textContent = 'Logging in...';
         loginBtn.disabled = true;
 
-        const { error } = await noxisClient.auth.signInWithPassword({ email, password });
+        const { error } = await noxisClient.auth.signInWithPassword({
+            email,
+            password,
+            options: {
+                persistSession: remember
+            }
+        });
 
         if (error) {
             errorMsg.textContent = error.message;
             loginBtn.textContent = 'Log in';
             loginBtn.disabled = false;
         } else {
-            window.location.href = 'dashboard.html';
+            window.location.href = '../pages/dashboard.html';
         }
     });
 }
