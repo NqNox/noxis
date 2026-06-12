@@ -62,3 +62,18 @@ if (loginBtn) {
         }
     });
 }
+
+// Password toggle
+const eyeToggle = document.getElementById('eyeToggle');
+if (eyeToggle) {
+    eyeToggle.addEventListener('click', () => {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeToggle.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            eyeToggle.textContent = '👁';
+        }
+    });
+}
