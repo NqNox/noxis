@@ -58,7 +58,7 @@ if (loginBtn) {
             loginBtn.textContent = 'Log in';
             loginBtn.disabled = false;
         } else {
-            window.location.href = 'dashboard.html';
+            window.location.href = 'pages/dashboard.html';
         }
     });
 }
