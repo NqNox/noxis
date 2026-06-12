@@ -163,9 +163,11 @@ body {
     color: #888888;
     text-decoration: none;
     font-size: 13px;
-    width: 100%;
+    width: 520px;
+    max-width: 100%;
     align-self: flex-start;
     transition: color 0.2s ease;
+    padding-left: 4px;
 }
 
 .auth-back:hover {
