@@ -24,8 +24,6 @@ navItems.forEach(item => {
     });
 });
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // Check auth
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (!session) {
