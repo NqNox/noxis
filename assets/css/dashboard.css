@@ -816,3 +816,11 @@ html, body {
 .trade-row .negative {
     color: #ff4444;
 }
+
+.stat-value.positive {
+    color: #00c864;
+}
+
+.stat-value.negative {
+    color: #ff4444;
+}

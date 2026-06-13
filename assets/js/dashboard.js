@@ -268,6 +268,14 @@ async function loadRecentTrades() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+    // Update RP&L
+    const totalPnl = trades.reduce((sum, trade) => sum + trade.pnl, 0);
+    const rpnlEl = document.querySelector('.stat-value:not(.green)');
+    if (rpnlEl) {
+        rpnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
+        rpnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+    }
+
     if (error || !trades) return;
 
     const recentEmpty = document.querySelector('.recent-empty');
