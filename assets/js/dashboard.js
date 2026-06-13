@@ -7,7 +7,7 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
     }
 });
 
-// Navigation — handles both sidebar and bottom nav
+// Navigation
 const navItems = document.querySelectorAll('.nav-item, .bottom-nav-item');
 const pages = document.querySelectorAll('.page');
 
@@ -15,10 +15,8 @@ navItems.forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
         const target = item.dataset.page;
-
         navItems.forEach(n => n.classList.remove('active'));
         pages.forEach(p => p.classList.remove('active'));
-
         document.querySelectorAll(`[data-page="${target}"]`).forEach(el => el.classList.add('active'));
         document.getElementById(`page-${target}`).classList.add('active');
     });
@@ -29,6 +27,7 @@ const modalOverlay = document.getElementById('modalOverlay');
 const modalClose = document.getElementById('modalClose');
 const btnCancel = document.getElementById('btnCancel');
 const logTradeButtons = document.querySelectorAll('.btn-log-trade, .btn-log-trade-sm');
+let editingTradeId = null;
 
 // Set today's date
 const today = new Date().toLocaleDateString('en-CA');
@@ -42,10 +41,17 @@ logTradeButtons.forEach(btn => {
 });
 
 // Close modal
-modalClose.addEventListener('click', () => modalOverlay.classList.remove('active'));
-btnCancel.addEventListener('click', () => modalOverlay.classList.remove('active'));
+function closeModal() {
+    modalOverlay.classList.remove('active');
+    editingTradeId = null;
+    document.querySelector('.modal-header h2').textContent = 'Log Trade';
+    document.getElementById('btnSave').textContent = 'Save Trade';
+}
+
+modalClose.addEventListener('click', closeModal);
+btnCancel.addEventListener('click', closeModal);
 modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+    if (e.target === modalOverlay) closeModal();
 });
 
 // Direction toggle
@@ -108,62 +114,6 @@ function updatePnL() {
     pnlDisplay.className = 'pnl-display ' + (pnl >= 0 ? 'positive' : 'negative');
 }
 
-// Save trade
-document.getElementById('btnSave').addEventListener('click', async () => {
-    const date = document.getElementById('tradeDate').value;
-    const tradeNumber = document.getElementById('tradeNumber').value;
-    const symbol = document.getElementById('tradeSymbol').value;
-    const size = document.getElementById('tradeSize').value;
-    const entry = parseFloat(document.getElementById('tradeEntry').value);
-    const exit = parseFloat(document.getElementById('tradeExit').value);
-    const notes = document.getElementById('tradeNotes').value;
-
-    if (!date || !symbol || !entry || !exit) {
-        alert('Please fill in all required fields.');
-        return;
-    }
-
-    const btnSave = document.getElementById('btnSave');
-    btnSave.textContent = 'Saving...';
-    btnSave.disabled = true;
-
-    const { data: { session } } = await supabaseClient.auth.getSession();
-
-    let pnl = direction === 'long' ? (exit - entry) * size * 20 : (entry - exit) * size * 20;
-
-    const { error } = await supabaseClient.from('trades').insert({
-        user_id: session.user.id,
-        date,
-        trade_number: parseInt(tradeNumber),
-        symbol: symbol.toUpperCase(),
-        direction,
-        size: parseInt(size),
-        entry_price: entry,
-        exit_price: exit,
-        pnl,
-        emotions: selectedEmotions.join(', '),
-        followed_rules: followedRules,
-        notes
-    });
-
-    if (error) {
-        alert('Error saving trade: ' + error.message);
-        btnSave.textContent = 'Save Trade';
-        btnSave.disabled = false;
-    } else {
-        btnSave.textContent = 'Saved ✓';
-        loadRecentTrades();
-        setTimeout(() => {
-            modalOverlay.classList.remove('active');
-            btnSave.textContent = 'Save Trade';
-            btnSave.disabled = false;
-            selectedEmotions = [];
-            renderEmotionTags();
-            renderSuggestions();
-        }, 1000);
-    }
-});
-
 entryInput.addEventListener('input', updatePnL);
 exitInput.addEventListener('input', updatePnL);
 sizeInput.addEventListener('input', updatePnL);
@@ -177,13 +127,12 @@ const emotionTagsContainer = document.getElementById('emotionTagsContainer');
 let selectedEmotions = [];
 let savedEmotions = JSON.parse(localStorage.getItem('noxis_emotions') || '[]');
 
-// Default suggestions if none saved yet
 const defaultEmotions = ['FOMO', 'Anxious', 'Confident', 'Frustrated', 'Calm', 'Revenge', 'Greedy', 'Patient'];
 
 function renderSuggestions() {
     const allSuggestions = savedEmotions.length > 0 ? savedEmotions : defaultEmotions;
     const filtered = allSuggestions.filter(e => !selectedEmotions.includes(e));
-    
+
     emotionSuggestions.innerHTML = '';
     filtered.forEach(emotion => {
         const wrapper = document.createElement('div');
@@ -219,7 +168,6 @@ function addEmotion(emotion) {
 
     selectedEmotions.push(clean);
 
-    // Save to local storage
     if (!savedEmotions.includes(clean)) {
         savedEmotions.push(clean);
         localStorage.setItem('noxis_emotions', JSON.stringify(savedEmotions));
@@ -256,6 +204,79 @@ emotionInput.addEventListener('keydown', (e) => {
 
 emotionTagsContainer.addEventListener('click', () => emotionInput.focus());
 
+// Save trade
+document.getElementById('btnSave').addEventListener('click', async () => {
+    const date = document.getElementById('tradeDate').value;
+    const tradeNumber = document.getElementById('tradeNumber').value;
+    const symbol = document.getElementById('tradeSymbol').value;
+    const size = document.getElementById('tradeSize').value;
+    const entry = parseFloat(document.getElementById('tradeEntry').value);
+    const exit = parseFloat(document.getElementById('tradeExit').value);
+    const notes = document.getElementById('tradeNotes').value;
+
+    if (!date || !symbol || !entry || !exit) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+
+    const btnSave = document.getElementById('btnSave');
+    btnSave.textContent = 'Saving...';
+    btnSave.disabled = true;
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    let pnl = direction === 'long' ? (exit - entry) * size * 20 : (entry - exit) * size * 20;
+
+    let result;
+    if (editingTradeId) {
+        result = await supabaseClient.from('trades').update({
+            date,
+            trade_number: parseInt(tradeNumber),
+            symbol: symbol.toUpperCase(),
+            direction,
+            size: parseInt(size),
+            entry_price: entry,
+            exit_price: exit,
+            pnl,
+            emotions: selectedEmotions.join(', '),
+            followed_rules: followedRules,
+            notes
+        }).eq('id', editingTradeId);
+    } else {
+        result = await supabaseClient.from('trades').insert({
+            user_id: session.user.id,
+            date,
+            trade_number: parseInt(tradeNumber),
+            symbol: symbol.toUpperCase(),
+            direction,
+            size: parseInt(size),
+            entry_price: entry,
+            exit_price: exit,
+            pnl,
+            emotions: selectedEmotions.join(', '),
+            followed_rules: followedRules,
+            notes
+        });
+    }
+
+    const { error } = result;
+
+    if (error) {
+        alert('Error saving trade: ' + error.message);
+        btnSave.textContent = editingTradeId ? 'Update Trade' : 'Save Trade';
+        btnSave.disabled = false;
+    } else {
+        btnSave.textContent = 'Saved ✓';
+        loadRecentTrades();
+        setTimeout(() => {
+            closeModal();
+            btnSave.disabled = false;
+            selectedEmotions = [];
+            renderEmotionTags();
+            renderSuggestions();
+        }, 1000);
+    }
+});
+
 // Fetch and display recent trades
 async function loadRecentTrades() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -268,6 +289,8 @@ async function loadRecentTrades() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+    if (error || !trades) return;
+
     // Update RP&L
     const totalPnl = trades.reduce((sum, trade) => sum + trade.pnl, 0);
     const rpnlEl = document.querySelector('.stat-value:not(.green)');
@@ -275,8 +298,6 @@ async function loadRecentTrades() {
         rpnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
         rpnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
     }
-
-    if (error || !trades) return;
 
     const recentEmpty = document.querySelector('.recent-empty');
     const recentCard = document.querySelector('.recent-card');
@@ -288,7 +309,6 @@ async function loadRecentTrades() {
 
     recentEmpty.style.display = 'none';
 
-    // Remove old table if exists
     const oldTable = document.getElementById('tradesTable');
     if (oldTable) oldTable.remove();
 
@@ -304,6 +324,7 @@ async function loadRecentTrades() {
             <span>Size</span>
             <span>P&L</span>
             <span>Rules</span>
+            <span></span>
         </div>
         ${trades.map(trade => `
             <div class="trade-row">
@@ -317,16 +338,70 @@ async function loadRecentTrades() {
                     ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
                 </span>
                 <span>${trade.followed_rules ? '✓' : '✗'}</span>
+                <span class="edit-trade" data-id="${trade.id}">
+                    <i data-lucide="pencil" style="width:14px;height:14px;cursor:pointer;color:#888;"></i>
+                </span>
             </div>
         `).join('')}
     `;
 
     recentCard.appendChild(table);
+    lucide.createIcons();
 }
 
-// Call on load
-loadRecentTrades();
+// Edit trade
+document.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.edit-trade');
+    if (!editBtn) return;
 
+    editingTradeId = editBtn.dataset.id;
+
+    const { data: trade } = await supabaseClient
+        .from('trades')
+        .select('*')
+        .eq('id', editingTradeId)
+        .single();
+
+    if (!trade) return;
+
+    document.getElementById('tradeDate').value = trade.date;
+    document.getElementById('tradeNumber').value = trade.trade_number;
+    document.getElementById('tradeSymbol').value = trade.symbol;
+    document.getElementById('tradeSize').value = trade.size;
+    document.getElementById('tradeEntry').value = trade.entry_price;
+    document.getElementById('tradeExit').value = trade.exit_price;
+    document.getElementById('tradeNotes').value = trade.notes || '';
+
+    direction = trade.direction;
+    if (direction === 'long') {
+        btnLong.classList.add('active');
+        btnShort.classList.remove('active');
+    } else {
+        btnShort.classList.add('active');
+        btnLong.classList.remove('active');
+    }
+
+    followedRules = trade.followed_rules;
+    if (followedRules) {
+        btnYes.classList.add('active');
+        btnNo.classList.remove('active');
+    } else {
+        btnNo.classList.add('active');
+        btnYes.classList.remove('active');
+    }
+
+    selectedEmotions = trade.emotions ? trade.emotions.split(', ').filter(Boolean) : [];
+    renderEmotionTags();
+    renderSuggestions();
+    updatePnL();
+
+    document.querySelector('.modal-header h2').textContent = 'Edit Trade';
+    document.getElementById('btnSave').textContent = 'Update Trade';
+    modalOverlay.classList.add('active');
+    lucide.createIcons();
+});
+
+// Init
 renderSuggestions();
-
+loadRecentTrades();
 lucide.createIcons();
