@@ -152,6 +152,7 @@ document.getElementById('btnSave').addEventListener('click', async () => {
         btnSave.disabled = false;
     } else {
         btnSave.textContent = 'Saved ✓';
+        loadRecentTrades();
         setTimeout(() => {
             modalOverlay.classList.remove('active');
             btnSave.textContent = 'Save Trade';
@@ -254,6 +255,69 @@ emotionInput.addEventListener('keydown', (e) => {
 });
 
 emotionTagsContainer.addEventListener('click', () => emotionInput.focus());
+
+// Fetch and display recent trades
+async function loadRecentTrades() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data: trades, error } = await supabaseClient
+        .from('trades')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (error || !trades) return;
+
+    const recentEmpty = document.querySelector('.recent-empty');
+    const recentCard = document.querySelector('.recent-card');
+
+    if (trades.length === 0) {
+        recentEmpty.style.display = 'flex';
+        return;
+    }
+
+    recentEmpty.style.display = 'none';
+
+    // Remove old table if exists
+    const oldTable = document.getElementById('tradesTable');
+    if (oldTable) oldTable.remove();
+
+    const table = document.createElement('div');
+    table.id = 'tradesTable';
+    table.className = 'trades-table';
+
+    table.innerHTML = `
+        <div class="trades-header-row">
+            <span>Date</span>
+            <span>Symbol</span>
+            <span>Direction</span>
+            <span>Size</span>
+            <span>P&L</span>
+            <span>Rules</span>
+        </div>
+        ${trades.map(trade => `
+            <div class="trade-row">
+                <span>${trade.date}</span>
+                <span>${trade.symbol}</span>
+                <span class="${trade.direction === 'long' ? 'long' : 'short'}">
+                    ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                </span>
+                <span>${trade.size}</span>
+                <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                </span>
+                <span>${trade.followed_rules ? '✓' : '✗'}</span>
+            </div>
+        `).join('')}
+    `;
+
+    recentCard.appendChild(table);
+}
+
+// Call on load
+loadRecentTrades();
 
 renderSuggestions();
 

@@ -761,3 +761,58 @@ html, body {
     border-color: #00d4d4;
     color: #ffffff;
 }
+
+/* TRADES TABLE */
+.trades-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+}
+
+.trades-header-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 0.5fr 1fr 0.5fr;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: #444444;
+    font-family: 'JetBrains Mono', monospace;
+    border-bottom: 1px solid #1a1a1a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.trade-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 0.5fr 1fr 0.5fr;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #cccccc;
+    border-bottom: 1px solid #1a1a1a;
+    transition: background 0.2s ease;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.trade-row:hover {
+    background: #1a1a1a;
+}
+
+.trade-row:last-child {
+    border-bottom: none;
+}
+
+.trade-row .long {
+    color: #00c864;
+}
+
+.trade-row .short {
+    color: #ff4444;
+}
+
+.trade-row .positive {
+    color: #00c864;
+}
+
+.trade-row .negative {
+    color: #ff4444;
+}
