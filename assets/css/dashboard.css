@@ -27,6 +27,7 @@ html, body {
     left: 0;
     bottom: 0;
     box-shadow: inset -1px 0 0 #00d4d4;
+    border-radius: 0 22px 22px 0;
 }
 
 .sidebar-logo {
@@ -134,9 +135,10 @@ html, body {
 .main-content {
     margin-left: 220px;
     flex: 1;
-    padding: 40px;
+    padding: 2.5vh 2.5vw;
     overflow-y: auto;
     height: 100vh;
+    width: calc(100vw - 220px);
 }
 
 .page {
@@ -145,4 +147,213 @@ html, body {
 
 .page.active {
     display: block;
+}
+
+/* PAGE HEADER */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5vh;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.btn-log-trade {
+    background: #00d4d4;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: #0a0a0a;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-log-trade:hover {
+    background: #ffffff;
+}
+
+/* DASHBOARD TOP ROW */
+.dashboard-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5vh;
+    margin-bottom: 1.5vh;
+    align-items: stretch;
+}
+
+/* STATS CARD */
+.stats-card {
+    background: #111111;
+    border: 1px solid #1a1a1a;
+    border-radius: 16px;
+    padding: 2.5vh 2.5vw;
+    display: flex;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.stat-name {
+    font-size: 13px;
+    color: #888888;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-value.green {
+    color: #00d4d4;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 48px;
+    background: #1a1a1a;
+    margin: 0 32px;
+}
+
+/* STREAK CARD */
+.streak-card {
+    background: #111111;
+    border: 1px solid #1a1a1a;
+    border-radius: 16px;
+    padding: 2.5vh 2vw;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 22vw;
+}
+
+.streak-flame {
+    font-size: 48px;
+}
+
+.streak-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.streak-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.streak-days {
+    display: flex;
+    gap: 10px;
+}
+
+.day-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #444444;
+    gap: 0;
+    position: relative;
+}
+
+.day-circle span {
+    font-size: 8px;
+    color: #444444;
+    font-weight: 400;
+    position: absolute;
+    bottom: -16px;
+}
+
+.day-circle.active {
+    background: #00d4d4;
+    border-color: #00d4d4;
+    color: #0a0a0a;
+}
+
+.day-circle.active span {
+    color: #888888;
+}
+
+/* RECENT TRADES CARD */
+.recent-card {
+    background: #111111;
+    border: 1px solid #1a1a1a;
+    border-radius: 16px;
+    padding: 2.5vh 2vw;
+    height: calc(100vh - 28vh);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.recent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recent-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.recent-link {
+    font-size: 13px;
+    color: #00d4d4;
+    text-decoration: none;
+}
+
+.recent-link:hover {
+    color: #ffffff;
+}
+
+.recent-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #444444;
+    font-size: 14px;
+}
+
+.btn-log-trade-sm {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: #888888;
+    font-size: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-log-trade-sm:hover {
+    border-color: #00d4d4;
+    color: #ffffff;
 }

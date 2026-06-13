@@ -54,7 +54,52 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         <div class="page active" id="page-dashboard">
-            <h1>Dashboard</h1>
+            <!-- TOP BAR -->
+            <div class="page-header">
+                <h1 class="page-title">My Dashboard</h1>
+                <button class="btn-log-trade">+ Log Trade</button>
+            </div>
+
+            <!-- STATS ROW -->
+            <div class="dashboard-top">
+                <div class="stats-card">
+                    <div class="stat-item">
+                        <span class="stat-name">Balance</span>
+                        <span class="stat-value green">$50,000</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-name">RP&L</span>
+                        <span class="stat-value">$0</span>
+                    </div>
+                </div>
+
+                <div class="streak-card">
+                    <div class="streak-flame">🔥</div>
+                    <div class="streak-info">
+                        <span class="streak-title">My Streak</span>
+                        <div class="streak-days">
+                            <div class="day-circle active">15<span>Mon</span></div>
+                            <div class="day-circle active">16<span>Tue</span></div>
+                            <div class="day-circle">17<span>Wed</span></div>
+                            <div class="day-circle">18<span>Thu</span></div>
+                            <div class="day-circle">19<span>Fri</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BIG CARD -->
+            <div class="recent-card">
+                <div class="recent-header">
+                    <span class="recent-title">Recent Trades</span>
+                    <a href="#" class="recent-link">View all →</a>
+                </div>
+                <div class="recent-empty">
+                    <span>No trades logged yet.</span>
+                    <button class="btn-log-trade-sm">+ Log your first trade</button>
+                </div>
+            </div>
         </div>
         <div class="page" id="page-checklist">
             <h1>Checklist</h1>
