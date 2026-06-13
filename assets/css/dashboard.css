@@ -832,6 +832,14 @@ html, body {
     transition: color 0.2s ease;
 }
 
+.edit-trade i {
+    transition: color 0.2s ease;
+}
+
 .edit-trade:hover i {
     color: #ffffff !important;
+}
+
+.trade-row:hover .edit-trade i {
+    color: #cccccc !important;
 }
