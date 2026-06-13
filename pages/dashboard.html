@@ -143,6 +143,78 @@
         </button>
     </nav>
 
+    <!-- LOG TRADE MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Log Trade</h2>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-row">
+                    <div class="modal-field">
+                        <label>Date</label>
+                        <input type="date" id="tradeDate" />
+                    </div>
+                    <div class="modal-field">
+                        <label>Trade # Today</label>
+                        <input type="number" id="tradeNumber" min="1" value="1" />
+                    </div>
+                </div>
+                <div class="modal-row">
+                    <div class="modal-field">
+                        <label>Symbol</label>
+                        <input type="text" id="tradeSymbol" placeholder="NQ, ES, MNQ..." />
+                    </div>
+                    <div class="modal-field">
+                        <label>Size (contracts)</label>
+                        <input type="number" id="tradeSize" min="1" value="1" />
+                    </div>
+                </div>
+                <div class="modal-field">
+                    <label>Direction</label>
+                    <div class="direction-toggle">
+                        <button class="dir-btn active" id="btnLong">Long</button>
+                        <button class="dir-btn" id="btnShort">Short</button>
+                    </div>
+                </div>
+                <div class="modal-row">
+                    <div class="modal-field">
+                        <label>Entry Price</label>
+                        <input type="number" id="tradeEntry" placeholder="0.00" step="0.25" />
+                    </div>
+                    <div class="modal-field">
+                        <label>Exit Price</label>
+                        <input type="number" id="tradeExit" placeholder="0.00" step="0.25" />
+                    </div>
+                </div>
+                <div class="modal-field">
+                    <label>P&L (auto-calculated)</label>
+                    <div class="pnl-display" id="pnlDisplay">$0.00</div>
+                </div>
+                <div class="modal-field">
+                    <label>Emotions</label>
+                    <input type="text" id="tradeEmotions" placeholder="Frustrated, calm, anxious, confident..." />
+                </div>
+                <div class="modal-field">
+                    <label>Followed your rules?</label>
+                    <div class="rules-toggle">
+                        <button class="rule-btn active" id="btnYes">✓ Yes</button>
+                        <button class="rule-btn" id="btnNo">✗ No</button>
+                    </div>
+                </div>
+                <div class="modal-field">
+                    <label>Notes <span class="optional">optional</span></label>
+                    <textarea id="tradeNotes" placeholder="What happened? What did you learn?"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="btnCancel">Cancel</button>
+                <button class="btn-save" id="btnSave">Save Trade</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/dashboard.js"></script>

@@ -425,3 +425,232 @@ html, body {
         font-size: 20px;
     }
 }
+
+/* MODAL */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.modal-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #888888;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.modal-close:hover {
+    color: #ffffff;
+}
+
+.modal-body {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-field label {
+    font-size: 13px;
+    color: #888888;
+    font-weight: 500;
+}
+
+.optional {
+    font-size: 11px;
+    color: #444444;
+}
+
+.modal-field input,
+.modal-field textarea {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.modal-field input:focus,
+.modal-field textarea:focus {
+    border-color: #00d4d4;
+}
+
+.modal-field input::placeholder,
+.modal-field textarea::placeholder {
+    color: #444444;
+}
+
+.modal-field textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* DIRECTION TOGGLE */
+.direction-toggle,
+.rules-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.dir-btn,
+.rule-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+    background: #0a0a0a;
+    color: #888888;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dir-btn.active {
+    background: #00d4d4;
+    border-color: #00d4d4;
+    color: #0a0a0a;
+}
+
+.rule-btn.active#btnYes {
+    background: #00d4d4;
+    border-color: #00d4d4;
+    color: #0a0a0a;
+}
+
+.rule-btn.active#btnNo {
+    background: #ff4444;
+    border-color: #ff4444;
+    color: #ffffff;
+}
+
+/* P&L DISPLAY */
+.pnl-display {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #888888;
+}
+
+.pnl-display.positive {
+    color: #00d4d4;
+}
+
+.pnl-display.negative {
+    color: #ff4444;
+}
+
+/* MODAL FOOTER */
+.modal-footer {
+    padding: 20px 28px;
+    border-top: 1px solid #1a1a1a;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 24px;
+    color: #888888;
+    font-size: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    border-color: #ffffff;
+    color: #ffffff;
+}
+
+.btn-save {
+    background: #00d4d4;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    color: #0a0a0a;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+    background: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .modal-row {
+        grid-template-columns: 1fr;
+    }
+
+    .modal {
+        max-height: 85vh;
+    }
+}
