@@ -112,4 +112,75 @@ entryInput.addEventListener('input', updatePnL);
 exitInput.addEventListener('input', updatePnL);
 sizeInput.addEventListener('input', updatePnL);
 
+// Emotion tags
+const emotionInput = document.getElementById('emotionInput');
+const emotionTagsEl = document.getElementById('emotionTags');
+const emotionSuggestions = document.getElementById('emotionSuggestions');
+const emotionTagsContainer = document.getElementById('emotionTagsContainer');
+
+let selectedEmotions = [];
+let savedEmotions = JSON.parse(localStorage.getItem('noxis_emotions') || '[]');
+
+// Default suggestions if none saved yet
+const defaultEmotions = ['FOMO', 'Anxious', 'Confident', 'Frustrated', 'Calm', 'Revenge', 'Greedy', 'Patient'];
+
+function renderSuggestions() {
+    const allSuggestions = savedEmotions.length > 0 ? savedEmotions : defaultEmotions;
+    const filtered = allSuggestions.filter(e => !selectedEmotions.includes(e));
+    
+    emotionSuggestions.innerHTML = '';
+    filtered.forEach(emotion => {
+        const tag = document.createElement('button');
+        tag.className = 'suggestion-tag';
+        tag.textContent = emotion;
+        tag.addEventListener('click', () => addEmotion(emotion));
+        emotionSuggestions.appendChild(tag);
+    });
+}
+
+function addEmotion(emotion) {
+    const clean = emotion.trim();
+    if (!clean || selectedEmotions.includes(clean)) return;
+
+    selectedEmotions.push(clean);
+
+    // Save to local storage
+    if (!savedEmotions.includes(clean)) {
+        savedEmotions.push(clean);
+        localStorage.setItem('noxis_emotions', JSON.stringify(savedEmotions));
+    }
+
+    renderEmotionTags();
+    renderSuggestions();
+    emotionInput.value = '';
+}
+
+function removeEmotion(emotion) {
+    selectedEmotions = selectedEmotions.filter(e => e !== emotion);
+    renderEmotionTags();
+    renderSuggestions();
+}
+
+function renderEmotionTags() {
+    emotionTagsEl.innerHTML = '';
+    selectedEmotions.forEach(emotion => {
+        const tag = document.createElement('div');
+        tag.className = 'emotion-tag';
+        tag.innerHTML = `${emotion} <span class="remove-tag" data-emotion="${emotion}">✕</span>`;
+        tag.querySelector('.remove-tag').addEventListener('click', () => removeEmotion(emotion));
+        emotionTagsEl.appendChild(tag);
+    });
+}
+
+emotionInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        addEmotion(emotionInput.value);
+    }
+});
+
+emotionTagsContainer.addEventListener('click', () => emotionInput.focus());
+
+renderSuggestions();
+
 lucide.createIcons();
