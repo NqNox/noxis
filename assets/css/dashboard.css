@@ -549,7 +549,20 @@ html, body {
     gap: 8px;
 }
 
-.dir-btn,
+.dir-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+    background: #0a0a0a;
+    color: #888888;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
 .rule-btn {
     flex: 1;
     padding: 10px;
@@ -564,22 +577,28 @@ html, body {
     transition: all 0.2s ease;
 }
 
-.dir-btn.active {
-    background: #00d4d4;
-    border-color: #00d4d4;
-    color: #0a0a0a;
+.dir-btn.active#btnLong {
+    background: rgba(0, 200, 100, 0.15);
+    border-color: #00c864;
+    color: #00c864;
+}
+
+.dir-btn.active#btnShort {
+    background: rgba(255, 68, 68, 0.15);
+    border-color: #ff4444;
+    color: #ff4444;
 }
 
 .rule-btn.active#btnYes {
-    background: #00d4d4;
-    border-color: #00d4d4;
-    color: #0a0a0a;
+    background: rgba(0, 200, 100, 0.15);
+    border-color: #00c864;
+    color: #00c864;
 }
 
 .rule-btn.active#btnNo {
-    background: #ff4444;
+    background: rgba(255, 68, 68, 0.15);
     border-color: #ff4444;
-    color: #ffffff;
+    color: #ff4444;
 }
 
 /* P&L DISPLAY */

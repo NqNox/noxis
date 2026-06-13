@@ -31,7 +31,7 @@ const btnCancel = document.getElementById('btnCancel');
 const logTradeButtons = document.querySelectorAll('.btn-log-trade, .btn-log-trade-sm');
 
 // Set today's date
-const today = new Date().toISOString().split('T')[0];
+const today = new Date().toLocaleDateString('en-CA');
 document.getElementById('tradeDate').value = today;
 
 // Open modal
@@ -52,6 +52,8 @@ modalOverlay.addEventListener('click', (e) => {
 const btnLong = document.getElementById('btnLong');
 const btnShort = document.getElementById('btnShort');
 let direction = 'long';
+btnLong.classList.add('active');
+btnShort.classList.remove('active');
 
 btnLong.addEventListener('click', () => {
     direction = 'long';
