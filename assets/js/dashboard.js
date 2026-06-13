@@ -130,11 +130,30 @@ function renderSuggestions() {
     
     emotionSuggestions.innerHTML = '';
     filtered.forEach(emotion => {
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '2px';
+
         const tag = document.createElement('button');
         tag.className = 'suggestion-tag';
         tag.textContent = emotion;
         tag.addEventListener('click', () => addEmotion(emotion));
-        emotionSuggestions.appendChild(tag);
+
+        const del = document.createElement('span');
+        del.textContent = '✕';
+        del.style.cssText = 'font-size:10px;color:#444;cursor:pointer;padding:2px 4px;transition:color 0.2s';
+        del.addEventListener('mouseenter', () => del.style.color = '#ff4444');
+        del.addEventListener('mouseleave', () => del.style.color = '#444');
+        del.addEventListener('click', () => {
+            savedEmotions = savedEmotions.filter(e => e !== emotion);
+            localStorage.setItem('noxis_emotions', JSON.stringify(savedEmotions));
+            renderSuggestions();
+        });
+
+        wrapper.appendChild(tag);
+        wrapper.appendChild(del);
+        emotionSuggestions.appendChild(wrapper);
     });
 }
 
