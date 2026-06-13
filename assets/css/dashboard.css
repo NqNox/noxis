@@ -366,7 +366,7 @@ html, body {
     .main-content {
         margin-left: 0;
         width: 100vw;
-        padding: 20px 16px 80px 16px;
+        padding: 20px 16px 100px 16px;
     }
 
     .dashboard-top {
@@ -391,7 +391,7 @@ html, body {
         right: 0;
         background: #0f0f0f;
         border-top: 1px solid #1a1a1a;
-        padding: 10px 0 20px 0;
+        padding: 12px 0 34px 0;
         justify-content: space-around;
         align-items: center;
         z-index: 100;
