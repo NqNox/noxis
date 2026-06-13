@@ -833,11 +833,13 @@ html, body {
 }
 
 .edit-trade i {
-    transition: color 0.2s ease;
+    color: #444444 !important;
+    transition: all 0.2s ease;
 }
 
 .edit-trade:hover i {
     color: #ffffff !important;
+    transform: scale(1.2);
 }
 
 .trade-row:hover .edit-trade i {
