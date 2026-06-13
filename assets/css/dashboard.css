@@ -358,6 +358,11 @@ html, body {
     color: #ffffff;
 }
 
+/* Hide bottom nav on desktop */
+.bottom-nav {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         display: none;
@@ -419,9 +424,4 @@ html, body {
     .bottom-nav-item .nav-icon {
         font-size: 20px;
     }
-}
-
-/* Hide bottom nav on desktop */
-.bottom-nav {
-    display: none;
 }
