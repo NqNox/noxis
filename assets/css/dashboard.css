@@ -357,3 +357,71 @@ html, body {
     border-color: #00d4d4;
     color: #ffffff;
 }
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100vw;
+        padding: 20px 16px 80px 16px;
+    }
+
+    .dashboard-top {
+        grid-template-columns: 1fr;
+    }
+
+    .streak-card {
+        min-width: unset;
+    }
+
+    .recent-card {
+        height: auto;
+        min-height: 50vh;
+    }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #0f0f0f;
+        border-top: 1px solid #1a1a1a;
+        padding: 10px 0 20px 0;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #888888;
+        text-decoration: none;
+        font-size: 11px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        background: none;
+        border: none;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .bottom-nav-item.active {
+        color: #00d4d4;
+    }
+
+    .bottom-nav-item .nav-icon {
+        font-size: 20px;
+    }
+}
+
+/* Hide bottom nav on desktop */
+.bottom-nav {
+    display: none;
+}
