@@ -339,7 +339,7 @@ async function loadRecentTrades() {
                 </span>
                 <span>${trade.followed_rules ? '✓' : '✗'}</span>
                 <span class="edit-trade" data-id="${trade.id}">
-                    <i data-lucide="pencil" style="width:14px;height:14px;cursor:pointer;color:#888;"></i>
+                    <i data-lucide="pencil" class="pencil-icon"></i>
                 </span>
             </div>
         `).join('')}

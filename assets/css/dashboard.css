@@ -845,3 +845,16 @@ html, body {
 .trade-row:hover .edit-trade i {
     color: #cccccc !important;
 }
+
+.pencil-icon {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    color: #444444;
+    transition: all 0.2s ease;
+}
+
+.edit-trade:hover .pencil-icon {
+    color: #ffffff;
+    transform: scale(1.2);
+}
