@@ -108,6 +108,61 @@ function updatePnL() {
     pnlDisplay.className = 'pnl-display ' + (pnl >= 0 ? 'positive' : 'negative');
 }
 
+// Save trade
+document.getElementById('btnSave').addEventListener('click', async () => {
+    const date = document.getElementById('tradeDate').value;
+    const tradeNumber = document.getElementById('tradeNumber').value;
+    const symbol = document.getElementById('tradeSymbol').value;
+    const size = document.getElementById('tradeSize').value;
+    const entry = parseFloat(document.getElementById('tradeEntry').value);
+    const exit = parseFloat(document.getElementById('tradeExit').value);
+    const notes = document.getElementById('tradeNotes').value;
+
+    if (!date || !symbol || !entry || !exit) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+
+    const btnSave = document.getElementById('btnSave');
+    btnSave.textContent = 'Saving...';
+    btnSave.disabled = true;
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    let pnl = direction === 'long' ? (exit - entry) * size * 20 : (entry - exit) * size * 20;
+
+    const { error } = await supabaseClient.from('trades').insert({
+        user_id: session.user.id,
+        date,
+        trade_number: parseInt(tradeNumber),
+        symbol: symbol.toUpperCase(),
+        direction,
+        size: parseInt(size),
+        entry_price: entry,
+        exit_price: exit,
+        pnl,
+        emotions: selectedEmotions.join(', '),
+        followed_rules: followedRules,
+        notes
+    });
+
+    if (error) {
+        alert('Error saving trade: ' + error.message);
+        btnSave.textContent = 'Save Trade';
+        btnSave.disabled = false;
+    } else {
+        btnSave.textContent = 'Saved ✓';
+        setTimeout(() => {
+            modalOverlay.classList.remove('active');
+            btnSave.textContent = 'Save Trade';
+            btnSave.disabled = false;
+            selectedEmotions = [];
+            renderEmotionTags();
+            renderSuggestions();
+        }, 1000);
+    }
+});
+
 entryInput.addEventListener('input', updatePnL);
 exitInput.addEventListener('input', updatePnL);
 sizeInput.addEventListener('input', updatePnL);
