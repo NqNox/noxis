@@ -79,9 +79,9 @@ html, body {
 }
 
 .nav-icon {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
 }
 
 /* SIDEBAR BOTTOM */

@@ -49,3 +49,5 @@ navItems.forEach(item => {
         document.getElementById(`page-${target}`).classList.add('active');
     });
 });
+
+lucide.createIcons();
