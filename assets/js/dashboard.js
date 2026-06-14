@@ -22,6 +22,9 @@ navItems.forEach(item => {
     });
 });
 
+// View toggle — declared early so loadRecentTrades can use it
+let currentView = window.innerWidth < 768 ? 'cards' : 'table';
+
 // Modal
 const modalOverlay = document.getElementById('modalOverlay');
 const modalClose = document.getElementById('modalClose');
@@ -29,23 +32,38 @@ const btnCancel = document.getElementById('btnCancel');
 const logTradeButtons = document.querySelectorAll('.btn-log-trade, .btn-log-trade-sm');
 let editingTradeId = null;
 
-// Set today's date
 const today = new Date().toLocaleDateString('en-CA');
 document.getElementById('tradeDate').value = today;
 
-// Open modal
 logTradeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         modalOverlay.classList.add('active');
     });
 });
 
-// Close modal
 function closeModal() {
     modalOverlay.classList.remove('active');
     editingTradeId = null;
     document.querySelector('.modal-header h2').textContent = 'Log Trade';
     document.getElementById('btnSave').textContent = 'Save Trade';
+    document.getElementById('tradeDate').value = today;
+    document.getElementById('tradeNumber').value = '1';
+    document.getElementById('tradeSymbol').value = '';
+    document.getElementById('tradeSize').value = '1';
+    document.getElementById('tradeEntry').value = '';
+    document.getElementById('tradeExit').value = '';
+    document.getElementById('tradeNotes').value = '';
+    pnlDisplay.textContent = '$0.00';
+    pnlDisplay.className = 'pnl-display';
+    direction = 'long';
+    btnLong.classList.add('active');
+    btnShort.classList.remove('active');
+    followedRules = true;
+    btnYes.classList.add('active');
+    btnNo.classList.remove('active');
+    selectedEmotions = [];
+    renderEmotionTags();
+    renderSuggestions();
 }
 
 modalClose.addEventListener('click', closeModal);
@@ -126,13 +144,11 @@ const emotionTagsContainer = document.getElementById('emotionTagsContainer');
 
 let selectedEmotions = [];
 let savedEmotions = JSON.parse(localStorage.getItem('noxis_emotions') || '[]');
-
 const defaultEmotions = ['FOMO', 'Anxious', 'Confident', 'Frustrated', 'Calm', 'Revenge', 'Greedy', 'Patient'];
 
 function renderSuggestions() {
     const allSuggestions = savedEmotions.length > 0 ? savedEmotions : defaultEmotions;
     const filtered = allSuggestions.filter(e => !selectedEmotions.includes(e));
-
     emotionSuggestions.innerHTML = '';
     filtered.forEach(emotion => {
         const wrapper = document.createElement('div');
@@ -165,14 +181,11 @@ function renderSuggestions() {
 function addEmotion(emotion) {
     const clean = emotion.trim();
     if (!clean || selectedEmotions.includes(clean)) return;
-
     selectedEmotions.push(clean);
-
     if (!savedEmotions.includes(clean)) {
         savedEmotions.push(clean);
         localStorage.setItem('noxis_emotions', JSON.stringify(savedEmotions));
     }
-
     renderEmotionTags();
     renderSuggestions();
     emotionInput.value = '';
@@ -270,9 +283,6 @@ document.getElementById('btnSave').addEventListener('click', async () => {
         setTimeout(() => {
             closeModal();
             btnSave.disabled = false;
-            selectedEmotions = [];
-            renderEmotionTags();
-            renderSuggestions();
         }, 1000);
     }
 });
@@ -291,7 +301,6 @@ async function loadRecentTrades() {
 
     if (error || !trades) return;
 
-    // Update RP&L
     const totalPnl = trades.reduce((sum, trade) => sum + trade.pnl, 0);
     const rpnlEl = document.querySelector('.stat-value:not(.green)');
     if (rpnlEl) {
@@ -302,6 +311,9 @@ async function loadRecentTrades() {
     const recentEmpty = document.querySelector('.recent-empty');
     const recentCard = document.querySelector('.recent-card');
 
+    const oldTable = document.getElementById('tradesTable');
+    if (oldTable) oldTable.remove();
+
     if (trades.length === 0) {
         recentEmpty.style.display = 'flex';
         return;
@@ -309,55 +321,109 @@ async function loadRecentTrades() {
 
     recentEmpty.style.display = 'none';
 
-    const oldTable = document.getElementById('tradesTable');
-    if (oldTable) oldTable.remove();
+    const container = document.createElement('div');
+    container.id = 'tradesTable';
 
-    const table = document.createElement('div');
-    table.id = 'tradesTable';
-    table.className = 'trades-table';
-
-    table.innerHTML = `
-        <div class="trades-header-row">
-            <span>Date</span>
-            <span>Symbol</span>
-            <span>Direction</span>
-            <span>Size</span>
-            <span>P&L</span>
-            <span>Rules</span>
-            <span></span>
-            <span></span>
-        </div>
-        ${trades.map(trade => `
-            <div class="trade-row">
-                <span>${trade.date}</span>
-                <span>${trade.symbol}</span>
-                <span class="${trade.direction === 'long' ? 'long' : 'short'}">
-                    ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
-                </span>
-                <span>${trade.size}</span>
-                <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                </span>
-                <span>${trade.followed_rules ? '✓' : '✗'}</span>
-                <span class="trade-actions">
-                    <button class="trade-edit-btn" data-id="${trade.id}">
-                        <i data-lucide="pencil" class="pencil-icon"></i>
-                    </button>
-                    <button class="trade-delete-btn" data-id="${trade.id}">
-                        <i data-lucide="trash-2" class="trash-icon"></i>
-                    </button>
-                </span>
+    if (currentView === 'table') {
+        container.className = 'trades-table';
+        container.innerHTML = `
+            <div class="trades-header-row">
+                <span>Date</span>
+                <span>Symbol</span>
+                <span>Direction</span>
+                <span>Size</span>
+                <span>P&L</span>
+                <span>Rules</span>
+                <span></span>
             </div>
-        `).join('')}
-    `;
+            ${trades.map(trade => `
+                <div class="trade-row">
+                    <span>${trade.date}</span>
+                    <span>${trade.symbol}</span>
+                    <span class="${trade.direction === 'long' ? 'long' : 'short'}">
+                        ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                    </span>
+                    <span>${trade.size}</span>
+                    <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                        ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                    </span>
+                    <span>${trade.followed_rules ? '✓' : '✗'}</span>
+                    <span class="trade-actions">
+                        <button class="trade-edit-btn" data-id="${trade.id}">
+                            <i data-lucide="pencil" class="pencil-icon"></i>
+                        </button>
+                        <button class="trade-delete-btn" data-id="${trade.id}">
+                            <i data-lucide="trash-2" class="trash-icon"></i>
+                        </button>
+                    </span>
+                </div>
+            `).join('')}
+        `;
+    } else if (currentView === 'cards') {
+        container.className = 'trades-cards';
+        container.innerHTML = trades.map(trade => `
+            <div class="trade-card">
+                <div class="trade-card-header">
+                    <span class="trade-card-symbol">${trade.symbol}</span>
+                    <span class="trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                        ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                    </span>
+                </div>
+                <div class="trade-card-details">
+                    <span class="trade-card-tag ${trade.direction === 'long' ? 'long' : 'short'}">
+                        ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                    </span>
+                    <span class="trade-card-tag">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
+                    <span class="trade-card-tag">${trade.followed_rules ? '✓ Rules' : '✗ Rules'}</span>
+                    ${trade.emotions ? `<span class="trade-card-tag">${trade.emotions}</span>` : ''}
+                </div>
+                <div class="trade-card-footer">
+                    <span class="trade-card-date">${trade.date}</span>
+                    <div class="trade-card-actions">
+                        <button class="trade-edit-btn" data-id="${trade.id}">
+                            <i data-lucide="pencil" class="pencil-icon"></i>
+                        </button>
+                        <button class="trade-delete-btn" data-id="${trade.id}">
+                            <i data-lucide="trash-2" class="trash-icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } else if (currentView === 'list') {
+        container.className = 'trades-list';
+        container.innerHTML = trades.map(trade => `
+            <div class="trade-list-item">
+                <div class="trade-list-left">
+                    <span class="trade-list-symbol">${trade.symbol}</span>
+                    <span class="trade-list-dir ${trade.direction === 'long' ? 'long' : 'short'}">
+                        ${trade.direction === 'long' ? '↑' : '↓'}
+                    </span>
+                    <span class="trade-list-date">${trade.date}</span>
+                </div>
+                <div class="trade-list-right">
+                    <span class="trade-list-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                        ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                    </span>
+                    <div class="trade-list-actions">
+                        <button class="trade-edit-btn" data-id="${trade.id}">
+                            <i data-lucide="pencil" class="pencil-icon"></i>
+                        </button>
+                        <button class="trade-delete-btn" data-id="${trade.id}">
+                            <i data-lucide="trash-2" class="trash-icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
 
-    recentCard.appendChild(table);
+    recentCard.appendChild(container);
     lucide.createIcons();
 }
 
-// Edit trade
+// Edit and delete handler
 document.addEventListener('click', async (e) => {
-    // Edit
     const editBtn = e.target.closest('.trade-edit-btn');
     if (editBtn) {
         editingTradeId = editBtn.dataset.id;
@@ -407,19 +473,41 @@ document.addEventListener('click', async (e) => {
         lucide.createIcons();
     }
 
-    // Delete
     const deleteBtn = e.target.closest('.trade-delete-btn');
     if (deleteBtn) {
         const tradeId = deleteBtn.dataset.id;
-        if (!confirm('Delete this trade?')) return;
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const confirmDelete = document.getElementById('confirmDelete');
+        const confirmCancel = document.getElementById('confirmCancel');
 
-        const { error } = await supabaseClient
-            .from('trades')
-            .delete()
-            .eq('id', tradeId);
+        confirmOverlay.classList.add('active');
 
-        if (!error) loadRecentTrades();
+        confirmDelete.onclick = async () => {
+            const { error } = await supabaseClient
+                .from('trades')
+                .delete()
+                .eq('id', tradeId);
+            confirmOverlay.classList.remove('active');
+            if (!error) loadRecentTrades();
+        };
+
+        confirmCancel.onclick = () => {
+            confirmOverlay.classList.remove('active');
+        };
     }
+});
+
+// View toggle
+function setView(view) {
+    currentView = view;
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    loadRecentTrades();
+}
+
+document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => setView(btn.dataset.view));
 });
 
 // Init

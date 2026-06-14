@@ -94,7 +94,18 @@
             <div class="recent-card">
                 <div class="recent-header">
                     <span class="recent-title">Recent Trades</span>
-                    <a href="#" class="recent-link">View all →</a>
+                    <div class="view-controls">
+                        <button class="view-btn active" data-view="table" title="Table view">
+                            <i data-lucide="table" style="width:14px;height:14px;"></i>
+                        </button>
+                        <button class="view-btn" data-view="cards" title="Card view">
+                            <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
+                        </button>
+                        <button class="view-btn" data-view="list" title="List view">
+                            <i data-lucide="list" style="width:14px;height:14px;"></i>
+                        </button>
+                        <a href="#" class="recent-link">View all →</a>
+                    </div>
                 </div>
                 <div class="recent-empty">
                     <span>No trades logged yet.</span>
@@ -215,6 +226,19 @@
             <div class="modal-footer">
                 <button class="btn-cancel" id="btnCancel">Cancel</button>
                 <button class="btn-save" id="btnSave">Save Trade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM POPUP -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-popup">
+            <div class="confirm-icon">🗑️</div>
+            <h3>Delete Trade?</h3>
+            <p>This action can't be undone.</p>
+            <div class="confirm-actions">
+                <button class="confirm-cancel" id="confirmCancel">Cancel</button>
+                <button class="confirm-delete" id="confirmDelete">Delete</button>
             </div>
         </div>
     </div>
