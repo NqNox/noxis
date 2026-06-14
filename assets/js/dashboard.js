@@ -514,3 +514,8 @@ document.querySelectorAll('.view-btn').forEach(btn => {
 renderSuggestions();
 loadRecentTrades();
 lucide.createIcons();
+
+if (window.innerWidth < 768) {
+    document.querySelector('[data-view="cards"]')?.classList.add('active');
+    document.querySelector('[data-view="table"]')?.classList.remove('active');
+}

@@ -1033,8 +1033,8 @@ html, body {
 /* CARDS VIEW */
 .trades-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
     padding: 4px;
 }
 
@@ -1042,10 +1042,10 @@ html, body {
     background: #0a0a0a;
     border: 1px solid #2a2a2a;
     border-radius: 12px;
-    padding: 16px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     transition: border-color 0.2s ease;
 }
 
@@ -1060,13 +1060,13 @@ html, body {
 }
 
 .trade-card-symbol {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
 }
 
 .trade-card-pnl {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
 }
@@ -1172,6 +1172,12 @@ html, body {
     }
 
     .trades-table .trade-row {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .view-btn[data-view="table"] {
         display: none;
     }
 }
