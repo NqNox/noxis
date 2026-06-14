@@ -519,3 +519,14 @@ if (window.innerWidth < 768) {
     document.querySelector('[data-view="cards"]')?.classList.add('active');
     document.querySelector('[data-view="table"]')?.classList.remove('active');
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
