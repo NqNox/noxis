@@ -28,9 +28,12 @@ if (signupBtn) {
             signupBtn.textContent = 'Create account';
             signupBtn.disabled = false;
         } else {
-            signupBtn.textContent = 'Check your email ✓';
+            signupBtn.textContent = 'Account created ✓';
             errorMsg.style.color = '#00d4d4';
-            errorMsg.textContent = 'Confirmation email sent. Please verify your account.';
+            errorMsg.textContent = 'Account created! Redirecting...';
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
         }
     });
 }
