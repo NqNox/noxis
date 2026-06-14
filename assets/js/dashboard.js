@@ -325,6 +325,7 @@ async function loadRecentTrades() {
             <span>P&L</span>
             <span>Rules</span>
             <span></span>
+            <span></span>
         </div>
         ${trades.map(trade => `
             <div class="trade-row">
@@ -338,8 +339,13 @@ async function loadRecentTrades() {
                     ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
                 </span>
                 <span>${trade.followed_rules ? '✓' : '✗'}</span>
-                <span class="edit-trade" data-id="${trade.id}">
-                    <i data-lucide="pencil" class="pencil-icon"></i>
+                <span class="trade-actions">
+                    <button class="trade-edit-btn" data-id="${trade.id}">
+                        <i data-lucide="pencil" class="pencil-icon"></i>
+                    </button>
+                    <button class="trade-delete-btn" data-id="${trade.id}">
+                        <i data-lucide="trash-2" class="trash-icon"></i>
+                    </button>
                 </span>
             </div>
         `).join('')}
@@ -351,54 +357,69 @@ async function loadRecentTrades() {
 
 // Edit trade
 document.addEventListener('click', async (e) => {
-    const editBtn = e.target.closest('.edit-trade');
-    if (!editBtn) return;
+    // Edit
+    const editBtn = e.target.closest('.trade-edit-btn');
+    if (editBtn) {
+        editingTradeId = editBtn.dataset.id;
 
-    editingTradeId = editBtn.dataset.id;
+        const { data: trade } = await supabaseClient
+            .from('trades')
+            .select('*')
+            .eq('id', editingTradeId)
+            .single();
 
-    const { data: trade } = await supabaseClient
-        .from('trades')
-        .select('*')
-        .eq('id', editingTradeId)
-        .single();
+        if (!trade) return;
 
-    if (!trade) return;
+        document.getElementById('tradeDate').value = trade.date;
+        document.getElementById('tradeNumber').value = trade.trade_number;
+        document.getElementById('tradeSymbol').value = trade.symbol;
+        document.getElementById('tradeSize').value = trade.size;
+        document.getElementById('tradeEntry').value = trade.entry_price;
+        document.getElementById('tradeExit').value = trade.exit_price;
+        document.getElementById('tradeNotes').value = trade.notes || '';
 
-    document.getElementById('tradeDate').value = trade.date;
-    document.getElementById('tradeNumber').value = trade.trade_number;
-    document.getElementById('tradeSymbol').value = trade.symbol;
-    document.getElementById('tradeSize').value = trade.size;
-    document.getElementById('tradeEntry').value = trade.entry_price;
-    document.getElementById('tradeExit').value = trade.exit_price;
-    document.getElementById('tradeNotes').value = trade.notes || '';
+        direction = trade.direction;
+        if (direction === 'long') {
+            btnLong.classList.add('active');
+            btnShort.classList.remove('active');
+        } else {
+            btnShort.classList.add('active');
+            btnLong.classList.remove('active');
+        }
 
-    direction = trade.direction;
-    if (direction === 'long') {
-        btnLong.classList.add('active');
-        btnShort.classList.remove('active');
-    } else {
-        btnShort.classList.add('active');
-        btnLong.classList.remove('active');
+        followedRules = trade.followed_rules;
+        if (followedRules) {
+            btnYes.classList.add('active');
+            btnNo.classList.remove('active');
+        } else {
+            btnNo.classList.add('active');
+            btnYes.classList.remove('active');
+        }
+
+        selectedEmotions = trade.emotions ? trade.emotions.split(', ').filter(Boolean) : [];
+        renderEmotionTags();
+        renderSuggestions();
+        updatePnL();
+
+        document.querySelector('.modal-header h2').textContent = 'Edit Trade';
+        document.getElementById('btnSave').textContent = 'Update Trade';
+        modalOverlay.classList.add('active');
+        lucide.createIcons();
     }
 
-    followedRules = trade.followed_rules;
-    if (followedRules) {
-        btnYes.classList.add('active');
-        btnNo.classList.remove('active');
-    } else {
-        btnNo.classList.add('active');
-        btnYes.classList.remove('active');
+    // Delete
+    const deleteBtn = e.target.closest('.trade-delete-btn');
+    if (deleteBtn) {
+        const tradeId = deleteBtn.dataset.id;
+        if (!confirm('Delete this trade?')) return;
+
+        const { error } = await supabaseClient
+            .from('trades')
+            .delete()
+            .eq('id', tradeId);
+
+        if (!error) loadRecentTrades();
     }
-
-    selectedEmotions = trade.emotions ? trade.emotions.split(', ').filter(Boolean) : [];
-    renderEmotionTags();
-    renderSuggestions();
-    updatePnL();
-
-    document.querySelector('.modal-header h2').textContent = 'Edit Trade';
-    document.getElementById('btnSave').textContent = 'Update Trade';
-    modalOverlay.classList.add('active');
-    lucide.createIcons();
 });
 
 // Init
