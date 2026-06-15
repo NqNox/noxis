@@ -1083,7 +1083,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     display: grid;
     grid-template-columns: 200px 1fr;
     gap: 16px;
-    max-width: 800px;
+    max-width: 100%;
+    height: calc(100vh - 15vh);
 }
 
 /* SETS PANEL */
@@ -1195,6 +1196,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     display: flex;
     flex-direction: column;
     gap: 16px;
+    height: 100%;
 }
 
 .checklist-card {
@@ -1205,6 +1207,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     display: flex;
     flex-direction: column;
     gap: 16px;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .checklist-header {

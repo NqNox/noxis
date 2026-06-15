@@ -893,7 +893,7 @@ loadStreak();
 loadRules();
 lucide.createIcons();
 // Restore last active page
-const lastPage = localStorage.getItem('noxis_active_page') || 'dashboard';
+const lastPage = 'dashboard';
 pages.forEach(p => p.classList.remove('active'));
 navItems.forEach(n => n.classList.remove('active'));
 document.getElementById(`page-${lastPage}`)?.classList.add('active');
