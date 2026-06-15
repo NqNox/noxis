@@ -79,13 +79,7 @@
                     <div class="streak-flame">🔥</div>
                     <div class="streak-info">
                         <span class="streak-title">My Streak</span>
-                        <div class="streak-days">
-                            <div class="day-circle active">15<span>Mon</span></div>
-                            <div class="day-circle active">16<span>Tue</span></div>
-                            <div class="day-circle">17<span>Wed</span></div>
-                            <div class="day-circle">18<span>Thu</span></div>
-                            <div class="day-circle">19<span>Fri</span></div>
-                        </div>
+                        <div class="streak-days" id="streakDays"></div>
                     </div>
                 </div>
             </div>
@@ -114,7 +108,87 @@
             </div>
         </div>
         <div class="page" id="page-checklist">
-            <h1>Checklist</h1>
+            <div class="page-header">
+                <h1 class="page-title">Checklist</h1>
+                <button class="btn-add-rule" id="btnAddRule">+ Add Rule</button>
+            </div>
+
+            <div class="checklist-layout">
+                <!-- LEFT PANEL - Rule Sets -->
+                <div class="sets-panel">
+                    <div class="sets-header">
+                        <span class="sets-title">Rule Sets</span>
+                        <button class="btn-add-set" id="btnAddSet">+</button>
+                    </div>
+                    <div class="sets-list" id="setsList">
+                        <div class="set-item active" data-set-id="all">
+                            <span>All Rules</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL - Rules -->
+                <div class="checklist-main">
+                    <div class="checklist-card">
+                        <div class="checklist-header">
+                            <div class="checklist-progress">
+                                <span id="checkedCount">0</span>/<span id="totalCount">0</span> rules checked
+                            </div>
+                            <button class="btn-reset" id="btnReset">Reset</button>
+                        </div>
+                        <div class="checklist-progress-bar">
+                            <div class="checklist-progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="rules-list" id="rulesList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add/Edit Rule Modal -->
+            <div class="rule-modal-overlay" id="ruleModalOverlay">
+                <div class="rule-modal">
+                    <div class="modal-header">
+                        <h2>Add Rule</h2>
+                        <button class="modal-close" id="ruleModalClose">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-field">
+                            <label>Rule</label>
+                            <input type="text" id="ruleInput" placeholder="e.g. Only trade during London session" />
+                        </div>
+                        <div class="modal-field">
+                            <label>Rule Set <span class="optional">optional</span></label>
+                            <select id="ruleSetSelect">
+                                <option value="">No set</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-cancel" id="btnRuleCancel">Cancel</button>
+                        <button class="btn-save" id="btnRuleSave">Add Rule</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Set Modal -->
+            <div class="rule-modal-overlay" id="setModalOverlay">
+                <div class="rule-modal">
+                    <div class="modal-header">
+                        <h2>New Rule Set</h2>
+                        <button class="modal-close" id="setModalClose">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-field">
+                            <label>Set Name</label>
+                            <input type="text" id="setInput" placeholder="e.g. NQ Strategy, Psychology..." />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-cancel" id="btnSetCancel">Cancel</button>
+                        <button class="btn-save" id="btnSetSave">Create Set</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="page" id="page-journal">
             <h1>Journal</h1>

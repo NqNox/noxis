@@ -19,6 +19,17 @@ navItems.forEach(item => {
         pages.forEach(p => p.classList.remove('active'));
         document.querySelectorAll(`[data-page="${target}"]`).forEach(el => el.classList.add('active'));
         document.getElementById(`page-${target}`).classList.add('active');
+        localStorage.setItem('noxis_active_page', target);
+
+        // Load page data when switching
+        if (target === 'checklist'){
+            loadRuleSets();
+            loadRules();
+        }
+        if (target === 'dashboard') {
+            loadRecentTrades();
+            loadStreak();
+        }
     });
 });
 
@@ -280,6 +291,7 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     } else {
         btnSave.textContent = 'Saved ✓';
         loadRecentTrades();
+        loadStreak();
         setTimeout(() => {
             closeModal();
             btnSave.disabled = false;
@@ -510,13 +522,388 @@ document.querySelectorAll('.view-btn').forEach(btn => {
     btn.addEventListener('click', () => setView(btn.dataset.view));
 });
 
-// Init
-renderSuggestions();
-loadRecentTrades();
-lucide.createIcons();
-
 if (window.innerWidth < 768) {
     document.querySelector('[data-view="cards"]')?.classList.add('active');
     document.querySelector('[data-view="table"]')?.classList.remove('active');
 }
 
+async function loadStreak() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    // Get last 7 days of trades
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const { data: trades } = await supabaseClient
+        .from('trades')
+        .select('date, followed_rules')
+        .eq('user_id', session.user.id)
+        .gte('date', sevenDaysAgo.toLocaleDateString('en-CA'));
+
+    // Get last 5 weekdays starting from Monday
+    const days = [];
+    let d = new Date(today);
+    let daysFound = 0;
+
+    // Find the most recent Monday
+    while (d.getDay() !== 1) {
+        d.setDate(d.getDate() - 1);
+    }
+
+    // Get Mon-Fri of current week
+    for (let i = 0; i < 5; i++) {
+        days.push(new Date(d));
+        d.setDate(d.getDate() + 1);
+    }
+
+    // Check which days have compliant trades
+    const tradedDays = new Set(
+        (trades || [])
+            .filter(t => t.followed_rules)
+            .map(t => t.date)
+    );
+
+    // Render circles
+    const streakDaysEl = document.getElementById('streakDays');
+    streakDaysEl.innerHTML = '';
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    days.forEach(day => {
+        const dateStr = day.toLocaleDateString('en-CA');
+        const isActive = tradedDays.has(dateStr);
+        const isToday = dateStr === today.toLocaleDateString('en-CA');
+
+        const circle = document.createElement('div');
+        circle.className = 'day-circle' + (isActive ? ' active' : '') + (isToday ? ' today' : '');
+        circle.innerHTML = `${day.getDate()}<span>${dayNames[day.getDay()]}</span>`;
+        streakDaysEl.appendChild(circle);
+    });
+
+    // Count streak
+    let streak = 0;
+    const checkDate = new Date(today);
+    while (true) {
+        const day = checkDate.getDay();
+        if (day !== 0 && day !== 6) {
+            const dateStr = checkDate.toLocaleDateString('en-CA');
+            if (tradedDays.has(dateStr)) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        checkDate.setDate(checkDate.getDate() - 1);
+        if (streak > 365) break;
+    }
+
+    // Update flame and title
+    const flame = document.querySelector('.streak-flame');
+    flame.textContent = streak > 0 ? '🔥' : '💤';
+    document.querySelector('.streak-title').textContent = 
+        streak > 0 ? `${streak} Day Streak` : 'No streak yet';
+}
+
+// ============================================
+// CHECKLIST
+// ============================================
+let rules = [];
+let ruleSets = [];
+let checkedRules = new Set();
+let editingRuleId = null;
+let activeSetId = 'all';
+
+const ruleModalOverlay = document.getElementById('ruleModalOverlay');
+const ruleModalClose = document.getElementById('ruleModalClose');
+const btnRuleCancel = document.getElementById('btnRuleCancel');
+const btnRuleSave = document.getElementById('btnRuleSave');
+const btnAddRule = document.getElementById('btnAddRule');
+const ruleInput = document.getElementById('ruleInput');
+
+const setModalOverlay = document.getElementById('setModalOverlay');
+const setModalClose = document.getElementById('setModalClose');
+const btnSetCancel = document.getElementById('btnSetCancel');
+const btnSetSave = document.getElementById('btnSetSave');
+const btnAddSet = document.getElementById('btnAddSet');
+const setInput = document.getElementById('setInput');
+
+function closeRuleModal() {
+    ruleModalOverlay.classList.remove('active');
+    ruleInput.value = '';
+    editingRuleId = null;
+    document.querySelector('#ruleModalOverlay .modal-header h2').textContent = 'Add Rule';
+    btnRuleSave.textContent = 'Add Rule';
+}
+
+function closeSetModal() {
+    setModalOverlay.classList.remove('active');
+    setInput.value = '';
+}
+
+btnAddRule.addEventListener('click', () => ruleModalOverlay.classList.add('active'));
+ruleModalClose.addEventListener('click', closeRuleModal);
+btnRuleCancel.addEventListener('click', closeRuleModal);
+ruleModalOverlay.addEventListener('click', (e) => {
+    if (e.target === ruleModalOverlay) closeRuleModal();
+});
+
+btnAddSet.addEventListener('click', () => setModalOverlay.classList.add('active'));
+setModalClose.addEventListener('click', closeSetModal);
+btnSetCancel.addEventListener('click', closeSetModal);
+setModalOverlay.addEventListener('click', (e) => {
+    if (e.target === setModalOverlay) closeSetModal();
+});
+
+ruleInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveRule();
+});
+
+setInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveSet();
+});
+
+btnRuleSave.addEventListener('click', saveRule);
+btnSetSave.addEventListener('click', saveSet);
+
+async function saveRule() {
+    const text = ruleInput.value.trim();
+    if (!text) return;
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const setId = document.getElementById('ruleSetSelect').value || null;
+
+    if (editingRuleId) {
+        await supabaseClient.from('rules').update({ rule: text, set_id: setId }).eq('id', editingRuleId);
+    } else {
+        await supabaseClient.from('rules').insert({
+            user_id: session.user.id,
+            rule: text,
+            set_id: setId,
+            position: rules.length
+        });
+    }
+
+    closeRuleModal();
+    loadRules();
+}
+
+async function saveSet() {
+    const name = setInput.value.trim();
+    if (!name) return;
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    await supabaseClient.from('rule_sets').insert({
+        user_id: session.user.id,
+        name
+    });
+
+    closeSetModal();
+    loadRuleSets();
+}
+
+async function loadRuleSets() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data } = await supabaseClient
+        .from('rule_sets')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: true });
+
+    ruleSets = data || [];
+    renderSets();
+    updateRuleSetSelect();
+}
+
+function renderSets() {
+    const setsList = document.getElementById('setsList');
+    setsList.innerHTML = `
+        <div class="set-item ${activeSetId === 'all' ? 'active' : ''}" data-set-id="all">
+            <span>All Rules</span>
+        </div>
+        ${ruleSets.map(set => `
+            <div class="set-item ${activeSetId === set.id ? 'active' : ''}" data-set-id="${set.id}">
+                <span>${set.name}</span>
+                <button class="set-delete-btn" data-set-id="${set.id}">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        `).join('')}
+    `;
+
+    document.querySelectorAll('.set-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.set-delete-btn')) return;
+            activeSetId = item.dataset.setId;
+            renderSets();
+            renderRules();
+        });
+    });
+
+    document.querySelectorAll('.set-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.setId;
+            const confirmOverlay = document.getElementById('confirmOverlay');
+            const confirmDelete = document.getElementById('confirmDelete');
+            const confirmCancel = document.getElementById('confirmCancel');
+
+            confirmOverlay.classList.add('active');
+
+            confirmDelete.onclick = async () => {
+                await supabaseClient.from('rule_sets').delete().eq('id', id);
+                if (activeSetId === id) activeSetId = 'all';
+                confirmOverlay.classList.remove('active');
+                loadRuleSets();
+                loadRules();
+            };
+
+            confirmCancel.onclick = () => confirmOverlay.classList.remove('active');
+        });
+    });
+
+    lucide.createIcons();
+}
+
+function updateRuleSetSelect() {
+    const select = document.getElementById('ruleSetSelect');
+    select.innerHTML = `<option value="">No set</option>` +
+        ruleSets.map(set => `<option value="${set.id}">${set.name}</option>`).join('');
+}
+
+async function loadRules() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data } = await supabaseClient
+        .from('rules')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('position', { ascending: true });
+
+    rules = data || [];
+    renderRules();
+}
+
+function renderRules() {
+    const rulesList = document.getElementById('rulesList');
+    const checkedCount = document.getElementById('checkedCount');
+    const totalCount = document.getElementById('totalCount');
+    const progressFill = document.getElementById('progressFill');
+
+    const filteredRules = activeSetId === 'all'
+        ? rules
+        : rules.filter(r => r.set_id === activeSetId);
+
+    const checked = filteredRules.filter(r => checkedRules.has(r.id)).size || [...filteredRules].filter(r => checkedRules.has(r.id)).length;
+    const total = filteredRules.length;
+
+    checkedCount.textContent = checked;
+    totalCount.textContent = total;
+    progressFill.style.width = total > 0 ? `${(checked / total) * 100}%` : '0%';
+
+    if (filteredRules.length === 0) {
+        rulesList.innerHTML = `<div class="rules-empty"><p>No rules here yet.</p></div>`;
+        return;
+    }
+
+    rulesList.innerHTML = filteredRules.map(rule => `
+        <div class="rule-item ${checkedRules.has(rule.id) ? 'checked' : ''}" data-id="${rule.id}">
+            <div class="rule-checkbox">${checkedRules.has(rule.id) ? '✓' : ''}</div>
+            <span class="rule-text">${rule.rule}</span>
+            <div class="rule-actions">
+                <button class="rule-edit-btn" data-rule-id="${rule.id}" data-rule-text="${rule.rule}" data-rule-set="${rule.set_id || ''}">
+                    <i data-lucide="pencil"></i>
+                </button>
+                <button class="rule-delete" data-rule-id="${rule.id}">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    document.querySelectorAll('.rule-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.rule-actions')) return;
+            const id = item.dataset.id;
+            if (checkedRules.has(id)) {
+                checkedRules.delete(id);
+            } else {
+                checkedRules.add(id);
+            }
+            renderRules();
+        });
+    });
+
+    document.querySelectorAll('.rule-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editingRuleId = btn.dataset.ruleId;
+            ruleInput.value = btn.dataset.ruleText;
+            document.getElementById('ruleSetSelect').value = btn.dataset.ruleSet || '';
+            document.querySelector('#ruleModalOverlay .modal-header h2').textContent = 'Edit Rule';
+            btnRuleSave.textContent = 'Update Rule';
+            ruleModalOverlay.classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.rule-delete').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.ruleId;
+            const confirmOverlay = document.getElementById('confirmOverlay');
+            const confirmDelete = document.getElementById('confirmDelete');
+            const confirmCancel = document.getElementById('confirmCancel');
+
+            confirmOverlay.classList.add('active');
+
+            confirmDelete.onclick = async () => {
+                await supabaseClient.from('rules').delete().eq('id', id);
+                checkedRules.delete(id);
+                confirmOverlay.classList.remove('active');
+                loadRules();
+            };
+
+            confirmCancel.onclick = () => confirmOverlay.classList.remove('active');
+        });
+    });
+
+    lucide.createIcons();
+}
+
+document.getElementById('btnReset').addEventListener('click', () => {
+    checkedRules = new Set();
+    renderRules();
+});
+
+loadRuleSets();
+loadRules();
+
+//Init
+renderSuggestions();
+loadRecentTrades();
+loadStreak();
+loadRules();
+lucide.createIcons();
+// Restore last active page
+const lastPage = localStorage.getItem('noxis_active_page') || 'dashboard';
+pages.forEach(p => p.classList.remove('active'));
+navItems.forEach(n => n.classList.remove('active'));
+document.getElementById(`page-${lastPage}`)?.classList.add('active');
+document.querySelectorAll(`[data-page="${lastPage}"]`).forEach(el => el.classList.add('active'));
+
+if (lastPage === 'checklist') {
+    loadRuleSets()
+    loadRules();
+}
+if (lastPage === 'dashboard') {
+    loadRecentTrades();
+    loadStreak();
+}
