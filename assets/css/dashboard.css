@@ -1767,17 +1767,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
 }
 
-.date-filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
 
-.filter-label {
-    font-size: 11px;
-    color: #888888;
-    font-family: 'Space Grotesk', sans-serif;
-}
 
 @media (max-width: 768px) {
     .journal-entry {
@@ -1857,6 +1847,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     -webkit-text-fill-color: #ffffff;
     min-width: 140px;
     opacity: 1;
+    }
+
+    .date-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    }
+
+    .filter-label {
+        font-size: 11px;
+        color: #888888;
+        font-family: 'Space Grotesk', sans-serif;
     }
 }
 
