@@ -1757,28 +1757,9 @@ select.journal-filter-input option {
     color: #ffffff;
 }
 
-input[type="date"].journal-filter-input {
-    color-scheme: dark;
-    color: #ffffff;
-}
-
-input[type="date"].journal-filter-input::-webkit-datetime-edit-fields-wrapper {
-    color: #ffffff;
-}
-
-input[type="date"].journal-filter-input::-webkit-datetime-edit-text {
-    color: #444444;
-}
-
-input[type="date"].journal-filter-input::-webkit-datetime-edit-month-field,
-input[type="date"].journal-filter-input::-webkit-datetime-edit-day-field,
-input[type="date"].journal-filter-input::-webkit-datetime-edit-year-field {
-    color: #ffffff;
-}
-
-input[type="date"].journal-filter-input::-webkit-calendar-picker-indicator {
+input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1) !important;
-    opacity: 0.5 !important; 
+    opacity: 0.6 !important;
     cursor: pointer;
 }
 
