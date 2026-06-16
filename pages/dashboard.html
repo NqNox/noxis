@@ -191,7 +191,40 @@
             </div>
         </div>
         <div class="page" id="page-journal">
-            <h1>Journal</h1>
+            <div class="page-header">
+                <h1 class="page-title">Journal</h1>
+                <button class="btn-log-trade">+ Log Trade</button>
+            </div>
+
+            <!-- FILTERS -->
+            <div class="journal-filters">
+                <input type="date" id="filterDateFrom" class="journal-filter-input" />
+                <input type="date" id="filterDateTo" class="journal-filter-input" />
+                <select id="filterSymbol" class="journal-filter-input">
+                    <option value="">All Symbols</option>
+                </select>
+                <select id="filterDirection" class="journal-filter-input">
+                    <option value="">All Directions</option>
+                    <option value="long">↑ Long</option>
+                    <option value="short">↓ Short</option>
+                </select>
+                <select id="filterRules" class="journal-filter-input">
+                    <option value="">All Trades</option>
+                    <option value="true">✓ Followed Rules</option>
+                    <option value="false">✗ Broke Rules</option>
+                </select>
+                <button class="btn-filter-reset" id="btnFilterReset">Clear</button>
+            </div>
+
+            <!-- JOURNAL ENTRIES -->
+            <div class="journal-entries" id="journalEntries">
+                <div class="journal-empty" id="journalEmpty">
+                    <p>No trades logged yet.</p>
+                </div>
+            </div>
+
+            <!-- PAGINATION -->
+            <div class="journal-pagination" id="journalPagination"></div>
         </div>
         <div class="page" id="page-streak">
             <h1>Streak</h1>

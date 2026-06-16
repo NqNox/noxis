@@ -30,6 +30,7 @@ navItems.forEach(item => {
             loadRecentTrades();
             loadStreak();
         }
+        if (target === 'journal') loadJournal();
     });
 });
 
@@ -883,13 +884,167 @@ document.getElementById('btnReset').addEventListener('click', () => {
     renderRules();
 });
 
-loadRuleSets();
-loadRules();
+// ============================================
+// JOURNAL
+// ============================================
+let journalPage = 1;
+const TRADES_PER_PAGE = 8;
+let allTrades = [];
+let filteredTrades = [];
+
+async function loadJournal() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data: trades } = await supabaseClient
+        .from('trades')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('date', { ascending: false })
+        .order('trade_number', { ascending: false });
+
+    allTrades = trades || [];
+
+    // Populate symbol filter
+    const symbols = [...new Set(allTrades.map(t => t.symbol))];
+    const symbolSelect = document.getElementById('filterSymbol');
+    symbolSelect.innerHTML = `<option value="">All Symbols</option>` +
+        symbols.map(s => `<option value="${s}">${s}</option>`).join('');
+
+    applyFilters();
+}
+
+function applyFilters() {
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+    const symbol = document.getElementById('filterSymbol').value;
+    const direction = document.getElementById('filterDirection').value;
+    const rules = document.getElementById('filterRules').value;
+
+    filteredTrades = allTrades.filter(trade => {
+        if (dateFrom && trade.date < dateFrom) return false;
+        if (dateTo && trade.date > dateTo) return false;
+        if (symbol && trade.symbol !== symbol) return false;
+        if (direction && trade.direction !== direction) return false;
+        if (rules !== '' && String(trade.followed_rules) !== rules) return false;
+        return true;
+    });
+
+    journalPage = 1;
+    renderJournal();
+    console.log('allTrades:', allTrades.length);
+    console.log('filters:', { dateFrom, dateTo, symbol, direction, rules });
+}
+
+function renderJournal() {
+    const entriesEl = document.getElementById('journalEntries');
+    const paginationEl = document.getElementById('journalPagination');
+
+    if (filteredTrades.length === 0) {
+        entriesEl.innerHTML = `<div class="journal-empty"><p>No trades match your filters.</p></div>`;
+        paginationEl.innerHTML = '';
+        return;
+    }
+
+    emptyEl.style.display = 'none';
+
+    const totalPages = Math.ceil(filteredTrades.length / TRADES_PER_PAGE);
+    const start = (journalPage - 1) * TRADES_PER_PAGE;
+    const pageTrades = filteredTrades.slice(start, start + TRADES_PER_PAGE);
+
+    entriesEl.innerHTML = pageTrades.map(trade => `
+        <div class="journal-entry ${trade.pnl > 0 ? 'win' : trade.pnl < 0 ? 'loss' : ''}">
+            <div class="entry-date-col">
+                <span class="entry-date">${trade.date}</span>
+                <span class="entry-trade-num">Trade #${trade.trade_number}</span>
+                <span class="entry-rules-badge ${trade.followed_rules ? 'followed' : 'broke'}">
+                    ${trade.followed_rules ? '✓ Rules' : '✗ Broke rules'}
+                </span>
+            </div>
+            <div class="entry-main">
+                <div class="entry-top">
+                    <span class="entry-symbol">${trade.symbol}</span>
+                    <span class="entry-direction ${trade.direction}">
+                        ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                    </span>
+                    <span class="entry-size">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
+                </div>
+                <div class="entry-prices">
+                    <span>Entry: ${trade.entry_price}</span>
+                    <span>Exit: ${trade.exit_price}</span>
+                </div>
+                ${trade.emotions ? `
+                    <div class="entry-emotions">
+                        ${trade.emotions.split(', ').map(e => `<span class="entry-emotion-tag">${e}</span>`).join('')}
+                    </div>
+                ` : ''}
+                ${trade.notes ? `<div class="entry-notes">"${trade.notes}"</div>` : ''}
+            </div>
+            <div class="entry-pnl-col">
+                <span class="entry-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                </span>
+                <div class="entry-actions">
+                    <button class="trade-edit-btn" data-id="${trade.id}">
+                        <i data-lucide="pencil" class="pencil-icon"></i>
+                    </button>
+                    <button class="trade-delete-btn" data-id="${trade.id}">
+                        <i data-lucide="trash-2" class="trash-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    // Pagination
+    paginationEl.innerHTML = `
+        <button class="page-btn" id="prevPage" ${journalPage === 1 ? 'disabled' : ''}>← Prev</button>
+        ${Array.from({length: totalPages}, (_, i) => `
+            <button class="page-btn ${journalPage === i + 1 ? 'active' : ''}" data-page="${i + 1}">${i + 1}</button>
+        `).join('')}
+        <button class="page-btn" id="nextPage" ${journalPage === totalPages ? 'disabled' : ''}>Next →</button>
+    `;
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (journalPage > 1) { journalPage--; renderJournal(); }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        if (journalPage < totalPages) { journalPage++; renderJournal(); }
+    });
+
+    document.querySelectorAll('.page-btn[data-page]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            journalPage = parseInt(btn.dataset.page);
+            renderJournal();
+        });
+    });
+
+    lucide.createIcons();
+}
+
+// Filter listeners
+['filterSymbol', 'filterDirection', 'filterRules'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+document.getElementById('filterDateFrom').addEventListener('input', applyFilters);
+document.getElementById('filterDateTo').addEventListener('input', applyFilters);
+
+document.getElementById('btnFilterReset').addEventListener('click', () => {
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    document.getElementById('filterSymbol').value = '';
+    document.getElementById('filterDirection').value = '';
+    document.getElementById('filterRules').value = '';
+    applyFilters();
+});
 
 //Init
 renderSuggestions();
 loadRecentTrades();
 loadStreak();
+loadRuleSets();
 loadRules();
 lucide.createIcons();
 // Restore last active page
@@ -907,3 +1062,4 @@ if (lastPage === 'dashboard') {
     loadRecentTrades();
     loadStreak();
 }
+if (lastPage === 'journal') loadJournal();
