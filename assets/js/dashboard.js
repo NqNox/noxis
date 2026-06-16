@@ -946,8 +946,6 @@ function renderJournal() {
         return;
     }
 
-    emptyEl.style.display = 'none';
-
     const totalPages = Math.ceil(filteredTrades.length / TRADES_PER_PAGE);
     const start = (journalPage - 1) * TRADES_PER_PAGE;
     const pageTrades = filteredTrades.slice(start, start + TRADES_PER_PAGE);
