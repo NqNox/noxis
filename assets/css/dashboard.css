@@ -1838,6 +1838,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     input[type="date"].journal-filter-input::-webkit-datetime-edit {
         color: #ffffff;
     }
+
+    input[type="date"].journal-filter-input {
+    color: #ffffff !important;
+    color-scheme: dark !important;
+    -webkit-text-fill-color: #ffffff;
+    min-width: 140px;
+    opacity: 1;
+    }
 }
 
 @media (max-width: 768px) {
