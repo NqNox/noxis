@@ -19,7 +19,7 @@ navItems.forEach(item => {
         pages.forEach(p => p.classList.remove('active'));
         document.querySelectorAll(`[data-page="${target}"]`).forEach(el => el.classList.add('active'));
         document.getElementById(`page-${target}`).classList.add('active');
-        localStorage.setItem('noxis_active_page', target);
+        sessionStorage.setItem('noxis_active_page', target);
 
         // Load page data when switching
         if (target === 'checklist'){
@@ -893,7 +893,7 @@ loadStreak();
 loadRules();
 lucide.createIcons();
 // Restore last active page
-const lastPage = 'dashboard';
+const lastPage = sessionStorage.getItem('noxis_active_page') || 'dashboard';
 pages.forEach(p => p.classList.remove('active'));
 navItems.forEach(n => n.classList.remove('active'));
 document.getElementById(`page-${lastPage}`)?.classList.add('active');
