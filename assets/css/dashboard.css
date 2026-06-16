@@ -17,6 +17,10 @@ html, body {
     overflow: hidden;
 }
 
+.main-content {
+    overflow-x: hidden;
+}
+
 /* ============================================
    SIDEBAR
    ============================================ */
@@ -1797,5 +1801,31 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .journal-filter-input {
         flex: 1;
         min-width: 120px;
+    }
+
+    /* Journal scrollable on mobile */
+    .journal-entries {
+        overflow-y: auto;
+        max-height: calc(100vh - 280px);
+    }
+
+    /* Stats card overflow fix */
+    .stats-card {
+        overflow: hidden;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        word-break: break-all;
+    }
+
+    /* Date inputs visible on mobile */
+    .journal-filter-input {
+        min-width: 130px;
+        font-size: 12px;
+    }
+
+    input[type="date"].journal-filter-input {
+        min-width: 140px;
     }
 }
