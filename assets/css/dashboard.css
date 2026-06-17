@@ -1497,32 +1497,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 }
 
 /* JOURNAL ENTRIES */
-.journal-entries {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex: 1;
-}
-
-.journal-empty {
-    text-align: center;
-    padding: 60px;
-    color: #444444;
-    font-size: 14px;
-}
-
 .journal-entry {
     background: #111111;
     border: 1px solid #1a1a1a;
     border-left: 3px solid #2a2a2a;
     border-radius: 0 12px 12px 0;
-    padding: 20px 24px;
+    padding: 0;
     display: grid;
-    grid-template-columns: 140px 1fr auto;
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    align-items: stretch;
     transition: all 0.2s ease;
-    cursor: default;
+    overflow: hidden;
 }
 
 .journal-entry:hover {
@@ -1530,35 +1516,93 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     background: #131313;
 }
 
-.journal-entry.loss {
-    border-left-color: #2a1a1a;
-}
+.journal-entry.loss { border-left-color: #2a1a1a; }
+.journal-entry.loss:hover { border-left-color: #ff4444; }
+.journal-entry.win { border-left-color: #1a2a1a; }
+.journal-entry.win:hover { border-left-color: #00c864; }
 
-.journal-entry.loss:hover {
-    border-left-color: #ff4444;
-}
-
-.journal-entry.win {
-    border-left-color: #1a2a1a;
-}
-
-.journal-entry.win:hover {
-    border-left-color: #00c864;
-}
-
-/* ENTRY DATE COLUMN */
-.entry-date-col {
+/* LEFT - Trade Data */
+.entry-data {
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding-right: 20px;
+    gap: 12px;
     border-right: 1px solid #1a1a1a;
 }
 
-.entry-date {
-    font-size: 13px;
+.entry-top {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.entry-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.entry-symbol {
+    font-size: 20px;
     font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
     color: #ffffff;
+}
+
+.entry-pnl {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.entry-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.entry-direction {
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.entry-direction.long {
+    background: rgba(0, 200, 100, 0.1);
+    color: #00c864;
+}
+
+.entry-direction.short {
+    background: rgba(255, 68, 68, 0.1);
+    color: #ff4444;
+}
+
+.entry-size {
+    font-size: 11px;
+    color: #888888;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.entry-prices {
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    color: #444444;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.entry-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: auto;
+}
+
+.entry-date {
+    font-size: 11px;
+    color: #444444;
     font-family: 'JetBrains Mono', monospace;
 }
 
@@ -1571,12 +1615,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .entry-rules-badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
     font-size: 10px;
-    padding: 3px 8px;
+    padding: 2px 8px;
     border-radius: 50px;
-    margin-top: 4px;
     font-weight: 600;
+    width: fit-content;
 }
 
 .entry-rules-badge.followed {
@@ -1591,6 +1634,60 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     border: 1px solid rgba(255, 68, 68, 0.2);
 }
 
+/* RIGHT - Journal Notes */
+.entry-journal {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #0d0d0d;
+    position: relative;
+    min-height: 120px;
+}
+
+.entry-notes-text {
+    font-size: 14px;
+    color: #cccccc;
+    font-style: italic;
+    line-height: 1.8;
+    font-family: 'Space Grotesk', sans-serif;
+    flex: 1;
+}
+
+.entry-notes-empty {
+    font-size: 13px;
+    color: #333333;
+    font-style: italic;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.entry-emotions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.entry-emotion-tag {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 50px;
+    padding: 2px 10px;
+    font-size: 11px;
+    color: #888888;
+}
+
+.entry-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+}
+
+.journal-entry:hover .entry-actions { opacity: 1; }
+
 /* ENTRY MAIN COLUMN */
 .entry-main {
     display: flex;
@@ -1600,9 +1697,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
 .entry-top {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .entry-symbol {
@@ -1767,6 +1863,39 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
 }
 
+.entry-notes-editable {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #cccccc;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 1.8;
+    font-family: 'Space Grotesk', sans-serif;
+    width: 100%;
+    resize: none;
+    min-height: 80px;
+    height: 100%;
+    flex: 1;
+    cursor: text;
+    transition: all 0.2s ease;
+    padding: 0;
+    display: block;
+}
+
+.entry-notes-editable::placeholder {
+    color: #333333;
+    font-style: italic;
+}
+
+.entry-notes-editable:focus {
+    color: #ffffff;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+    padding: 8px;
+    margin: -8px;
+}
+
 
 
 @media (max-width: 768px) {
@@ -1878,5 +2007,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .recent-card {
         height: auto;
         min-height: unset;
+    }
+}
+
+@media (max-width: 768px) {
+    .journal-entry {
+        grid-template-columns: 1fr;
+    }
+
+    .entry-data {
+        border-right: none;
+        border-bottom: 1px solid #1a1a1a;
+    }
+
+    .entry-journal {
+        min-height: 80px;
+    }
+
+    .entry-actions {
+        opacity: 1;
     }
 }

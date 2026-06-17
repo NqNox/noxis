@@ -952,36 +952,49 @@ function renderJournal() {
 
     entriesEl.innerHTML = pageTrades.map(trade => `
         <div class="journal-entry ${trade.pnl > 0 ? 'win' : trade.pnl < 0 ? 'loss' : ''}">
-            <div class="entry-date-col">
-                <span class="entry-date">${trade.date}</span>
-                <span class="entry-trade-num">Trade #${trade.trade_number}</span>
-                <span class="entry-rules-badge ${trade.followed_rules ? 'followed' : 'broke'}">
-                    ${trade.followed_rules ? '✓ Rules' : '✗ Broke rules'}
-                </span>
-            </div>
-            <div class="entry-main">
+            
+            <!-- LEFT - Trade Data -->
+            <div class="entry-data">
                 <div class="entry-top">
-                    <span class="entry-symbol">${trade.symbol}</span>
-                    <span class="entry-direction ${trade.direction}">
-                        ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
-                    </span>
-                    <span class="entry-size">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
-                </div>
-                <div class="entry-prices">
-                    <span>Entry: ${trade.entry_price}</span>
-                    <span>Exit: ${trade.exit_price}</span>
-                </div>
-                ${trade.emotions ? `
-                    <div class="entry-emotions">
-                        ${trade.emotions.split(', ').map(e => `<span class="entry-emotion-tag">${e}</span>`).join('')}
+                    <div class="entry-header-row">
+                        <span class="entry-symbol">${trade.symbol}</span>
+                        <span class="entry-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                            ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                        </span>
                     </div>
-                ` : ''}
-                ${trade.notes ? `<div class="entry-notes">"${trade.notes}"</div>` : ''}
+                    <div class="entry-meta">
+                        <span class="entry-direction ${trade.direction}">
+                            ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                        </span>
+                        <span class="entry-size">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="entry-prices">
+                        <span>In: ${trade.entry_price}</span>
+                        <span>Out: ${trade.exit_price}</span>
+                    </div>
+                </div>
+                <div class="entry-bottom">
+                    <span class="entry-date">${trade.date}</span>
+                    <span class="entry-trade-num">Trade #${trade.trade_number}</span>
+                    <span class="entry-rules-badge ${trade.followed_rules ? 'followed' : 'broke'}">
+                        ${trade.followed_rules ? '✓ Rules followed' : '✗ Broke rules'}
+                    </span>
+                </div>
             </div>
-            <div class="entry-pnl-col">
-                <span class="entry-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                </span>
+
+            <!-- RIGHT - Journal Notes -->
+            <div class="entry-journal">
+                <div class="entry-emotions">
+                    ${trade.emotions 
+                        ? trade.emotions.split(', ').map(e => `<span class="entry-emotion-tag">${e}</span>`).join('')
+                        : ''
+                    }
+                </div>
+                <textarea 
+                    class="entry-notes-editable" 
+                    data-trade-id="${trade.id}"
+                    placeholder="Click to add notes..."
+                >${trade.notes || ''}</textarea>
                 <div class="entry-actions">
                     <button class="trade-edit-btn" data-id="${trade.id}">
                         <i data-lucide="pencil" class="pencil-icon"></i>
@@ -1019,6 +1032,30 @@ function renderJournal() {
     });
 
     lucide.createIcons();
+
+    // Auto-save notes on blur
+    document.querySelectorAll('.entry-notes-editable').forEach(textarea => {
+        let saveTimeout;
+        textarea.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(async () => {
+                const tradeId = textarea.dataset.tradeId;
+                await supabaseClient
+                    .from('trades')
+                    .update({ notes: textarea.value })
+                    .eq('id', tradeId);
+            }, 1000);
+        });
+
+        textarea.addEventListener('blur', async () => {
+            clearTimeout(saveTimeout);
+            const tradeId = textarea.dataset.tradeId;
+            await supabaseClient
+                .from('trades')
+                .update({ notes: textarea.value })
+                .eq('id', tradeId);
+        });
+    });
 }
 
 // Filter listeners
