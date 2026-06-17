@@ -31,6 +31,7 @@ navItems.forEach(item => {
             loadStreak();
         }
         if (target === 'journal') loadJournal();
+        if (target === 'streak') loadStreakPage();
     });
 });
 
@@ -1075,6 +1076,177 @@ document.getElementById('btnFilterReset').addEventListener('click', () => {
     applyFilters();
 });
 
+// ============================================
+// STREAK PAGE
+// ============================================
+const RANKS = [
+    { name: 'Bronze', icon: '🥉', min: 0, max: 4 },
+    { name: 'Silver', icon: '🥈', min: 5, max: 9 },
+    { name: 'Gold', icon: '🥇', min: 10, max: 14 },
+    { name: 'Platinum', icon: '💎', min: 15, max: 19 },
+    { name: 'Titanium', icon: '🔩', min: 20, max: 29 },
+    { name: 'Diamond', icon: '💠', min: 30, max: Infinity }
+];
+
+let calendarDate = new Date();
+
+function getRank(totalDays) {
+    return RANKS.find(r => totalDays >= r.min && totalDays <= r.max) || RANKS[0];
+}
+
+async function loadStreakPage() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data: trades } = await supabaseClient
+        .from('trades')
+        .select('date, pnl, followed_rules')
+        .eq('user_id', session.user.id)
+        .order('date', { ascending: true });
+
+    if (!trades) return;
+
+    // Group by date
+    const tradesByDate = {};
+    trades.forEach(trade => {
+        if (!tradesByDate[trade.date]) {
+            tradesByDate[trade.date] = { pnl: 0, followed_rules: true };
+        }
+        tradesByDate[trade.date].pnl += trade.pnl;
+        if (!trade.followed_rules) tradesByDate[trade.date].followed_rules = false;
+    });
+
+    // Total compliant days
+    const compliantDays = Object.values(tradesByDate).filter(d => d.followed_rules).length;
+
+    // Highest win streak
+    const tradingDates = Object.keys(tradesByDate).sort();
+    let maxStreak = 0;
+    let currentStreak = 0;
+    tradingDates.forEach(date => {
+        if (tradesByDate[date].followed_rules) {
+            currentStreak++;
+            maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+            currentStreak = 0;
+        }
+    });
+
+    // Current streak
+    let streak = 0;
+    const sortedDates = [...tradingDates].reverse();
+    for (const date of sortedDates) {
+        if (tradesByDate[date].followed_rules) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+
+    // Rank
+    const rank = getRank(compliantDays);
+    const nextRank = RANKS.find(r => r.min > compliantDays);
+    const daysToNext = nextRank ? nextRank.min - compliantDays : 0;
+    const progressPct = nextRank
+        ? ((compliantDays - rank.min) / (nextRank.min - rank.min)) * 100
+        : 100;
+
+    // Update stats
+    document.getElementById('highestWinStreak').textContent = `${maxStreak}d in a row`;
+    document.getElementById('totalCompliantDays').textContent = `${compliantDays} days`;
+    document.getElementById('streakPageFlame').textContent = streak > 0 ? '🔥' : '💤';
+    document.getElementById('streakPageTitle').textContent = streak > 0 ? `${streak} Day Streak` : 'No streak yet';
+
+    // Rank
+    document.getElementById('rankIcon').textContent = rank.icon;
+    document.getElementById('rankName').textContent = rank.name;
+    document.getElementById('rankProgressLabel').textContent = nextRank
+        ? `${daysToNext} days to ${nextRank.name}`
+        : '🏆 Max rank achieved!';
+    document.getElementById('rankProgressFill').style.width = `${progressPct}%`;
+
+    // Streak days widget
+    const streakPageDays = document.getElementById('streakPageDays');
+    streakPageDays.innerHTML = '';
+    const today = new Date();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = [];
+    let d = new Date(today);
+    while (d.getDay() !== 1) d.setDate(d.getDate() - 1);
+    for (let i = 0; i < 5; i++) {
+        days.push(new Date(d));
+        d.setDate(d.getDate() + 1);
+    }
+    days.forEach(day => {
+        const dateStr = day.toLocaleDateString('en-CA');
+        const isToday = dateStr === today.toLocaleDateString('en-CA');
+        const dayData = tradesByDate[dateStr];
+        const isActive = dayData && dayData.followed_rules;
+        const circle = document.createElement('div');
+        circle.className = 'day-circle' + (isActive ? ' active' : '') + (isToday ? ' today' : '');
+        circle.innerHTML = `${day.getDate()}<span>${dayNames[day.getDay()]}</span>`;
+        streakPageDays.appendChild(circle);
+    });
+
+    renderCalendar(tradesByDate);
+}
+
+function renderCalendar(tradesByDate) {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    document.getElementById('calMonth').textContent = `${monthNames[month]} ${year}`;
+
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const today = new Date().toLocaleDateString('en-CA');
+
+    // Monday-based offset
+    let startOffset = firstDay.getDay() - 1;
+    if (startOffset < 0) startOffset = 6;
+
+    for (let i = 0; i < startOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        grid.appendChild(empty);
+    }
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayData = tradesByDate[dateStr];
+        const isToday = dateStr === today;
+
+        const cell = document.createElement('div');
+        let className = 'cal-day';
+
+        if (dayData) {
+            className += dayData.pnl >= 0 && dayData.followed_rules ? ' win' : ' loss';
+        } else {
+            className += ' no-trade';
+        }
+
+        if (isToday) className += ' today';
+        cell.className = className;
+        cell.innerHTML = `${day}${dayData ? `<span class="cal-day-label">${dayData.followed_rules ? '✓' : '✗'}</span>` : ''}`;
+        grid.appendChild(cell);
+    }
+}
+// Calendar navigation
+document.getElementById('calPrev').addEventListener('click', () => {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    loadStreakPage();
+});
+
+document.getElementById('calNext').addEventListener('click', () => {
+    calendarDate.setMonth(calendarDate.getMonth() + 1);
+    loadStreakPage();
+});
+
 //Init
 renderSuggestions();
 loadRecentTrades();
@@ -1098,3 +1270,4 @@ if (lastPage === 'dashboard') {
     loadStreak();
 }
 if (lastPage === 'journal') loadJournal();
+if (lastPage === 'streak') loadStreakPage();

@@ -233,7 +233,70 @@
             <div class="journal-pagination" id="journalPagination"></div>
         </div>
         <div class="page" id="page-streak">
-            <h1>Streak</h1>
+            <div class="page-header">
+                <h1 class="page-title">My Streak</h1>
+            </div>
+
+            <div class="streak-page-top">
+                <!-- Stats -->
+                <div class="streak-stats-card">
+                    <div class="streak-stat">
+                        <span class="streak-stat-label">Highest Winning Streak</span>
+                        <span class="streak-stat-value green" id="highestWinStreak">—</span>
+                    </div>
+                    <div class="streak-stat">
+                        <span class="streak-stat-label">Total Compliant Days</span>
+                        <span class="streak-stat-value" id="totalCompliantDays">—</span>
+                    </div>
+                </div>
+
+                <!-- Current Streak -->
+                <div class="streak-current-card">
+                    <div class="streak-rank-flame" id="streakPageFlame">🔥</div>
+                    <div class="streak-current-info">
+                        <span class="streak-current-title" id="streakPageTitle">0 Day Streak</span>
+                        <div class="streak-days" id="streakPageDays"></div>
+                    </div>
+                </div>
+
+                <!-- Rank -->
+                <div class="streak-rank-card">
+                    <div class="streak-rank-badge" id="streakRankBadge">
+                        <span class="rank-icon" id="rankIcon">🥉</span>
+                        <span class="rank-name" id="rankName">Bronze</span>
+                    </div>
+                    <div class="streak-rank-progress">
+                        <span class="streak-rank-progress-label" id="rankProgressLabel">4 days to Silver</span>
+                        <div class="streak-rank-progress-bar">
+                            <div class="streak-rank-progress-fill" id="rankProgressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="streak-calendar-card">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" id="calPrev">←</button>
+                    <span class="calendar-month" id="calMonth"></span>
+                    <button class="calendar-nav-btn" id="calNext">→</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                    <span>Sun</span>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><div class="legend-dot green"></div><span>Win + Rules</span></div>
+                    <div class="legend-item"><div class="legend-dot red"></div><span>Losing Day</span></div>
+                    <div class="legend-item"><div class="legend-dot gray"></div><span>No Trade</span></div>
+                </div>
+            </div>
         </div>
         <div class="page" id="page-ai">
             <h1>AI Insights</h1>
