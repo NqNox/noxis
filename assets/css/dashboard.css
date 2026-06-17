@@ -1051,12 +1051,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     .bottom-nav {
         display: flex;
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #0f0f0f;
+        bottom: 2vh;
+        left: 2vw;
+        right: 2vw;
+        background: rgba(15, 15, 15, 0.8);
         border-top: 1px solid #1a1a1a;
-        padding: 12px 0 34px 0;
+        padding: 12px 2px 34px 2px;
         justify-content: space-around;
         align-items: center;
         z-index: 100;
