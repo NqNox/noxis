@@ -1056,7 +1056,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         right: 2vw;
         background: rgba(15, 15, 15, 0.8);
         border-top: 1px solid #1a1a1a;
-        padding: 8px 2px 8px 2px;
+        padding: 8px 2px 10px 2px;
         justify-content: space-around;
         align-items: center;
         z-index: 100;
