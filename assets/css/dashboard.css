@@ -1060,6 +1060,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         justify-content: space-around;
         align-items: center;
         z-index: 100;
+        border-radius: 2vh;
     }
 
     .bottom-nav-item {
@@ -1077,7 +1078,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         font-family: 'Space Grotesk', sans-serif;
         padding: 12px 8px 0 8px;
         flex: 1;
-        justify-content: center;
+        justify-content: space-around;
     }
 
     .bottom-nav-item.active { color: #00d4d4; }
