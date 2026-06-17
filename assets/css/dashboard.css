@@ -1075,6 +1075,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         background: none;
         border: none;
         font-family: 'Space Grotesk', sans-serif;
+        padding: 12px 8px 34px 8px;
+        flex: 1;
+        justify-content: center;
     }
 
     .bottom-nav-item.active { color: #00d4d4; }
