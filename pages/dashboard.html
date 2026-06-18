@@ -302,7 +302,103 @@
             <h1>AI Insights</h1>
         </div>
         <div class="page" id="page-settings">
-            <h1>Settings</h1>
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+                <button class="btn-save-settings" id="btnSaveSettings">Save Changes</button>
+            </div>
+
+            <div class="settings-layout">
+                <!-- PROFILE -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">Profile</h2>
+                    <div class="settings-card">
+                        <div class="settings-field">
+                            <label>Display Name</label>
+                            <input type="text" id="settingName" placeholder="Your name" />
+                        </div>
+                        <div class="settings-field">
+                            <label>Email</label>
+                            <input type="email" id="settingEmail" placeholder="your@email.com" disabled />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRADING -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">Trading Account</h2>
+                    <div class="settings-card">
+                        <div class="settings-field">
+                            <label>Account Balance ($)</label>
+                            <input type="number" id="settingBalance" placeholder="50000" />
+                        </div>
+                        <div class="settings-field">
+                            <label>Primary Instrument</label>
+                            <select id="settingInstrument">
+                                <option value="NQ">NQ — Nasdaq Futures</option>
+                                <option value="ES">ES — S&P 500 Futures</option>
+                                <option value="MNQ">MNQ — Micro Nasdaq</option>
+                                <option value="MES">MES — Micro S&P</option>
+                                <option value="GC">GC — Gold Futures</option>
+                                <option value="CL">CL — Crude Oil</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="settings-field">
+                            <label>Funded Account Firm</label>
+                            <input type="text" id="settingFirm" placeholder="e.g. Apex, Topstep, FTMO..." />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SESSIONS -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">Trading Sessions</h2>
+                    <div class="settings-card">
+                        <div class="settings-field">
+                            <label>Timezone</label>
+                            <select id="settingTimezone">
+                                <option value="America/New_York">New York (ET)</option>
+                                <option value="America/Chicago">Chicago (CT)</option>
+                                <option value="Europe/London">London (GMT)</option>
+                                <option value="Europe/Paris">Paris (CET)</option>
+                                <option value="Asia/Jerusalem">Israel (IST)</option>
+                                <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                <option value="Asia/Dubai">Dubai (GST)</option>
+                            </select>
+                        </div>
+                        <div class="settings-field">
+                            <label>Session Start</label>
+                            <input type="time" id="settingSessionStart" value="09:30" />
+                        </div>
+                        <div class="settings-field">
+                            <label>Session End</label>
+                            <input type="time" id="settingSessionEnd" value="16:00" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANGER ZONE -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title danger">Danger Zone</h2>
+                    <div class="settings-card danger-card">
+                        <div class="danger-item">
+                            <div>
+                                <span class="danger-title">Log Out</span>
+                                <p class="danger-desc">Sign out of your Noxis account.</p>
+                            </div>
+                            <button class="btn-logout" id="btnLogout">Log Out</button>
+                        </div>
+                        <div class="danger-divider"></div>
+                        <div class="danger-item">
+                            <div>
+                                <span class="danger-title">Delete All Trades</span>
+                                <p class="danger-desc">Permanently delete all your logged trades.</p>
+                            </div>
+                            <button class="btn-danger" id="btnDeleteTrades">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 

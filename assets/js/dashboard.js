@@ -32,6 +32,7 @@ navItems.forEach(item => {
         }
         if (target === 'journal') loadJournal();
         if (target === 'streak') loadStreakPage();
+        if (target === 'settings') loadSettings();
     });
 });
 
@@ -1247,6 +1248,89 @@ document.getElementById('calNext').addEventListener('click', () => {
     loadStreakPage();
 });
 
+// ============================================
+// SETTINGS
+// ============================================
+async function loadSettings() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    document.getElementById('settingEmail').value = session.user.email || '';
+
+    // Load saved settings from localStorage
+    const saved = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
+    if (saved.name) document.getElementById('settingName').value = saved.name;
+    if (saved.balance) document.getElementById('settingBalance').value = saved.balance;
+    if (saved.instrument) document.getElementById('settingInstrument').value = saved.instrument;
+    if (saved.firm) document.getElementById('settingFirm').value = saved.firm;
+    if (saved.timezone) document.getElementById('settingTimezone').value = saved.timezone;
+    if (saved.sessionStart) document.getElementById('settingSessionStart').value = saved.sessionStart;
+    if (saved.sessionEnd) document.getElementById('settingSessionEnd').value = saved.sessionEnd;
+}
+
+document.getElementById('btnSaveSettings').addEventListener('click', () => {
+    const settings = {
+        name: document.getElementById('settingName').value,
+        balance: document.getElementById('settingBalance').value,
+        instrument: document.getElementById('settingInstrument').value,
+        firm: document.getElementById('settingFirm').value,
+        timezone: document.getElementById('settingTimezone').value,
+        sessionStart: document.getElementById('settingSessionStart').value,
+        sessionEnd: document.getElementById('settingSessionEnd').value,
+    };
+
+    localStorage.setItem('noxis_settings', JSON.stringify(settings));
+
+    // Update balance on dashboard
+    if (settings.balance) {
+        const balanceEl = document.querySelector('.stat-value.green');
+        if (balanceEl) balanceEl.textContent = '$' + Number(settings.balance).toLocaleString();
+    }
+
+    // Update name in sidebar
+    if (settings.name) {
+        document.querySelector('.user-name').textContent = settings.name;
+    }
+
+    const btn = document.getElementById('btnSaveSettings');
+    btn.textContent = 'Saved ✓';
+    setTimeout(() => btn.textContent = 'Save Changes', 2000);
+});
+
+// Logout
+document.getElementById('btnLogout').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+});
+
+// Delete all trades
+document.getElementById('btnDeleteTrades').addEventListener('click', () => {
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    const confirmDelete = document.getElementById('confirmDelete');
+    const confirmCancel = document.getElementById('confirmCancel');
+
+    document.querySelector('.confirm-popup h3').textContent = 'Delete All Trades?';
+    document.querySelector('.confirm-popup p').textContent = 'This will permanently delete every trade you have logged.';
+
+    confirmOverlay.classList.add('active');
+
+    confirmDelete.onclick = async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        await supabaseClient.from('trades').delete().eq('user_id', session.user.id);
+        confirmOverlay.classList.remove('active');
+        document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
+        document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
+        loadRecentTrades();
+        loadStreak();
+    };
+
+    confirmCancel.onclick = () => {
+        confirmOverlay.classList.remove('active');
+        document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
+        document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
+    };
+});
+
 //Init
 renderSuggestions();
 loadRecentTrades();
@@ -1271,3 +1355,4 @@ if (lastPage === 'dashboard') {
 }
 if (lastPage === 'journal') loadJournal();
 if (lastPage === 'streak') loadStreakPage();
+if (lastPage === 'settings') loadSettings();

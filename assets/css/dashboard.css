@@ -2356,3 +2356,175 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         padding: 16px;
     }
 }
+
+/* ============================================
+   SETTINGS
+   ============================================ */
+.settings-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 640px;
+}
+
+.settings-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.settings-section-title.danger {
+    color: #ff4444;
+}
+
+.settings-card {
+    background: #111111;
+    border: 1px solid #1a1a1a;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-field label {
+    font-size: 13px;
+    color: #888888;
+    font-weight: 500;
+}
+
+.settings-field input,
+.settings-field select {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.settings-field input:focus,
+.settings-field select:focus {
+    border-color: #00d4d4;
+}
+
+.settings-field input::placeholder {
+    color: #444444;
+}
+
+.settings-field input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.settings-field select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    padding-right: 30px;
+    cursor: pointer;
+}
+
+.settings-field select option {
+    background: #111111;
+}
+
+.btn-save-settings {
+    background: #00d4d4;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: #0a0a0a;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save-settings:hover {
+    background: #ffffff;
+}
+
+/* DANGER ZONE */
+.danger-card {
+    border-color: rgba(255, 68, 68, 0.2);
+}
+
+.danger-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.danger-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.danger-desc {
+    font-size: 12px;
+    color: #888888;
+}
+
+.danger-divider {
+    height: 1px;
+    background: #1a1a1a;
+}
+
+.btn-logout {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 8px 20px;
+    color: #888888;
+    font-size: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-logout:hover {
+    border-color: #ffffff;
+    color: #ffffff;
+}
+
+.btn-danger {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 8px 20px;
+    color: #ff4444;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-danger:hover {
+    background: #ff4444;
+    color: #ffffff;
+}
