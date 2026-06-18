@@ -34,7 +34,7 @@
             </a>
             <a href="#" class="nav-item" data-page="ai">
                 <i data-lucide="brain" class="nav-icon"></i>
-                <span class="nav-label">AI Insights</span>
+                <span class="nav-label">Insights</span>
             </a>
         </nav>
         <div class="sidebar-bottom">
@@ -305,7 +305,86 @@
             </div>
         </div>
         <div class="page" id="page-ai">
-            <h1>AI Insights</h1>
+            <div class="page-header">
+                <h1 class="page-title">Insights</h1>
+            </div>
+
+            <!-- TOP STAT CARDS -->
+            <div class="insights-stats">
+                <div class="insight-stat-card">
+                    <span class="insight-stat-label">Total P&L</span>
+                    <span class="insight-stat-value" id="insightTotalPnl">—</span>
+                </div>
+                <div class="insight-stat-card">
+                    <span class="insight-stat-label">Win Rate</span>
+                    <span class="insight-stat-value" id="insightWinRate">—</span>
+                </div>
+                <div class="insight-stat-card">
+                    <span class="insight-stat-label">Profit Factor</span>
+                    <span class="insight-stat-value" id="insightProfitFactor">—</span>
+                </div>
+                <div class="insight-stat-card">
+                    <span class="insight-stat-label">Avg Win / Avg Loss</span>
+                    <span class="insight-stat-value" id="insightAvgRatio">—</span>
+                </div>
+            </div>
+
+            <!-- CHARTS ROW -->
+            <div class="insights-charts">
+                <div class="insight-card">
+                    <h3 class="insight-card-title">Performance by Day</h3>
+                    <div class="chart-container" id="dayOfWeekChart"></div>
+                </div>
+                <div class="insight-card">
+                    <h3 class="insight-card-title">Emotion Correlation</h3>
+                    <div class="chart-container" id="emotionChart"></div>
+                </div>
+            </div>
+
+            <!-- EQUITY CURVE -->
+            <div class="insight-card insight-full">
+                <h3 class="insight-card-title">Account Balance</h3>
+                <div class="chart-container tall" id="equityChart"></div>
+            </div>
+
+            <!-- AI SECTION -->
+            <div class="insight-card insight-full insight-ai">
+                <div class="insight-ai-header">
+                    <div>
+                        <h3 class="insight-card-title">Noxis AI</h3>
+                        <p class="insight-ai-sub">Personalized behavioral analysis powered by AI</p>
+                    </div>
+                    <div class="insight-ai-badge">Pro & Elite</div>
+                </div>
+                <div class="insight-ai-preview">
+                    <div class="ai-insight-item blurred">
+                        <div class="ai-insight-icon">⚠️</div>
+                        <div class="ai-insight-text">
+                            <span class="ai-insight-title">Overtrading detected on Mondays</span>
+                            <span class="ai-insight-desc">Your win rate drops from 68% to 31% after your 3rd trade on Mondays.</span>
+                        </div>
+                    </div>
+                    <div class="ai-insight-item blurred">
+                        <div class="ai-insight-icon">📊</div>
+                        <div class="ai-insight-text">
+                            <span class="ai-insight-title">FOMO trades underperforming</span>
+                            <span class="ai-insight-desc">Trades tagged with FOMO have a 22% win rate vs your average of 54%.</span>
+                        </div>
+                    </div>
+                    <div class="ai-insight-item blurred">
+                        <div class="ai-insight-icon">✅</div>
+                        <div class="ai-insight-text">
+                            <span class="ai-insight-title">Rule compliance boosts performance</span>
+                            <span class="ai-insight-desc">When you follow all rules your average P&L is 3.2x higher.</span>
+                        </div>
+                    </div>
+                    <div class="insight-ai-lock">
+                        <span class="lock-icon">🔒</span>
+                        <span class="lock-text">Upgrade to Pro or Elite to unlock AI insights</span>
+                        <a href="#" class="btn-upgrade">Upgrade →</a>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="page" id="page-settings">
             <div class="page-header">
@@ -428,7 +507,7 @@
         </button>
         <button class="bottom-nav-item" data-page="ai">
             <i data-lucide="brain" class="nav-icon"></i>
-            <span>AI</span>
+            <span>insight</span>
         </button>
     </nav>
 

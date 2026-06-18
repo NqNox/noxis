@@ -33,6 +33,7 @@ navItems.forEach(item => {
         if (target === 'journal') loadJournal();
         if (target === 'streak') loadStreakPage();
         if (target === 'settings') loadSettings();
+        if (target === 'ai') loadInsights();
     });
 });
 
@@ -1344,6 +1345,193 @@ if (mobileSettingsBtn) {
     });
 }
 
+// ============================================
+// INSIGHTS
+// ============================================
+async function loadInsights() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data: trades } = await supabaseClient
+        .from('trades')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('date', { ascending: true });
+
+    if (!trades || trades.length === 0) {
+        document.getElementById('insightTotalPnl').textContent = '$0';
+        document.getElementById('insightWinRate').textContent = '0%';
+        document.getElementById('insightProfitFactor').textContent = '—';
+        document.getElementById('insightAvgRatio').textContent = '—';
+        return;
+    }
+
+    // STATS
+    const totalPnl = trades.reduce((sum, t) => sum + t.pnl, 0);
+    const wins = trades.filter(t => t.pnl > 0);
+    const losses = trades.filter(t => t.pnl < 0);
+    const winRate = (wins.length / trades.length) * 100;
+    const grossWin = wins.reduce((sum, t) => sum + t.pnl, 0);
+    const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
+    const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '∞';
+    const avgWin = wins.length > 0 ? grossWin / wins.length : 0;
+    const avgLoss = losses.length > 0 ? grossLoss / losses.length : 0;
+    const avgRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '∞';
+
+    document.getElementById('insightTotalPnl').textContent =
+        (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
+    document.getElementById('insightTotalPnl').className =
+        'insight-stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+    document.getElementById('insightWinRate').textContent = winRate.toFixed(1) + '%';
+    document.getElementById('insightProfitFactor').textContent = profitFactor;
+    document.getElementById('insightAvgRatio').textContent = avgRatio;
+
+    // DAY OF WEEK CHART
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const dayPnl = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+    const dayCount = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+    const dayNames2 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    trades.forEach(trade => {
+        const day = dayNames2[new Date(trade.date + 'T12:00:00').getDay()];
+        if (dayPnl[day] !== undefined) {
+            dayPnl[day] += trade.pnl;
+            dayCount[day]++;
+        }
+    });
+
+    const maxAbsDay = Math.max(...Object.values(dayPnl).map(Math.abs), 1);
+    const dayChart = document.getElementById('dayOfWeekChart');
+    dayChart.style.alignItems = 'flex-end';
+    dayChart.style.padding = '8px 0';
+
+    const hasAnyDayData = Object.values(dayCount).some(c => c > 0);
+
+    if (!hasAnyDayData) {
+        dayChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No trade data yet.</p>';
+        dayChart.style.alignItems = 'center';
+    } else {
+        dayChart.innerHTML = '';
+        dayNames.forEach(day => {
+            const pnl = dayPnl[day];
+            const heightPct = maxAbsDay > 0 ? (Math.abs(pnl) / maxAbsDay) * 100 : 4;
+            const color = pnl > 0 ? 'rgba(0,200,100,0.6)' : pnl < 0 ? 'rgba(255,68,68,0.6)' : '#2a2a2a';
+            const group = document.createElement('div');
+            group.className = 'day-bar-group';
+            group.innerHTML = `
+                <span class="day-bar-value" style="color:${pnl > 0 ? '#00c864' : pnl < 0 ? '#ff4444' : '#444'}">
+                    ${dayCount[day] > 0 ? (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(0) : '—'}
+                </span>
+                <div class="day-bar" style="height:${Math.max(heightPct, 4)}%;background:${color};width:100%;border-radius:4px 4px 0 0;"></div>
+                <span class="day-bar-label">${day}</span>
+            `;
+            dayChart.appendChild(group);
+        });
+    }
+
+    // EMOTION CORRELATION
+    const emotionStats = {};
+    trades.forEach(trade => {
+        if (!trade.emotions) return;
+        trade.emotions.split(', ').forEach(emotion => {
+            if (!emotion) return;
+            if (!emotionStats[emotion]) emotionStats[emotion] = { wins: 0, total: 0 };
+            emotionStats[emotion].total++;
+            if (trade.pnl > 0) emotionStats[emotion].wins++;
+        });
+    });
+
+    const emotionChart = document.getElementById('emotionChart');
+    emotionChart.style.height = 'auto';
+    emotionChart.style.alignItems = 'stretch';
+
+    if (Object.keys(emotionStats).length === 0) {
+        emotionChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No emotion data yet.</p>';
+    } else {
+        const sorted = Object.entries(emotionStats)
+            .map(([name, s]) => ({ name, winRate: (s.wins / s.total) * 100, total: s.total }))
+            .sort((a, b) => b.winRate - a.winRate)
+            .slice(0, 6);
+
+        const list = document.createElement('div');
+        list.className = 'emotion-list';
+
+        sorted.forEach(e => {
+            const color = e.winRate >= 60 ? 'high' : e.winRate >= 40 ? 'mid' : 'low';
+            const row = document.createElement('div');
+            row.className = 'emotion-row';
+            row.innerHTML = `
+                <span class="emotion-name">${e.name}</span>
+                <div class="emotion-bar-wrap">
+                    <div class="emotion-bar-fill ${color}" style="width: ${e.winRate}%"></div>
+                </div>
+                <span class="emotion-pct">${e.winRate.toFixed(0)}%</span>
+            `;
+            list.appendChild(row);
+        });
+
+        emotionChart.innerHTML = '';
+        emotionChart.appendChild(list);
+    }
+
+    // EQUITY CURVE
+    const equityChart = document.getElementById('equityChart');
+    const settings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
+    const startBalance = parseFloat(settings.balance) || 50000;
+
+    let balance = startBalance;
+    const points = [{ date: 'Start', balance }];
+    trades.forEach(trade => {
+        balance += trade.pnl;
+        points.push({ date: new Date(trade.date + 'T12:00:00').toLocaleDateString(), balance });
+    });
+
+    const maxBal = Math.max(...points.map(p => p.balance));
+    const minBal = Math.min(...points.map(p => p.balance));
+    const range = maxBal - minBal || 1;
+    const w = 600;
+    const h = 180;
+    const pad = 20;
+
+    const svgPoints = points.map((p, i) => {
+        const x = pad + (i / (points.length - 1)) * (w - pad * 2);
+        const y = h - pad - ((p.balance - minBal) / range) * (h - pad * 2);
+        return `${x},${y}`;
+    }).join(' ');
+
+    const lastBalance = points[points.length - 1].balance;
+    const lineColor = lastBalance >= startBalance ? '#00c864' : '#ff4444';
+
+    if (points.length <= 1) {
+    equityChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;text-align:center;">Log trades to see your equity curve.</p>';
+    equityChart.style.alignItems = 'center';
+    equityChart.style.justifyContent = 'center';
+    return;
+    }
+
+    equityChart.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" class="equity-line" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <polyline
+                points="${svgPoints}"
+                fill="none"
+                stroke="${lineColor}"
+                stroke-width="2"
+                stroke-linejoin="round"
+            />
+            <polygon
+                points="${svgPoints} ${600 - pad},${h} ${pad},${h}"
+                fill="url(#equityGrad)"
+            />
+        </svg>
+    `;
+}
+
 //Init
 renderSuggestions();
 loadRecentTrades();
@@ -1369,3 +1557,4 @@ if (lastPage === 'dashboard') {
 if (lastPage === 'journal') loadJournal();
 if (lastPage === 'streak') loadStreakPage();
 if (lastPage === 'settings') loadSettings();
+if (lastPage === 'ai') loadInsights();
