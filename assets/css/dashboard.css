@@ -2314,23 +2314,37 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
     .streak-stats-card {
         flex-direction: row;
-        flex-wrap: wrap;
-        gap: 20px;
-        padding: 20px;
-    }
-
-    .streak-stat {
-        flex: 1;
-        min-width: 120px;
+        align-items: center;
+        padding: 20px 24px;
     }
 
     .streak-stat + .streak-stat {
-        border-left: none;
-        padding-left: 0;
-        margin-left: 0;
-        border-top: 1px solid #1a1a1a;
-        padding-top: 16px;
+        border-left: 1px solid #1a1a1a;
+        border-top: none;
+        padding-left: 24px;
+        margin-left: 24px;
+        padding-top: 0;
         margin-top: 0;
+    }
+
+    .streak-stat-label {
+        font-size: 11px;
+    }
+
+    .streak-stat-value {
+        font-size: 18px;
+    }
+
+    .streak-rank-card {
+        padding: 20px 24px;
+    }
+
+    .streak-rank-badge {
+        padding: 10px 14px;
+    }
+
+    .rank-name {
+        font-size: 18px;
     }
 
     .cal-day {
