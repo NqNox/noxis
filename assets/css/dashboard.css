@@ -2528,3 +2528,43 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     background: #ff4444;
     color: #ffffff;
 }
+
+.mobile-header {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .mobile-logo {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .mobile-settings-btn {
+        background: #111111;
+        border: 1px solid #1a1a1a;
+        border-radius: 8px;
+        padding: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-settings-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: #888888;
+    }
+
+    .mobile-settings-btn:hover svg {
+        stroke: #ffffff;
+    }
+}

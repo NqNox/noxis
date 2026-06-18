@@ -1331,6 +1331,19 @@ document.getElementById('btnDeleteTrades').addEventListener('click', () => {
     };
 });
 
+// Mobile settings button
+const mobileSettingsBtn = document.querySelector('.mobile-settings-btn');
+if (mobileSettingsBtn) {
+    mobileSettingsBtn.addEventListener('click', () => {
+        navItems.forEach(n => n.classList.remove('active'));
+        pages.forEach(p => p.classList.remove('active'));
+        document.getElementById('page-settings').classList.add('active');
+        sessionStorage.setItem('noxis_active_page', 'settings');
+        loadSettings();
+        lucide.createIcons();
+    });
+}
+
 //Init
 renderSuggestions();
 loadRecentTrades();
