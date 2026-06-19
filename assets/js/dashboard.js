@@ -374,9 +374,10 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     btnSave.disabled = true;
 
     const { data: { session } } = await supabaseClient.auth.getSession();
+    const pnlInputVal = parseFloat(document.getElementById('pnlDisplay').value);
     const symbolVal = document.getElementById('tradeSymbol').value || 'NQ';
     const pointValue = getPointValue(symbolVal);
-    let pnl = direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue;
+    let pnl = !isNaN(pnlInputVal) ? pnlInputVal : (direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue);
 
     let result;
     if (editingTradeId) {
@@ -600,6 +601,8 @@ document.addEventListener('click', async (e) => {
         document.getElementById('tradeEntry').value = trade.entry_price;
         document.getElementById('tradeExit').value = trade.exit_price;
         document.getElementById('tradeNotes').value = trade.notes || '';
+        document.getElementById('pnlDisplay').value = trade.pnl || '';
+        document.getElementById('pnlDisplay').className = 'pnl-input ' + (trade.pnl >= 0 ? 'positive' : 'negative');
 
         direction = trade.direction;
         if (direction === 'long') {
