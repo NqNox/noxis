@@ -1056,7 +1056,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     .bottom-nav {
         display: flex;
         position: fixed;
-        bottom: 2vh;
+        bottom: calc(2vh + env(safe-area-inset-bottom));
         left: 2vw;
         right: 2vw;
         background: rgba(15, 15, 15, 0.5);
@@ -1067,7 +1067,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         align-items: center;
         z-index: 100;
         border-radius: 2vh;
-        bottom: calc(2vh + env(safe-area-inset-bottom));
     }
 
     .bottom-nav-item {
