@@ -817,7 +817,6 @@ footer {
 
 .hero-preview-main {
     width: 100%;
-    border-radius: 16px;
     overflow: hidden;
     border: 1px solid #1a1a1a;
     box-shadow: 0 24px 80px rgba(0, 212, 212, 0.1);
@@ -827,8 +826,8 @@ footer {
     position: absolute;
     bottom: 0px;
     right: 0px;
+    border-radius: 1vh;
     width: 50%;
-    border-radius: 12px;
     overflow: hidden;
     border: 1px solid #2a2a2a;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
@@ -837,9 +836,20 @@ footer {
 .hero-img {
     width: 100%;
     display: block;
+    border-radius: 1vh;
 }
 
 @media (max-width: 768px) {
+    .hero-previews {
+        padding-bottom: 0;
+        padding-right: 0;
+        max-width: 80%;
+    }
+
+    .hero-preview-main {
+        border-radius: 20px;
+    }
+
     .hero-preview-secondary {
         display: none;
     }
