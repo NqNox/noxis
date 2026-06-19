@@ -377,7 +377,7 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     const pnlInputVal = parseFloat(document.getElementById('pnlDisplay').value);
     const symbolVal = document.getElementById('tradeSymbol').value || 'NQ';
     const pointValue = getPointValue(symbolVal);
-    let pnl = !isNaN(pnlInputVal) ? pnlInputVal : (direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue);
+    let pnl = parseFloat(document.getElementById('pnlDisplay').value);
 
     let result;
     if (editingTradeId) {
