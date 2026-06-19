@@ -3001,3 +3001,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .pnl-input.positive { color: #00c864; }
 .pnl-input.negative { color: #ff4444; }
+
+@media (max-width: 768px) {
+    html {
+        overflow: auto;
+        overflow-x: hidden;
+        background: #0a0a0a;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body {
+        overflow: auto;
+        overflow-x: hidden;
+        background: #0a0a0a;
+        -webkit-overflow-scrolling: touch;
+    }
+}
