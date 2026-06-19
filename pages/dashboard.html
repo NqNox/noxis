@@ -532,7 +532,18 @@
                 <div class="modal-row">
                     <div class="modal-field">
                         <label>Symbol</label>
-                        <input type="text" id="tradeSymbol" placeholder="NQ, ES, MNQ..." />
+                        <div class="symbol-selector" id="symbolSelector">
+                            <div class="symbol-selected" id="symbolSelected">
+                                <span class="symbol-badge" id="selectedBadge" style="background:#1a3a6b">NQ</span>
+                                <span class="symbol-name" id="selectedName">NQ — Nasdaq Futures</span>
+                                <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#888"></i>
+                            </div>
+                            <div class="symbol-dropdown" id="symbolDropdown">
+                                <input type="text" class="symbol-search" id="symbolSearch" placeholder="Search..." />
+                                <div class="symbol-list" id="symbolList"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="tradeSymbol" value="NQ" />
                     </div>
                     <div class="modal-field">
                         <label>Size (contracts)</label>

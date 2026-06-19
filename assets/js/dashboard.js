@@ -17,6 +17,94 @@ function getPointValue(symbol) {
     return POINT_VALUES[symbol.toUpperCase()] || 20;
 }
 
+const INSTRUMENTS = [
+    // Index Futures
+    { ticker: 'NQ', name: 'Nasdaq Futures', color: '#1a3a6b', category: 'Index' },
+    { ticker: 'ES', name: 'S&P 500 Futures', color: '#1a3a6b', category: 'Index' },
+    { ticker: 'YM', name: 'Dow Jones Futures', color: '#1a3a6b', category: 'Index' },
+    { ticker: 'RTY', name: 'Russell 2000', color: '#1a3a6b', category: 'Index' },
+    // Micro Index
+    { ticker: 'MNQ', name: 'Micro Nasdaq', color: '#0d5c3a', category: 'Micro' },
+    { ticker: 'MES', name: 'Micro S&P 500', color: '#0d5c3a', category: 'Micro' },
+    { ticker: 'MYM', name: 'Micro Dow Jones', color: '#0d5c3a', category: 'Micro' },
+    { ticker: 'M2K', name: 'Micro Russell 2000', color: '#0d5c3a', category: 'Micro' },
+    // Metals
+    { ticker: 'GC', name: 'Gold Futures', color: '#6b4a00', category: 'Metals' },
+    { ticker: 'SI', name: 'Silver Futures', color: '#4a4a4a', category: 'Metals' },
+    { ticker: 'MGC', name: 'Micro Gold', color: '#6b4a00', category: 'Metals' },
+    // Energy
+    { ticker: 'CL', name: 'Crude Oil', color: '#3a1a00', category: 'Energy' },
+    { ticker: 'NG', name: 'Natural Gas', color: '#1a3a3a', category: 'Energy' },
+    // Bonds
+    { ticker: 'ZB', name: '30Y T-Bond', color: '#3a003a', category: 'Bonds' },
+    { ticker: 'ZN', name: '10Y T-Note', color: '#3a003a', category: 'Bonds' },
+];
+
+function initSymbolSelector() {
+    const selector = document.getElementById('symbolSelector');
+    const selected = document.getElementById('symbolSelected');
+    const dropdown = document.getElementById('symbolDropdown');
+    const search = document.getElementById('symbolSearch');
+    const list = document.getElementById('symbolList');
+    const hiddenInput = document.getElementById('tradeSymbol');
+    const badge = document.getElementById('selectedBadge');
+    const nameEl = document.getElementById('selectedName');
+
+    function renderList(filter = '') {
+        const filtered = INSTRUMENTS.filter(i =>
+            i.ticker.toLowerCase().includes(filter.toLowerCase()) ||
+            i.name.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        list.innerHTML = filtered.map(inst => `
+            <div class="symbol-option ${inst.ticker === hiddenInput.value ? 'selected' : ''}" 
+                 data-ticker="${inst.ticker}" 
+                 data-name="${inst.name}"
+                 data-color="${inst.color}">
+                <div class="symbol-badge" style="background:${inst.color}">${inst.ticker}</div>
+                <span class="symbol-option-name">${inst.name}</span>
+                <span class="symbol-option-ticker">${inst.ticker}</span>
+            </div>
+        `).join('');
+
+        list.querySelectorAll('.symbol-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const ticker = opt.dataset.ticker;
+                const name = opt.dataset.name;
+                const color = opt.dataset.color;
+
+                hiddenInput.value = ticker;
+                badge.textContent = ticker;
+                badge.style.background = color;
+                nameEl.textContent = `${ticker} — ${name}`;
+
+                dropdown.classList.remove('active');
+                updatePnL();
+            });
+        });
+    }
+
+    selected.addEventListener('click', () => {
+        dropdown.classList.toggle('active');
+        if (dropdown.classList.contains('active')) {
+            search.focus();
+            renderList();
+        }
+    });
+
+    search.addEventListener('input', () => renderList(search.value));
+
+    document.addEventListener('click', (e) => {
+        if (!selector.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    renderList();
+}
+
+initSymbolSelector();
+
 // Navigation
 const navItems = document.querySelectorAll('.nav-item, .bottom-nav-item');
 const pages = document.querySelectorAll('.page');
