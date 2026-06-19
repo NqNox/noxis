@@ -13,18 +13,8 @@ html, body {
     font-family: 'Space Grotesk', sans-serif;
     background: #0a0a0a;
     color: #ffffff;
-    overflow: hidden;
-}
-
-html {
-    height: 100%;
-    background: #0a0a0a;
-}
-
-body {
-    min-height: 100vh;
-    background: #0a0a0a;
     display: flex;
+    overflow: hidden;
 }
 
 .main-content {
@@ -159,7 +149,6 @@ body {
     overflow-y: auto;
     height: 100vh;
     width: calc(100vw - 220px);
-    padding-top: env(safe-area-inset-top);
 }
 
 .page {
@@ -1062,7 +1051,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     .bottom-nav {
         display: flex;
         position: fixed;
-        bottom: calc(2vh + env(safe-area-inset-bottom));
+        bottom: 2vh;
         left: 2vw;
         right: 2vw;
         background: rgba(15, 15, 15, 0.5);
@@ -2542,8 +2531,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .mobile-header {
     display: none;
-    padding-top: env(safe-area-inset-top);
-    margin-top: 0;
 }
 
 @media (max-width: 768px) {
@@ -2552,8 +2539,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-        padding-top: env(safe-area-inset-top);
-        margin-top: 0;
     }
 
     .mobile-logo {
@@ -3016,4 +3001,3 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .pnl-input.positive { color: #00c864; }
 .pnl-input.negative { color: #ff4444; }
-
