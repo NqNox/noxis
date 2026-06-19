@@ -4,8 +4,13 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (!session) {
         window.location.href = 'login.html';
+    } else {
+        const userSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
+        const displayName = userSettings.name || session.user.email?.split('@')[0] || 'User';
+        document.querySelector('.user-name').textContent = displayName;
+        document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
     }
-});
+}); 
 
 const POINT_VALUES = {
     'NQ': 20, 'MNQ': 2, 'ES': 50, 'MES': 5,
@@ -79,10 +84,10 @@ function initSymbolSelector() {
                 const color = opt.dataset.color;
                 const category = opt.dataset.category;
 
-                hiddenInput.value = ticker;
-                document.getElementById('selectedTicker').textContent = ticker;
-                document.getElementById('selectedCategory').textContent = category;
-                document.getElementById('selectedCategory').style.background = color;
+            hiddenInput.value = ticker;
+            document.getElementById('selectedTicker').textContent = ticker;
+            document.getElementById('selectedCategory').textContent = category;
+            document.getElementById('selectedCategory').style.background = color;
 
                 dropdown.classList.remove('active');
                 search.value = '';
@@ -1371,14 +1376,19 @@ async function loadSettings() {
     document.getElementById('settingEmail').value = session.user.email || '';
 
     // Load saved settings from localStorage
+    const savedSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
+    if (savedSettings.name) document.getElementById('settingName').value = savedSettings.name;
+    if (savedSettings.balance) document.getElementById('settingBalance').value = savedSettings.balance;
+    if (savedSettings.instrument) document.getElementById('settingInstrument').value = savedSettings.instrument;
+    if (savedSettings.firm) document.getElementById('settingFirm').value = savedSettings.firm;
+    if (savedSettings.timezone) document.getElementById('settingTimezone').value = savedSettings.timezone;
+    if (savedSettings.sessionStart) document.getElementById('settingSessionStart').value = savedSettings.sessionStart;
+    if (savedSettings.sessionEnd) document.getElementById('settingSessionEnd').value = savedSettings.sessionEnd;
+    // Update sidebar user info
     const saved = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
-    if (saved.name) document.getElementById('settingName').value = saved.name;
-    if (saved.balance) document.getElementById('settingBalance').value = saved.balance;
-    if (saved.instrument) document.getElementById('settingInstrument').value = saved.instrument;
-    if (saved.firm) document.getElementById('settingFirm').value = saved.firm;
-    if (saved.timezone) document.getElementById('settingTimezone').value = saved.timezone;
-    if (saved.sessionStart) document.getElementById('settingSessionStart').value = saved.sessionStart;
-    if (saved.sessionEnd) document.getElementById('settingSessionEnd').value = saved.sessionEnd;
+    const displayName = saved.name || session.user.email?.split('@')[0] || 'User';
+    document.querySelector('.user-name').textContent = displayName;
+    document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
 }
 
 document.getElementById('btnSaveSettings').addEventListener('click', () => {
