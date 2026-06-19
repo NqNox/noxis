@@ -1,4 +1,9 @@
-const noxisClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const noxisClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true
+    }
+});
 
 // SIGNUP
 const signupBtn = document.getElementById('signupBtn');
@@ -57,10 +62,7 @@ if (loginBtn) {
 
         const { error } = await noxisClient.auth.signInWithPassword({
             email,
-            password,
-            options: {
-                persistSession: remember
-            }
+            password
         });
 
         if (error) {

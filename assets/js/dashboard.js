@@ -9,13 +9,18 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 // Check auth
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (!session) {
-        window.location.href = 'login.html';
+        supabaseClient.auth.refreshSession().then(({ data: { session: refreshed } }) => {
+            if (!refreshed) {
+                window.location.href = 'login.html';
+            }
+        });
     } else {
         const userSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
         const displayName = userSettings.name || session.user.email?.split('@')[0] || 'User';
         document.querySelector('.user-name').textContent = displayName;
         document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
     }
+    
 }); 
 
 let pnlManuallyEdited = false;
