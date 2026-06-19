@@ -12,6 +12,12 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
     }
 }); 
 
+let pnlManuallyEdited = false;
+
+document.getElementById('pnlDisplay').addEventListener('input', () => {
+    pnlManuallyEdited = true;
+});
+
 const POINT_VALUES = {
     'NQ': 20, 'MNQ': 2, 'ES': 50, 'MES': 5,
     'GC': 100, 'MGC': 10, 'CL': 1000, 'MCL': 100,
@@ -188,6 +194,7 @@ function closeModal() {
     document.getElementById('tradeEntry').value = '';
     document.getElementById('tradeExit').value = '';
     document.getElementById('tradeNotes').value = '';
+    pnlManuallyEdited = false;
     document.getElementById('pnlDisplay').value = '';
     document.getElementById('pnlDisplay').className = 'pnl-input';
     direction = 'long';
@@ -251,6 +258,8 @@ const exitInput = document.getElementById('tradeExit');
 const sizeInput = document.getElementById('tradeSize');
 
 function updatePnL() {
+    if (pnlManuallyEdited) return;
+    
     const entry = parseFloat(entryInput.value);
     const exit = parseFloat(exitInput.value);
     const size = parseFloat(sizeInput.value) || 1;
@@ -258,13 +267,13 @@ function updatePnL() {
     const pointValue = getPointValue(symbolVal);
 
     if (isNaN(entry) || isNaN(exit)) {
-        pnlDisplay.textContent = '$0.00';
-        pnlDisplay.className = 'pnl-display';
+        document.getElementById('pnlDisplay').value = '';
+        document.getElementById('pnlDisplay').className = 'pnl-input';
         return;
     }
 
-    let pnl = parseFloat(document.getElementById('pnlDisplay').value) || 
-    (direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue);    document.getElementById('pnlDisplay').value = pnl.toFixed(2);
+    let pnl = direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue;
+    document.getElementById('pnlDisplay').value = pnl.toFixed(2);
     document.getElementById('pnlDisplay').className = 'pnl-input ' + (pnl >= 0 ? 'positive' : 'negative');
 }
 
