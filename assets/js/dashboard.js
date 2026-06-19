@@ -7,6 +7,16 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
     }
 });
 
+const POINT_VALUES = {
+    'NQ': 20, 'MNQ': 2, 'ES': 50, 'MES': 5,
+    'GC': 100, 'MGC': 10, 'CL': 1000, 'MCL': 100,
+    'YM': 5, 'MYM': 0.5, 'RTY': 50, 'M2K': 10,
+};
+
+function getPointValue(symbol) {
+    return POINT_VALUES[symbol.toUpperCase()] || 20;
+}
+
 // Navigation
 const navItems = document.querySelectorAll('.nav-item, .bottom-nav-item');
 const pages = document.querySelectorAll('.page');
@@ -135,6 +145,8 @@ function updatePnL() {
     const entry = parseFloat(entryInput.value);
     const exit = parseFloat(exitInput.value);
     const size = parseFloat(sizeInput.value) || 1;
+    const symbolVal = document.getElementById('tradeSymbol').value || 'NQ';
+    const pointValue = getPointValue(symbolVal);
 
     if (isNaN(entry) || isNaN(exit)) {
         pnlDisplay.textContent = '$0.00';
@@ -142,7 +154,7 @@ function updatePnL() {
         return;
     }
 
-    let pnl = direction === 'long' ? (exit - entry) * size * 20 : (entry - exit) * size * 20;
+    let pnl = direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue;
     pnlDisplay.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
     pnlDisplay.className = 'pnl-display ' + (pnl >= 0 ? 'positive' : 'negative');
 }
@@ -150,6 +162,7 @@ function updatePnL() {
 entryInput.addEventListener('input', updatePnL);
 exitInput.addEventListener('input', updatePnL);
 sizeInput.addEventListener('input', updatePnL);
+document.getElementById('tradeSymbol').addEventListener('input', updatePnL);
 
 // Emotion tags
 const emotionInput = document.getElementById('emotionInput');
@@ -252,7 +265,9 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     btnSave.disabled = true;
 
     const { data: { session } } = await supabaseClient.auth.getSession();
-    let pnl = direction === 'long' ? (exit - entry) * size * 20 : (entry - exit) * size * 20;
+    const symbolVal = document.getElementById('tradeSymbol').value || 'NQ';
+    const pointValue = getPointValue(symbolVal);
+    let pnl = direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue;
 
     let result;
     if (editingTradeId) {
