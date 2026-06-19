@@ -47,8 +47,6 @@ function initSymbolSelector() {
     const search = document.getElementById('symbolSearch');
     const list = document.getElementById('symbolList');
     const hiddenInput = document.getElementById('tradeSymbol');
-    const badge = document.getElementById('selectedBadge');
-    const nameEl = document.getElementById('selectedName');
 
     function renderList(filter = '') {
         const filtered = INSTRUMENTS.filter(i =>
@@ -60,31 +58,41 @@ function initSymbolSelector() {
             <div class="symbol-option ${inst.ticker === hiddenInput.value ? 'selected' : ''}" 
                  data-ticker="${inst.ticker}" 
                  data-name="${inst.name}"
-                 data-color="${inst.color}">
-                <div class="symbol-badge" style="background:${inst.color}">${inst.ticker}</div>
-                <span class="symbol-option-name">${inst.name}</span>
-                <span class="symbol-option-ticker">${inst.ticker}</span>
+                 data-color="${inst.color}"
+                 data-category="${inst.category}">
+                <div class="symbol-option-left">
+                    <span class="symbol-option-ticker-large">${inst.ticker}</span>
+                    <span class="symbol-option-name">${inst.name}</span>
+                </div>
+                <span class="symbol-category-pill" style="background:${inst.color}">${inst.category}</span>
             </div>
         `).join('');
 
         list.querySelectorAll('.symbol-option').forEach(opt => {
-            opt.addEventListener('click', () => {
+            opt.addEventListener('mousedown', (e) => {
+                console.log('option clicked:', opt.dataset.ticker);
+                e.preventDefault();
+                e.stopPropagation();
+
                 const ticker = opt.dataset.ticker;
                 const name = opt.dataset.name;
                 const color = opt.dataset.color;
+                const category = opt.dataset.category;
 
                 hiddenInput.value = ticker;
-                badge.textContent = ticker;
-                badge.style.background = color;
-                nameEl.textContent = `${ticker} — ${name}`;
+                document.getElementById('selectedTicker').textContent = ticker;
+                document.getElementById('selectedCategory').textContent = category;
+                document.getElementById('selectedCategory').style.background = color;
 
                 dropdown.classList.remove('active');
+                search.value = '';
                 updatePnL();
             });
         });
     }
 
-    selected.addEventListener('click', () => {
+    selected.addEventListener('click', (e) => {
+        e.stopPropagation();
         dropdown.classList.toggle('active');
         if (dropdown.classList.contains('active')) {
             search.focus();
@@ -97,6 +105,7 @@ function initSymbolSelector() {
     document.addEventListener('click', (e) => {
         if (!selector.contains(e.target)) {
             dropdown.classList.remove('active');
+            search.value = '';
         }
     });
 

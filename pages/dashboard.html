@@ -534,9 +534,11 @@
                         <label>Symbol</label>
                         <div class="symbol-selector" id="symbolSelector">
                             <div class="symbol-selected" id="symbolSelected">
-                                <span class="symbol-badge" id="selectedBadge" style="background:#1a3a6b">NQ</span>
-                                <span class="symbol-name" id="selectedName">NQ — Nasdaq Futures</span>
-                                <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#888"></i>
+                                <div class="symbol-option-left">
+                                    <span class="symbol-option-ticker-large" id="selectedTicker">NQ</span>
+                                </div>
+                                <span class="symbol-category-pill" id="selectedCategory" style="background:#1e3a5f">Index</span>
+                                <i data-lucide="chevron-down" style="width:14px;height:14px;color:#888;margin-left:8px;flex-shrink:0"></i>
                             </div>
                             <div class="symbol-dropdown" id="symbolDropdown">
                                 <input type="text" class="symbol-search" id="symbolSearch" placeholder="Search..." />

@@ -2866,14 +2866,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     user-select: none;
 }
 
-.symbol-selected:hover {
-    border-color: #00d4d4;
+.symbol-selected:hover { border-color: #00d4d4; }
+
+.symbol-selected-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.symbol-selected-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .symbol-badge {
     width: 32px;
     height: 32px;
-    border-radius: 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2885,9 +2896,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .symbol-name {
-    font-size: 14px;
+    font-size: 13px;
     color: #ffffff;
     font-family: 'Space Grotesk', sans-serif;
+}
+
+.symbol-category-pill {
+    font-size: 10px;
+    font-weight: 600;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 50px;
+    white-space: nowrap;
+    width: fit-content;
 }
 
 .symbol-dropdown {
@@ -2905,9 +2926,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
-.symbol-dropdown.active {
-    display: flex;
-}
+.symbol-dropdown.active { display: flex; }
 
 .symbol-search {
     background: #0a0a0a;
@@ -2939,23 +2958,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transition: background 0.15s ease;
 }
 
-.symbol-option:hover {
-    background: #1a1a1a;
+.symbol-option:hover { background: #1a1a1a; }
+.symbol-option.selected { background: #1a1a1a; }
+
+.symbol-option-left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
 }
 
-.symbol-option.selected {
-    background: #1a1a1a;
+.symbol-option-ticker-large {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .symbol-option-name {
-    font-size: 13px;
-    color: #cccccc;
-    font-family: 'Space Grotesk', sans-serif;
-}
-
-.symbol-option-ticker {
     font-size: 11px;
     color: #888888;
-    font-family: 'JetBrains Mono', monospace;
-    margin-left: auto;
+    font-family: 'Space Grotesk', sans-serif;
 }
