@@ -441,6 +441,15 @@ async function loadRecentTrades() {
         rpnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
     }
 
+    // Update balance
+    const userSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
+    const startBalance = parseFloat(userSettings.balance) || 50000;
+    const currentBalance = startBalance + totalPnl;
+    const balanceEl = document.querySelector('.stat-value.green');
+    if (balanceEl) {
+        balanceEl.textContent = '$' + currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     const recentEmpty = document.querySelector('.recent-empty');
     const recentCard = document.querySelector('.recent-card');
 

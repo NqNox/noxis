@@ -792,4 +792,17 @@ footer {
     .feature-tabs {
         gap: 8px;
     }
+
+    .stats-card {
+    padding: 40px;
+    gap: 0;
+    }
+
+    .stat-divider {
+        margin: 0 20px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+    }
 }
