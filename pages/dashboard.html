@@ -226,6 +226,12 @@
                     <option value="true">✓ Followed Rules</option>
                     <option value="false">✗ Broke Rules</option>
                 </select>
+                <select id="journalSort" class="journal-filter-input">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="pnl_high">P&L High → Low</option>
+                    <option value="pnl_low">P&L Low → High</option>
+                </select>
                 <button class="btn-filter-reset" id="btnFilterReset">Clear</button>
             </div>
 
@@ -571,8 +577,8 @@
                     </div>
                 </div>
                 <div class="modal-field">
-                    <label>P&L (auto-calculated)</label>
-                    <div class="pnl-display" id="pnlDisplay">$0.00</div>
+                    <label>P&L <span style="font-size:11px;color:#888;font-weight:400;">(auto-calculated — tap to edit)</span></label>
+                    <input type="number" id="pnlDisplay" class="pnl-input" step="0.01" placeholder="0.00" />
                 </div>
                 <div class="modal-field">
                     <label>Emotions</label>

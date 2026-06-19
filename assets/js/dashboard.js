@@ -39,6 +39,7 @@ const INSTRUMENTS = [
     { ticker: 'MGC', name: 'Micro Gold', color: '#6b4a00', category: 'Metals' },
     // Energy
     { ticker: 'CL', name: 'Crude Oil', color: '#3a1a00', category: 'Energy' },
+    { ticker: 'MCL', name: 'Micro Crude Oil', color: '#3a1a00', category: 'Energy' },
     { ticker: 'NG', name: 'Natural Gas', color: '#1a3a3a', category: 'Energy' },
     // Bonds
     { ticker: 'ZB', name: '30Y T-Bond', color: '#3a003a', category: 'Bonds' },
@@ -132,17 +133,7 @@ navItems.forEach(item => {
         pages.forEach(p => p.classList.remove('active'));
         document.querySelectorAll(`[data-page="${target}"]`).forEach(el => el.classList.add('active'));
         document.getElementById(`page-${target}`).classList.add('active');
-        sessionStorage.setItem('noxis_active_page', target);
-
-        const pageTitles = {
-            dashboard: 'Noxis — Dashboard',
-            checklist: 'Noxis — Checklist',
-            journal: 'Noxis — Journal',
-            streak: 'Noxis — Streak',
-            ai: 'Noxis — Insights',
-            settings: 'Noxis — Settings'
-        };
-        document.title = pageTitles[target] || 'Noxis';
+        sessionStorage.setItem('noxis_active_page', target); 
 
         // Load page data when switching
         if (target === 'checklist'){
@@ -175,6 +166,13 @@ document.getElementById('tradeDate').value = today;
 
 logTradeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
+        const lastSymbol = document.getElementById('tradeSymbol').value || 'NQ';
+        const inst = INSTRUMENTS.find(i => i.ticker === lastSymbol) || INSTRUMENTS[0];
+        document.getElementById('selectedTicker').textContent = inst.ticker;
+        document.getElementById('selectedCategory').textContent = inst.category;
+        document.getElementById('selectedCategory').style.background = inst.color;
+        document.getElementById('tradeSymbol').value = inst.ticker;
+        updatePnL();
         modalOverlay.classList.add('active');
     });
 });
@@ -186,13 +184,12 @@ function closeModal() {
     document.getElementById('btnSave').textContent = 'Save Trade';
     document.getElementById('tradeDate').value = today;
     document.getElementById('tradeNumber').value = '1';
-    document.getElementById('tradeSymbol').value = '';
     document.getElementById('tradeSize').value = '1';
     document.getElementById('tradeEntry').value = '';
     document.getElementById('tradeExit').value = '';
     document.getElementById('tradeNotes').value = '';
-    pnlDisplay.textContent = '$0.00';
-    pnlDisplay.className = 'pnl-display';
+    document.getElementById('pnlDisplay').value = '';
+    document.getElementById('pnlDisplay').className = 'pnl-input';
     direction = 'long';
     btnLong.classList.add('active');
     btnShort.classList.remove('active');
@@ -252,7 +249,6 @@ btnNo.addEventListener('click', () => {
 const entryInput = document.getElementById('tradeEntry');
 const exitInput = document.getElementById('tradeExit');
 const sizeInput = document.getElementById('tradeSize');
-const pnlDisplay = document.getElementById('pnlDisplay');
 
 function updatePnL() {
     const entry = parseFloat(entryInput.value);
@@ -267,9 +263,9 @@ function updatePnL() {
         return;
     }
 
-    let pnl = direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue;
-    pnlDisplay.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
-    pnlDisplay.className = 'pnl-display ' + (pnl >= 0 ? 'positive' : 'negative');
+    let pnl = parseFloat(document.getElementById('pnlDisplay').value) || 
+    (direction === 'long' ? (exit - entry) * size * pointValue : (entry - exit) * size * pointValue);    document.getElementById('pnlDisplay').value = pnl.toFixed(2);
+    document.getElementById('pnlDisplay').className = 'pnl-input ' + (pnl >= 0 ? 'positive' : 'negative');
 }
 
 entryInput.addEventListener('input', updatePnL);
@@ -288,7 +284,7 @@ let savedEmotions = JSON.parse(localStorage.getItem('noxis_emotions') || '[]');
 const defaultEmotions = ['FOMO', 'Anxious', 'Confident', 'Frustrated', 'Calm', 'Revenge', 'Greedy', 'Patient'];
 
 function renderSuggestions() {
-    const allSuggestions = savedEmotions.length > 0 ? savedEmotions : defaultEmotions;
+    const allSuggestions = [...new Set([...defaultEmotions, ...savedEmotions])];
     const filtered = allSuggestions.filter(e => !selectedEmotions.includes(e));
     emotionSuggestions.innerHTML = '';
     filtered.forEach(emotion => {
@@ -441,7 +437,6 @@ async function loadRecentTrades() {
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
 
     if (error || !trades) return;
 
@@ -471,6 +466,8 @@ async function loadRecentTrades() {
         recentEmpty.style.display = 'flex';
         return;
     }
+    
+        const displayTrades = trades.slice(0, );
 
     recentEmpty.style.display = 'none';
 
@@ -489,7 +486,7 @@ async function loadRecentTrades() {
                 <span>Rules</span>
                 <span></span>
             </div>
-            ${trades.map(trade => `
+            ${displayTrades.map(trade => `
                 <div class="trade-row">
                     <span>${trade.date}</span>
                     <span>${trade.symbol}</span>
@@ -514,7 +511,7 @@ async function loadRecentTrades() {
         `;
     } else if (currentView === 'cards') {
         container.className = 'trades-cards';
-        container.innerHTML = trades.map(trade => `
+        container.innerHTML = displayTrades.map(trade => `
             <div class="trade-card">
                 <div class="trade-card-header">
                     <span class="trade-card-symbol">${trade.symbol}</span>
@@ -545,7 +542,7 @@ async function loadRecentTrades() {
         `).join('');
     } else if (currentView === 'list') {
         container.className = 'trades-list';
-        container.innerHTML = trades.map(trade => `
+        container.innerHTML = displayTrades.map(trade => `
             <div class="trade-list-item">
                 <div class="trade-list-left">
                     <span class="trade-list-symbol">${trade.symbol}</span>
@@ -592,6 +589,13 @@ document.addEventListener('click', async (e) => {
         document.getElementById('tradeDate').value = trade.date;
         document.getElementById('tradeNumber').value = trade.trade_number;
         document.getElementById('tradeSymbol').value = trade.symbol;
+        const inst = INSTRUMENTS.find(i => i.ticker === trade.symbol);
+        if (inst) {
+            document.getElementById('selectedTicker').textContent = inst.ticker;
+            document.getElementById('selectedCategory').textContent = inst.category;
+            document.getElementById('selectedCategory').style.background = inst.color;
+        }
+        updatePnL();
         document.getElementById('tradeSize').value = trade.size;
         document.getElementById('tradeEntry').value = trade.entry_price;
         document.getElementById('tradeExit').value = trade.exit_price;
@@ -1040,8 +1044,7 @@ async function loadJournal() {
         .from('trades')
         .select('*')
         .eq('user_id', session.user.id)
-        .order('date', { ascending: false })
-        .order('trade_number', { ascending: false });
+        .order('created_at', { ascending: false });
 
     allTrades = trades || [];
 
@@ -1070,7 +1073,26 @@ function applyFilters() {
         return true;
     });
 
+    const sortBy = document.getElementById('journalSort').value;
+    if (sortBy === 'newest') {
+        filteredTrades.sort((a, b) => {
+            if (b.date !== a.date) return b.date.localeCompare(a.date);
+            if (a.created_at && b.created_at) return new Date(b.created_at) - new Date(a.created_at);
+            return b.trade_number - a.trade_number;
+        });
+    } else if (sortBy === 'oldest') {
+        filteredTrades.sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            if (a.created_at && b.created_at) return new Date(a.created_at) - new Date(b.created_at);
+            return a.trade_number - b.trade_number;
+        });
+    } else if (sortBy === 'pnl_high') {
+        filteredTrades.sort((a, b) => b.pnl - a.pnl);
+    } else if (sortBy === 'pnl_low') {
+        filteredTrades.sort((a, b) => a.pnl - b.pnl);
+    }
     journalPage = 1;
+    console.log('sorted:', filteredTrades.map(t => t.date + ' #' + t.trade_number));
     renderJournal();
     console.log('allTrades:', allTrades.length);
     console.log('filters:', { dateFrom, dateTo, symbol, direction, rules });
@@ -1199,7 +1221,7 @@ function renderJournal() {
 }
 
 // Filter listeners
-['filterSymbol', 'filterDirection', 'filterRules'].forEach(id => {
+['filterSymbol', 'filterDirection', 'filterRules', 'journalSort'].forEach(id => {
     document.getElementById(id).addEventListener('change', applyFilters);
 });
 
@@ -1405,8 +1427,7 @@ async function loadSettings() {
     if (savedSettings.sessionStart) document.getElementById('settingSessionStart').value = savedSettings.sessionStart;
     if (savedSettings.sessionEnd) document.getElementById('settingSessionEnd').value = savedSettings.sessionEnd;
     // Update sidebar user info
-    const saved = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
-    const displayName = saved.name || session.user.email?.split('@')[0] || 'User';
+    const displayName = savedSettings.name || session.user.email?.split('@')[0] || 'User';
     document.querySelector('.user-name').textContent = displayName;
     document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
 }

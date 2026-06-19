@@ -2980,3 +2980,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #888888;
     font-family: 'Space Grotesk', sans-serif;
 }
+
+.pnl-input {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s ease;
+    cursor: text;
+}
+
+.pnl-input:focus {
+    border-color: #00d4d4;
+}
+
+.pnl-input.positive { color: #00c864; }
+.pnl-input.negative { color: #ff4444; }
