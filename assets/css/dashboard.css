@@ -2544,6 +2544,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .mobile-header {
     display: none;
+    padding-top: env(safe-area-inset-top);
+    margin-top: 0;
 }
 
 @media (max-width: 768px) {
@@ -2553,6 +2555,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         align-items: center;
         margin-bottom: 20px;
         padding-top: env(safe-area-inset-top);
+        margin-top: 0;
     }
 
     .mobile-logo {
