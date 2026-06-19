@@ -38,3 +38,13 @@ form.addEventListener('submit', async (e) => {
         btn.disabled = false;
     }
 });
+
+document.getElementById('btnDashboard').addEventListener('click', async () => {
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session } } = await client.auth.getSession();
+    if (session) {
+        window.location.href = '/pages/dashboard.html';
+    } else {
+        window.location.href = '/pages/login.html';
+    }
+});
