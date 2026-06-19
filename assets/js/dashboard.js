@@ -123,6 +123,7 @@ initSymbolSelector();
 const navItems = document.querySelectorAll('.nav-item, .bottom-nav-item');
 const pages = document.querySelectorAll('.page');
 
+
 navItems.forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
@@ -132,6 +133,16 @@ navItems.forEach(item => {
         document.querySelectorAll(`[data-page="${target}"]`).forEach(el => el.classList.add('active'));
         document.getElementById(`page-${target}`).classList.add('active');
         sessionStorage.setItem('noxis_active_page', target);
+
+        const pageTitles = {
+            dashboard: 'Noxis — Dashboard',
+            checklist: 'Noxis — Checklist',
+            journal: 'Noxis — Journal',
+            streak: 'Noxis — Streak',
+            ai: 'Noxis — Insights',
+            settings: 'Noxis — Settings'
+        };
+        document.title = pageTitles[target] || 'Noxis';
 
         // Load page data when switching
         if (target === 'checklist'){
