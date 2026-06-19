@@ -1721,3 +1721,7 @@ if (lastPage === 'journal') loadJournal();
 if (lastPage === 'streak') loadStreakPage();
 if (lastPage === 'settings') loadSettings();
 if (lastPage === 'ai') loadInsights();
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+}
