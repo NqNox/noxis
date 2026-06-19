@@ -63,6 +63,17 @@ const INSTRUMENTS = [
     { ticker: 'ZN', name: '10Y T-Note', color: '#3a003a', category: 'Bonds' },
 ];
 
+const BLOCKED_WORDS = [
+    'nigger', 'nigga', 'faggot', 'retard', 'chink', 'spic', 'kike', 'cunt',
+    'tranny', 'wetback', 'beaner', 'gook', 'raghead', 'towelhead', 'cracker'
+];
+
+function containsBlockedWord(text) {
+    const lower = text.toLowerCase();
+    return BLOCKED_WORDS.some(word => lower.includes(word));
+}
+
+
 function initSymbolSelector() {
     const selector = document.getElementById('symbolSelector');
     const selected = document.getElementById('symbolSelected');
@@ -136,6 +147,23 @@ function initSymbolSelector() {
 }
 
 initSymbolSelector();
+
+// Sidebar toggle
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const icon = document.querySelector('#sidebarToggle i');
+    
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded');
+    
+    if (sidebar.classList.contains('collapsed')) {
+        icon.setAttribute('data-lucide', 'chevrons-right');
+    } else {
+        icon.setAttribute('data-lucide', 'chevrons-left');
+    }
+    lucide.createIcons();
+});
 
 // Navigation
 const navItems = document.querySelectorAll('.nav-item, .bottom-nav-item');
@@ -338,14 +366,14 @@ function renderSuggestions() {
 function addEmotion(emotion) {
     const clean = emotion.trim();
     if (!clean || selectedEmotions.includes(clean)) return;
-    selectedEmotions.push(clean);
-    if (!savedEmotions.includes(clean)) {
-        savedEmotions.push(clean);
-        localStorage.setItem('noxis_emotions', JSON.stringify(savedEmotions));
+    if (containsBlockedWord(clean)) {
+        const errorEl = document.getElementById('tradeErrorMsg');
+        errorEl.textContent = 'That word is not allowed.';
+        errorEl.style.display = 'block';
+        setTimeout(() => errorEl.style.display = 'none', 3000);
+        emotionInput.value = '';
+        return;
     }
-    renderEmotionTags();
-    renderSuggestions();
-    emotionInput.value = '';
 }
 
 function removeEmotion(emotion) {
@@ -385,8 +413,19 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     const notes = document.getElementById('tradeNotes').value;
 
     if (!date || !symbol || !entry || !exit) {
-        alert('Please fill in all required fields.');
+        const errorEl = document.getElementById('tradeErrorMsg');
+        errorEl.textContent = 'Please fill in all required fields.';
+        errorEl.style.display = 'block';
+        setTimeout(() => errorEl.style.display = 'none', 3000);
         return;
+    }
+
+    if (entry < 0 || exit < 0) {
+    const errorEl = document.getElementById('tradeErrorMsg');
+    errorEl.textContent = 'Entry and exit prices must be positive.';
+    errorEl.style.display = 'block';
+    setTimeout(() => errorEl.style.display = 'none', 3000);
+    return;
     }
 
     const btnSave = document.getElementById('btnSave');
@@ -561,33 +600,7 @@ async function loadRecentTrades() {
                 </div>
             </div>
         `).join('');
-    } else if (currentView === 'list') {
-        container.className = 'trades-list';
-        container.innerHTML = displayTrades.map(trade => `
-            <div class="trade-list-item">
-                <div class="trade-list-left">
-                    <span class="trade-list-symbol">${trade.symbol}</span>
-                    <span class="trade-list-dir ${trade.direction === 'long' ? 'long' : 'short'}">
-                        ${trade.direction === 'long' ? '↑' : '↓'}
-                    </span>
-                    <span class="trade-list-date">${trade.date}</span>
-                </div>
-                <div class="trade-list-right">
-                    <span class="trade-list-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                        ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                    </span>
-                    <div class="trade-list-actions">
-                        <button class="trade-edit-btn" data-id="${trade.id}">
-                            <i data-lucide="pencil" class="pencil-icon"></i>
-                        </button>
-                        <button class="trade-delete-btn" data-id="${trade.id}">
-                            <i data-lucide="trash-2" class="trash-icon"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
+    } 
 
     recentCard.appendChild(container);
     lucide.createIcons();
@@ -896,6 +909,11 @@ function renderSets() {
         <div class="set-item ${activeSetId === 'all' ? 'active' : ''}" data-set-id="all">
             <span>All Rules</span>
         </div>
+        ${ruleSets.length === 0 ? `
+            <div style="font-size:12px;color:#444;padding:8px 10px;text-align:center;">
+                No sets yet.<br>Click + to create one.
+            </div>
+        ` : ''}
         ${ruleSets.map(set => `
             <div class="set-item ${activeSetId === set.id ? 'active' : ''}" data-set-id="${set.id}">
                 <span>${set.name}</span>
@@ -1336,7 +1354,7 @@ async function loadStreakPage() {
         : 100;
 
     // Update stats
-    document.getElementById('highestWinStreak').textContent = `${maxStreak}d in a row`;
+    document.getElementById('highestWinStreak').textContent = `${maxStreak} days`;
     document.getElementById('totalCompliantDays').textContent = `${compliantDays} days`;
     document.getElementById('streakPageFlame').textContent = streak > 0 ? '🔥' : '💤';
     document.getElementById('streakPageTitle').textContent = streak > 0 ? `${streak} Day Streak` : 'No streak yet';
@@ -1569,6 +1587,7 @@ async function loadInsights() {
     document.getElementById('insightTotalPnl').className =
         'insight-stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
     document.getElementById('insightWinRate').textContent = winRate.toFixed(1) + '%';
+    document.getElementById('insightWinRate').className = 'insight-stat-value ' + (winRate >= 50 ? 'positive' : 'negative');
     document.getElementById('insightProfitFactor').textContent = profitFactor;
     document.getElementById('insightAvgRatio').textContent = avgRatio;
 
@@ -1695,28 +1714,64 @@ async function loadInsights() {
     return;
     }
 
+    const startLabel = `$${startBalance.toLocaleString()}`;
+    const endLabel = `$${lastBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const pnlLabel = (lastBalance - startBalance >= 0 ? '+' : '') + '$' + (lastBalance - startBalance).toFixed(2);
+
     equityChart.innerHTML = `
-        <svg viewBox="0 0 ${w} ${h}" class="equity-line" preserveAspectRatio="none">
-            <defs>
-                <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
-                </linearGradient>
-            </defs>
-            <polyline
-                points="${svgPoints}"
-                fill="none"
-                stroke="${lineColor}"
-                stroke-width="2"
-                stroke-linejoin="round"
-            />
-            <polygon
-                points="${svgPoints} ${600 - pad},${h} ${pad},${h}"
-                fill="url(#equityGrad)"
-            />
-        </svg>
+        <div style="position:relative;width:100%;height:100%;">
+            <div style="position:absolute;top:0;right:0;font-size:12px;font-family:'JetBrains Mono',monospace;color:${lineColor};">${endLabel} <span style="font-size:11px;">(${pnlLabel})</span></div>
+            <div style="position:absolute;bottom:0;left:0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#444;">Start: ${startLabel}</div>
+            <svg viewBox="0 0 ${w} ${h}" class="equity-line" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <polyline
+                    points="${svgPoints}"
+                    fill="none"
+                    stroke="${lineColor}"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                />
+                <polygon
+                    points="${svgPoints} ${600 - pad},${h} ${pad},${h}"
+                    fill="url(#equityGrad)"
+                />
+            </svg>
+        </div>
     `;
-}
+
+    equityChart.style.position = 'relative';
+    }
+
+window.addEventListener('scroll', () => {
+    const lastPage = sessionStorage.getItem('noxis_active_page');
+    const floatBtn = document.getElementById('settingsFloatSave');
+    if (lastPage === 'settings' && window.scrollY > 100) {
+        floatBtn.classList.add('visible');
+    } else {
+        floatBtn?.classList.remove('visible');
+    }
+});
+
+document.querySelector('.main-content').addEventListener('scroll', () => {
+    const lastPage = sessionStorage.getItem('noxis_active_page');
+    const floatBtn = document.getElementById('settingsFloatSave');
+    if (lastPage === 'settings') {
+        floatBtn.classList.add('visible');
+    }
+});
+
+document.getElementById('btnSaveSettingsFloat').addEventListener('click', () => {
+    document.getElementById('btnSaveSettings').click();
+});
+
+document.getElementById('btnAddRuleInline').addEventListener('click', () => {
+    ruleModalOverlay.classList.add('active');
+});
 
 //Init
 renderSuggestions();

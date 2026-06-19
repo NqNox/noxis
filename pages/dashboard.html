@@ -53,6 +53,9 @@
             </div>
         </div>
     </aside>
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i data-lucide="chevrons-left" style="width:16px;height:16px;"></i>
+    </button>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
@@ -103,10 +106,8 @@
                         <button class="view-btn" data-view="cards" title="Card view">
                             <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
                         </button>
-                        <button class="view-btn" data-view="list" title="List view">
-                            <i data-lucide="list" style="width:14px;height:14px;"></i>
-                        </button>
-                        <a href="#" data-page="journal" class="recent-link nav-item">View all →</a>
+                        <a href="#" data-page="journal" class="recent-link nav-item">View all</a>
+                        
                     </div>
                 </div>
                 <div class="recent-empty">
@@ -148,6 +149,7 @@
                             <div class="checklist-progress-fill" id="progressFill"></div>
                         </div>
                         <div class="rules-list" id="rulesList"></div>
+                        <button class="btn-add-rule-inline" id="btnAddRuleInline">+ Add Rule</button>
                     </div>
                 </div>
             </div>
@@ -306,9 +308,9 @@
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
                 <div class="calendar-legend">
-                    <div class="legend-item"><div class="legend-dot green"></div><span>Win + Rules</span></div>
-                    <div class="legend-item"><div class="legend-dot red"></div><span>No Rules</span></div>
-                    <div class="legend-item"><div class="legend-dot gray"></div><span>No Trade</span></div>
+                    <div class="legend-item"><div class="legend-dot green"></div><span>Profitable + Rules followed</span></div>
+                    <div class="legend-item"><div class="legend-dot red"></div><span>Loss or rules broken</span></div>
+                    <div class="legend-item"><div class="legend-dot gray"></div><span>No trade logged</span></div>
                 </div>
             </div>
         </div>
@@ -398,6 +400,9 @@
             <div class="page-header">
                 <h1 class="page-title">Settings</h1>
                 <button class="btn-save-settings" id="btnSaveSettings">Save Changes</button>
+                <div class="settings-float-save" id="settingsFloatSave">
+                    <button class="btn-save-settings" id="btnSaveSettingsFloat">Save Changes</button>
+                </div>
             </div>
 
             <div class="settings-layout">
@@ -564,18 +569,18 @@
                 <div class="modal-field">
                     <label>Direction</label>
                     <div class="direction-toggle">
-                        <button class="dir-btn" id="btnLong">↑ Long</button>
-                        <button class="dir-btn active" id="btnShort">↓ Short</button>
+                        <button class="dir-btn active" id="btnLong">↑ Long</button>
+                        <button class="dir-btn" id="btnShort">↓ Short</button>
                     </div>
                 </div>
                 <div class="modal-row">
                     <div class="modal-field">
                         <label>Entry Price</label>
-                        <input type="number" id="tradeEntry" placeholder="0.00" step="0.25" />
+                        <input type="number" id="tradeEntry" placeholder="0.00" step="0.25" min="0" />
                     </div>
                     <div class="modal-field">
                         <label>Exit Price</label>
-                        <input type="number" id="tradeExit" placeholder="0.00" step="0.25" />
+                        <input type="number" id="tradeExit" placeholder="0.00" step="0.25" min="0" />
                     </div>
                 </div>
                 <div class="modal-field">
@@ -603,6 +608,7 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <span id="tradeErrorMsg" style="display:none;color:#ff4444;font-size:13px;margin-right:auto;"></span>
                 <button class="btn-cancel" id="btnCancel">Cancel</button>
                 <button class="btn-save" id="btnSave">Save Trade</button>
             </div>
