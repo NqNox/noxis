@@ -732,6 +732,9 @@ async function loadStreak() {
         .select('date, followed_rules')
         .eq('user_id', session.user.id)
         .gte('date', sevenDaysAgo.toLocaleDateString('en-CA'));
+        console.log('today:', today.toLocaleDateString('en-CA'));
+        console.log('sevenDaysAgo:', sevenDaysAgo.toLocaleDateString('en-CA'));
+        console.log('trades fetched:', trades); 
 
     // Get last 5 weekdays starting from Monday
     const days = [];
@@ -774,27 +777,26 @@ async function loadStreak() {
     });
 
     // Count streak
-    let streak = 0;
+    let streakCount = 0;
     const checkDate = new Date(today);
     while (true) {
         const day = checkDate.getDay();
         if (day !== 0 && day !== 6) {
             const dateStr = checkDate.toLocaleDateString('en-CA');
             if (tradedDays.has(dateStr)) {
-                streak++;
+                streakCount++;
             } else {
                 break;
             }
         }
         checkDate.setDate(checkDate.getDate() - 1);
-        if (streak > 365) break;
+        if (streakCount > 365) break;
     }
 
-    // Update flame and title
     const flame = document.querySelector('.streak-flame');
-    flame.textContent = streak > 0 ? '🔥' : '💤';
+    flame.textContent = streakCount > 0 ? '🔥' : '💤';
     document.querySelector('.streak-title').textContent = 
-        streak > 0 ? `${streak} Day Streak` : 'No streak yet';
+        streakCount > 0 ? `${streakCount} Day Streak` : 'No streak yet';
 }
 
 // ============================================
