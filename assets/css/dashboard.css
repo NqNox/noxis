@@ -1538,7 +1538,7 @@ input[type="date"]::-webkit-datetime-edit {
     border-radius: 0 12px 12px 0;
     padding: 0;
     display: grid;
-    grid-template-columns: 200px 1fr;
+    grid-template-columns: 160px 1fr;
     gap: 0;
     align-items: stretch;
     transition: all 0.2s ease;
@@ -1557,10 +1557,10 @@ input[type="date"]::-webkit-datetime-edit {
 
 /* LEFT - Trade Data */
 .entry-data {
-    padding: 20px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     border-right: 1px solid #1a1a1a;
 }
 
@@ -1574,13 +1574,6 @@ input[type="date"]::-webkit-datetime-edit {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-.entry-symbol {
-    font-size: 20px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    color: #ffffff;
 }
 
 .entry-pnl {
@@ -1670,13 +1663,13 @@ input[type="date"]::-webkit-datetime-edit {
 
 /* RIGHT - Journal Notes */
 .entry-journal {
-    padding: 20px 24px;
+    padding: 14px 18px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     background: #0d0d0d;
     position: relative;
-    min-height: 120px;
+    min-height: 80px;
 }
 
 .entry-notes-text {
@@ -1736,7 +1729,7 @@ input[type="date"]::-webkit-datetime-edit {
 }
 
 .entry-symbol {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
     color: #ffffff;
@@ -1807,7 +1800,7 @@ input[type="date"]::-webkit-datetime-edit {
 }
 
 .entry-pnl {
-    font-size: 20px;
+    font-size: 13px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
 }
@@ -1902,13 +1895,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border: none;
     outline: none;
     color: #cccccc;
-    font-size: 14px;
+    font-size: 13px;
     font-style: italic;
     line-height: 1.8;
     font-family: 'Space Grotesk', sans-serif;
     width: 100%;
     resize: none;
-    min-height: 80px;
+    min-height: 60px;
     height: 100%;
     flex: 1;
     cursor: text;
