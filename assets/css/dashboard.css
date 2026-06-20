@@ -272,6 +272,7 @@ html, body {
 .streak-days {
     display: flex;
     gap: 10px;
+    padding-bottom: 20px;
 }
 
 .day-circle {
@@ -291,11 +292,12 @@ html, body {
 }
 
 .day-circle span {
-    font-size: 8px;
-    color: #444444;
-    font-weight: 400;
+    font-size: 10px;
+    color: #888888;
+    font-weight: 500;
     position: absolute;
-    bottom: -16px;
+    bottom: -18px;
+    white-space: nowrap;
 }
 
 .day-circle.active {
@@ -3231,5 +3233,37 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 768px) {
     .sidebar-toggle {
         display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .btn-log-trade {
+        display: none;
+    }
+
+    .fab-log-trade {
+        position: fixed;
+        bottom: 120px;
+        right: 16px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #00d4d4;
+        border: none;
+        color: #0a0a0a;
+        font-size: 24px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(0, 212, 212, 0.4);
+        transition: all 0.2s ease;
+        z-index: 99;
+    }
+
+    .fab-log-trade:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 28px rgba(0, 212, 212, 0.6);
     }
 }

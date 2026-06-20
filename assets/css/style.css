@@ -16,10 +16,11 @@ body {
     color: #ffffff;
     font-family: 'Space Grotesk', sans-serif;
     overflow-x: hidden;
-        background-image: 
+    background-image: 
         linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 28px 28px;
+    background-size: 2vw 2vw;
+    background-attachment: fixed;
 }
 
 /* NAVBAR */
@@ -226,16 +227,14 @@ nav {
 }
 
 .blob {
-    position: absolute;
+    position: fixed;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 60%);
 }
 
-.b1 { width: 500px; height: 500px; top: -200px; left: -100px; }
-.b2 { width: 500px; height: 500px; top: -200px; left: 25%; }
-.b3 { width: 500px; height: 500px; top: -200px; right: -100px; }
-.b4 { width: 500px; height: 500px; bottom: -200px; left: 15%; }
-.b5 { width: 500px; height: 500px; bottom: -200px; right: 10%; }
+.b1 { width: 40vw; height: 40vw; top: -10vw; left: -5vw; }
+.b2 { width: 40vw; height: 40vw; top: -10vw; right: -5vw; }
+.b3 { width: 40vw; height: 40vw; bottom: -10vw; left: 30%; }
 
 /* MISSION */
 .mission {

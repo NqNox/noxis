@@ -1774,6 +1774,10 @@ document.getElementById('btnAddRuleInline').addEventListener('click', () => {
     ruleModalOverlay.classList.add('active');
 });
 
+document.getElementById('fabLogTrade')?.addEventListener('click', () => {
+    modalOverlay.classList.add('active');
+});
+
 //Init
 renderSuggestions();
 loadRecentTrades();
