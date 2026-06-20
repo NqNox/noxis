@@ -3227,3 +3227,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-color: #00d4d4;
     color: #00d4d4;
 }
+
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: none;
+    }
+}

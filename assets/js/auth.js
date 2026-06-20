@@ -125,4 +125,6 @@ if (eyeToggle2) {
             eyeToggle2.innerHTML = eyeIcon;
         }
     });
-}
+}   
+
+lucide.createIcons();

@@ -150,6 +150,7 @@ initSymbolSelector();
 
 // Sidebar toggle
 document.getElementById('sidebarToggle').addEventListener('click', () => {
+    if (window.innerWidth <= 768) return;
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
     const icon = document.querySelector('#sidebarToggle i');
