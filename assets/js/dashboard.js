@@ -68,6 +68,7 @@ const BLOCKED_WORDS = [
     'tranny', 'wetback', 'beaner', 'gook', 'raghead', 'towelhead', 'cracker'
 ];
 
+
 function containsBlockedWord(text) {
     const lower = text.toLowerCase();
     return BLOCKED_WORDS.some(word => lower.includes(word));
@@ -331,12 +332,14 @@ const emotionInput = document.getElementById('emotionInput');
 const emotionTagsEl = document.getElementById('emotionTags');
 const emotionSuggestions = document.getElementById('emotionSuggestions');
 const emotionTagsContainer = document.getElementById('emotionTagsContainer');
+console.log('emotion elements:', emotionInput, emotionTagsEl, emotionSuggestions, emotionTagsContainer);
 
 let selectedEmotions = [];
 let savedEmotions = JSON.parse(localStorage.getItem('noxis_emotions') || '[]');
 const defaultEmotions = ['FOMO', 'Anxious', 'Confident', 'Frustrated', 'Calm', 'Revenge', 'Greedy', 'Patient'];
 
 function renderSuggestions() {
+    console.log('renderSuggestions called, savedEmotions:', savedEmotions);
     const allSuggestions = [...new Set([...defaultEmotions, ...savedEmotions])];
     const filtered = allSuggestions.filter(e => !selectedEmotions.includes(e));
     emotionSuggestions.innerHTML = '';
@@ -370,15 +373,18 @@ function renderSuggestions() {
 
 function addEmotion(emotion) {
     const clean = emotion.trim();
-    if (!clean || selectedEmotions.includes(clean)) return;
+    if (!clean || selectedEmotions.includes(clean)) { console.log('2. early return'); return; }
     if (containsBlockedWord(clean)) {
-        const errorEl = document.getElementById('tradeErrorMsg');
-        errorEl.textContent = 'That word is not allowed.';
-        errorEl.style.display = 'block';
-        setTimeout(() => errorEl.style.display = 'none', 3000);
-        emotionInput.value = '';
         return;
     }
+    selectedEmotions.push(clean);
+    if (!savedEmotions.includes(clean)) {
+        savedEmotions.push(clean);
+        localStorage.setItem('noxis_emotions', JSON.stringify(savedEmotions));
+    }
+    renderEmotionTags();
+    renderSuggestions();
+    emotionInput.value = '';
 }
 
 function removeEmotion(emotion) {
@@ -577,7 +583,7 @@ async function loadRecentTrades() {
     } else if (currentView === 'cards') {
         container.className = 'trades-cards';
         container.innerHTML = displayTrades.map(trade => `
-            <div class="trade-card">
+            <div class="trade-card ${trade.pnl >= 0 ? 'win' : 'loss'}">
                 <div class="trade-card-header">
                     <span class="trade-card-symbol">${trade.symbol}</span>
                     <span class="trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
@@ -585,8 +591,7 @@ async function loadRecentTrades() {
                     </span>
                 </div>
                 <div class="trade-card-details">
-                    <span class="trade-card-tag ${trade.direction === 'long' ? 'long' : 'short'}">
-                        ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                    <span class="trade-card-tag ${trade.direction}">${trade.direction === 'long' ? '↑ Long' : '↓ Short'}</span>
                     </span>
                     <span class="trade-card-tag">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
                     <span class="trade-card-tag">${trade.followed_rules ? '✓ Rules' : '✗ Rules'}</span>
@@ -1520,14 +1525,32 @@ document.getElementById('btnDeleteTrades').addEventListener('click', () => {
     const confirmCancel = document.getElementById('confirmCancel');
 
     document.querySelector('.confirm-popup h3').textContent = 'Delete All Trades?';
-    document.querySelector('.confirm-popup p').textContent = 'This will permanently delete every trade you have logged.';
+    document.querySelector('.confirm-popup p').innerHTML = 'Type <strong>DELETE</strong> to confirm. This cannot be undone.';
+    
+    // Add input field
+    const existing = document.getElementById('deleteConfirmInput');
+    if (!existing) {
+        const input = document.createElement('input');
+        input.id = 'deleteConfirmInput';
+        input.placeholder = 'Type DELETE here';
+        input.style.cssText = 'background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:Space Grotesk,sans-serif;outline:none;width:100%;margin-top:4px;';
+        document.querySelector('.confirm-actions').before(input);
+    } else {
+        existing.value = '';
+    }
 
     confirmOverlay.classList.add('active');
 
     confirmDelete.onclick = async () => {
+        const inputVal = document.getElementById('deleteConfirmInput')?.value;
+        if (inputVal !== 'DELETE') {
+            document.getElementById('deleteConfirmInput').style.borderColor = '#ff4444';
+            return;
+        }
         const { data: { session } } = await supabaseClient.auth.getSession();
         await supabaseClient.from('trades').delete().eq('user_id', session.user.id);
         confirmOverlay.classList.remove('active');
+        document.getElementById('deleteConfirmInput')?.remove();
         document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
         document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
         loadRecentTrades();
@@ -1536,6 +1559,7 @@ document.getElementById('btnDeleteTrades').addEventListener('click', () => {
 
     confirmCancel.onclick = () => {
         confirmOverlay.classList.remove('active');
+        document.getElementById('deleteConfirmInput')?.remove();
         document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
         document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
     };

@@ -39,9 +39,9 @@ if (signupBtn) {
             signupBtn.textContent = 'Create account';
             signupBtn.disabled = false;
         } else {
-            signupBtn.textContent = 'Account created ✓';
+            signupBtn.textContent = 'Redirecting...';
             errorMsg.style.color = '#00d4d4';
-            errorMsg.textContent = 'Account created! Redirecting...';
+            errorMsg.textContent = '✓ Account created successfully!';
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
             }, 1500);
@@ -126,5 +126,41 @@ if (eyeToggle2) {
         }
     });
 }   
+
+const passwordInput = document.getElementById('password');
+if (passwordInput) {
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+        const reqLength = document.getElementById('reqLength');
+        const reqNumber = document.getElementById('reqNumber');
+        const reqSpecial = document.getElementById('reqSpecial');
+
+        if (!reqLength) return;
+
+        if (val.length >= 8) {
+            reqLength.textContent = '✓ 8+ chars';
+            reqLength.classList.add('met');
+        } else {
+            reqLength.textContent = '✕ 8+ chars';
+            reqLength.classList.remove('met');
+        }
+
+        if (/\d/.test(val)) {
+            reqNumber.textContent = '✓ numbers';
+            reqNumber.classList.add('met');
+        } else {
+            reqNumber.textContent = '✕ numbers';
+            reqNumber.classList.remove('met');
+        }
+
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+            reqSpecial.textContent = '✓ special char';
+            reqSpecial.classList.add('met');
+        } else {
+            reqSpecial.textContent = '✕ special char';
+            reqSpecial.classList.remove('met');
+        }
+    });
+}
 
 lucide.createIcons();
