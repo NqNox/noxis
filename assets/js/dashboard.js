@@ -181,6 +181,10 @@ navItems.forEach(item => {
         document.getElementById(`page-${target}`).classList.add('active');
         sessionStorage.setItem('noxis_active_page', target); 
 
+        const fab = document.getElementById('fabLogTrade');
+        if (fab) fab.style.display = target === 'dashboard' ? 'flex' : 'none';
+        
+
         // Load page data when switching
         if (target === 'checklist'){
             loadRuleSets();
@@ -1804,3 +1808,6 @@ if (lastPage === 'journal') loadJournal();
 if (lastPage === 'streak') loadStreakPage();
 if (lastPage === 'settings') loadSettings();
 if (lastPage === 'ai') loadInsights();
+
+const fab = document.getElementById('fabLogTrade');
+if (fab && lastPage !== 'dashboard') fab.style.display = 'none';

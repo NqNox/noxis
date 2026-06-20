@@ -853,3 +853,9 @@ footer {
         display: none;
     }
 }
+
+@media (max-width: 768px) {
+    body {
+        background-size: 28px 28px;
+    }
+}
