@@ -787,6 +787,7 @@ async function loadStreak() {
             break;
         }
     }
+    
 
     const flame = document.querySelector('.streak-flame');
     flame.textContent = streakCount > 0 ? '🔥' : '💤';
