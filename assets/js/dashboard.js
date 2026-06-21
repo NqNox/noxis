@@ -731,7 +731,7 @@ async function loadStreak() {
         .from('trades')
         .select('date, followed_rules')
         .eq('user_id', session.user.id)
-        .gte('date', sevenDaysAgo.toLocaleDateString('en-CA'));
+        .order('date', { ascending: true });
         console.log('today:', today.toLocaleDateString('en-CA'));
         console.log('sevenDaysAgo:', sevenDaysAgo.toLocaleDateString('en-CA'));
         console.log('trades fetched:', trades); 
@@ -777,20 +777,15 @@ async function loadStreak() {
     });
 
     // Count streak
+    // Count streak using same logic as streak page
+    const tradingDates = [...tradedDays].sort();
     let streakCount = 0;
-    const checkDate = new Date(today);
-    while (true) {
-        const day = checkDate.getDay();
-        if (day !== 0 && day !== 6) {
-            const dateStr = checkDate.toLocaleDateString('en-CA');
-            if (tradedDays.has(dateStr)) {
-                streakCount++;
-            } else {
-                break;
-            }
+    for (const date of [...tradingDates].reverse()) {
+        if (tradedDays.has(date)) {
+            streakCount++;
+        } else {
+            break;
         }
-        checkDate.setDate(checkDate.getDate() - 1);
-        if (streakCount > 365) break;
     }
 
     const flame = document.querySelector('.streak-flame');
