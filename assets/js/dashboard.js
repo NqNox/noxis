@@ -924,12 +924,38 @@ function renderSets() {
         ${ruleSets.map(set => `
             <div class="set-item ${activeSetId === set.id ? 'active' : ''}" data-set-id="${set.id}">
                 <span>${set.name}</span>
-                <button class="set-delete-btn" data-set-id="${set.id}">
-                    <i data-lucide="x"></i>
-                </button>
+                <div style="display:flex;gap:4px;">
+                    <button class="set-edit-btn" data-set-id="${set.id}" data-set-name="${set.name}">
+                        <i data-lucide="pencil"></i>
+                    </button>
+                    <button class="set-delete-btn" data-set-id="${set.id}">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
             </div>
         `).join('')}
     `;
+
+    document.querySelectorAll('.set-edit-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.setId;
+        const currentName = btn.dataset.setName;
+        setInput.value = currentName;
+        document.querySelector('#setModalOverlay .modal-header h2').textContent = 'Edit Rule Set';
+        setModalOverlay.classList.add('active');
+
+        btnSetSave.onclick = async () => {
+            const name = setInput.value.trim();
+            if (!name) return;
+            await supabaseClient.from('rule_sets').update({ name }).eq('id', id);
+            closeSetModal();
+            document.querySelector('#setModalOverlay .modal-header h2').textContent = 'New Rule Set';
+            btnSetSave.onclick = null;
+            loadRuleSets();
+        };
+    });
+});
 
     document.querySelectorAll('.set-item').forEach(item => {
         item.addEventListener('click', (e) => {
@@ -950,10 +976,15 @@ function renderSets() {
 
             confirmOverlay.classList.add('active');
 
+            document.querySelector('.confirm-popup h3').textContent = 'Delete Rule Set?';
+            document.querySelector('.confirm-popup p').textContent = 'This will delete the set but not the rules inside it.';
+
             confirmDelete.onclick = async () => {
                 await supabaseClient.from('rule_sets').delete().eq('id', id);
                 if (activeSetId === id) activeSetId = 'all';
                 confirmOverlay.classList.remove('active');
+                document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
+                document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
                 loadRuleSets();
                 loadRules();
             };

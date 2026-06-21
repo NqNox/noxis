@@ -1318,6 +1318,32 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 
 .set-delete-btn:hover svg { stroke: #ff4444; }
 
+.set-edit-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
+}
+
+.set-item:hover .set-edit-btn {
+    opacity: 1;
+}
+
+.set-edit-btn svg {
+    width: 11px;
+    height: 11px;
+    stroke: #444444;
+    transition: stroke 0.2s ease;
+}
+
+.set-edit-btn:hover svg {
+    stroke: #ffffff;
+}
+
 .checklist-main {
     display: flex;
     flex-direction: column;
