@@ -786,8 +786,7 @@ async function loadStreak() {
         } else {
             break;
         }
-    }
-    
+    }  
 
     const flame = document.querySelector('.streak-flame');
     flame.textContent = streakCount > 0 ? '🔥' : '💤';
@@ -1573,6 +1572,8 @@ if (mobileSettingsBtn) {
         sessionStorage.setItem('noxis_active_page', 'settings');
         loadSettings();
         lucide.createIcons();
+        const fab = document.getElementById('fabLogTrade');
+        if (fab) fab.style.display = 'none';
     });
 }
 
