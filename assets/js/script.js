@@ -48,3 +48,14 @@ document.getElementById('btnDashboard').addEventListener('click', async () => {
         window.location.href = '/pages/login.html';
     }
 });
+
+document.getElementById('btnEarlyAccess').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session } } = await client.auth.getSession();
+    if (session) {
+        window.location.href = '/pages/dashboard.html';
+    } else {
+        window.location.href = '/pages/login.html';
+    }
+});
