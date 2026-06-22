@@ -416,9 +416,8 @@ html, body {
     border: 1px solid #1a1a1a;
     border-radius: 16px;
     padding: 2.5vh 2vw;
-    padding-bottom: calc(2.5vh + 20px);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 20px;
     min-width: 22vw;
     overflow: visible;
@@ -430,7 +429,7 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-bottom: 8px;
+    padding-top: 8px;
 }
 
 .streak-title {
