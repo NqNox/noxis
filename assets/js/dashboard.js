@@ -24,7 +24,7 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
 }); 
 
 let userPlan = 'free';
-const PLAN_LIMITS = { free: 5, pro: 100, elite: 120 };
+const PLAN_LIMITS = { free: 50, pro: 100, elite: 120 };
 
 
 function showToast(message, type = 'error', duration = 3000) {
