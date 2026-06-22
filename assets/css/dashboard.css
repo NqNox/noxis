@@ -354,12 +354,19 @@ html, body {
 /* ============================================
    DASHBOARD
    ============================================ */
+
+#page-dashboard {
+    overflow: visible;
+    padding-bottom: 20px;
+}
+
 .dashboard-top {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 1.5vh;
     margin-bottom: 1.5vh;
     align-items: stretch;
+    overflow: visible;
 }
 
 /* Stats Card */
@@ -409,11 +416,12 @@ html, body {
     border: 1px solid #1a1a1a;
     border-radius: 16px;
     padding: 2.5vh 2vw;
+    padding-bottom: calc(2.5vh + 20px);
     display: flex;
     align-items: center;
     gap: 20px;
     min-width: 22vw;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .streak-flame { font-size: 48px; }
@@ -422,6 +430,7 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding-bottom: 8px;
 }
 
 .streak-title {
@@ -433,9 +442,9 @@ html, body {
 .streak-days {
     display: flex;
     gap: 8px;
-    padding-bottom: 20px;
+    padding-bottom: 28px;
     flex-wrap: nowrap;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .day-circle {
@@ -483,7 +492,8 @@ html, body {
     border: 1px solid #1a1a1a;
     border-radius: 16px;
     padding: 2.5vh 2vw;
-    height: calc(100vh - 28vh);
+    min-height: calc(100vh - 35vh);
+    height: auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
