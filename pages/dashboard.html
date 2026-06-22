@@ -208,27 +208,34 @@
 
             <!-- FILTERS -->
             <div class="journal-filters">
-                <div class="date-filter-group">
-                    <label class="filter-label">From</label>
-                    <input type="date" id="filterDateFrom" class="journal-filter-input" />
+                <div class="filter-locked-wrapper" id="filterLockedWrapper">
+                    <div class="date-filter-group">
+                        <label class="filter-label">From</label>
+                        <input type="date" id="filterDateFrom" class="journal-filter-input" />
+                    </div>
+                    <div class="date-filter-group">
+                        <label class="filter-label">To</label>
+                        <input type="date" id="filterDateTo" class="journal-filter-input" />
+                    </div>
+                    <select id="filterSymbol" class="journal-filter-input">
+                        <option value="">All Symbols</option>
+                    </select>
+                    <select id="filterDirection" class="journal-filter-input">
+                        <option value="">All Directions</option>
+                        <option value="long">↑ Long</option>
+                        <option value="short">↓ Short</option>
+                    </select>
+                    <select id="filterRules" class="journal-filter-input">
+                        <option value="">All Trades</option>
+                        <option value="true">✓ Followed Rules</option>
+                        <option value="false">✗ Broke Rules</option>
+                    </select>
+                    <div class="filter-lock-overlay" id="filterLockOverlay" style="display:none;">
+                        <span>🔒</span>
+                        <span>Filters are a Pro feature</span>
+                        <a href="#" class="btn-upgrade" style="font-size:12px;padding:6px 16px;">Upgrade →</a>
+                    </div>
                 </div>
-                <div class="date-filter-group">
-                    <label class="filter-label">To</label>
-                    <input type="date" id="filterDateTo" class="journal-filter-input" />
-                </div>
-                <select id="filterSymbol" class="journal-filter-input">
-                    <option value="">All Symbols</option>
-                </select>
-                <select id="filterDirection" class="journal-filter-input">
-                    <option value="">All Directions</option>
-                    <option value="long">↑ Long</option>
-                    <option value="short">↓ Short</option>
-                </select>
-                <select id="filterRules" class="journal-filter-input">
-                    <option value="">All Trades</option>
-                    <option value="true">✓ Followed Rules</option>
-                    <option value="false">✗ Broke Rules</option>
-                </select>
                 <select id="journalSort" class="journal-filter-input">
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
@@ -614,7 +621,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <span id="tradeErrorMsg" style="display:none;color:#ff4444;font-size:13px;margin-right:auto;"></span>
+                <span class="trade-counter" id="tradeCounter">— / —</span>
+                <div class="limit-banner" id="limitBanner" style="display:none;">
+                    <span>⚠️ You've reached your monthly limit</span>
+                    <a href="#" class="limit-upgrade-btn">Upgrade →</a>
+                </div>
                 <button class="btn-cancel" id="btnCancel">Cancel</button>
                 <button class="btn-save" id="btnSave">Save Trade</button>
             </div>
@@ -633,6 +644,8 @@
             </div>
         </div>
     </div>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/js/config.js"></script>

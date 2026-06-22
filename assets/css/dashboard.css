@@ -936,6 +936,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
     padding: 20px 28px;
     border-top: 1px solid #1a1a1a;
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     justify-content: flex-end;
     align-items: center;
@@ -2590,6 +2591,121 @@ select.journal-filter-input option {
    ============================================ */
 .bottom-nav { display: none; }
 
+
+.trade-counter {
+    font-size: 11px;
+    color: #888888;
+    font-family: 'JetBrains Mono', monospace;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 50px;
+    padding: 3px 10px;
+    margin-right: auto;
+}
+
+.trade-counter.warning {
+    color: #ff9900;
+    background: rgba(255, 153, 0, 0.08);
+    border-color: rgba(255, 153, 0, 0.3);
+}
+
+.trade-counter.full {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.08);
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+/* TOAST NOTIFICATIONS */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+}
+
+.toast {
+    background: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    color: #ffffff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 380px;
+    min-width: 280px;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error { border-left: 3px solid #ff4444; }
+.toast.success { border-left: 3px solid #00c864; }
+.toast.warning { border-left: 3px solid #ff9900; }
+.toast.info { border-left: 3px solid #00d4d4; }
+
+.toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.limit-banner {
+    width: 100%;
+    order: -1;
+    background: rgba(255, 68, 68, 0.08);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #ff4444;
+}
+
+.limit-upgrade-btn {
+    background: #ff4444;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.limit-upgrade-btn:hover {
+    background: #ffffff;
+    color: #ff4444;
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        bottom: 100px;
+        right: 12px;
+        left: 12px;
+    }
+    .toast { max-width: 100%; }
+}
+
 /* ============================================
    RESPONSIVE — MOBILE
    ============================================ */
@@ -2764,4 +2880,30 @@ select.journal-filter-input option {
 
     /* Settings */
     .settings-float-save { bottom: 100px; right: 16px; }
+}
+
+
+.filter-locked-wrapper {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #888888;
 }

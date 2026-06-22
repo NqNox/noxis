@@ -23,6 +23,59 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
     
 }); 
 
+let userPlan = 'free';
+const PLAN_LIMITS = { free: 5, pro: 100, elite: 120 };
+
+
+function showToast(message, type = 'error', duration = 3000) {
+    const container = document.getElementById('toastContainer');
+    const icons = { error: '⚠️', success: '✓', warning: '⚡', info: 'ℹ️' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <span class="toast-message">${message}</span>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+async function loadUserPlan() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data } = await supabaseClient
+        .from('user_plans')
+        .select('plan')
+        .eq('user_id', session.user.id)
+        .single();
+
+    if (data) {
+        userPlan = data.plan;
+    } else {
+        // Insert free plan if doesn't exist (for existing users)
+        await supabaseClient.from('user_plans').insert({
+            user_id: session.user.id,
+            plan: 'free'
+        });
+        userPlan = 'free';
+    }
+
+    // Update plan badge in sidebar
+    const planEl = document.querySelector('.user-plan');
+    if (planEl) {
+        const labels = { free: 'Free Plan', pro: 'Pro Plan', elite: 'Elite Plan' };
+        planEl.textContent = labels[userPlan] || 'Free Plan';
+    }
+}
+
 let pnlManuallyEdited = false;
 
 document.getElementById('pnlDisplay').addEventListener('input', () => {
@@ -217,6 +270,8 @@ document.getElementById('tradeDate').value = today;
 
 logTradeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
+        modalOverlay.classList.add('active');
+        loadTradeCounter();
         const lastSymbol = document.getElementById('tradeSymbol').value || 'NQ';
         const inst = INSTRUMENTS.find(i => i.ticker === lastSymbol) || INSTRUMENTS[0];
         document.getElementById('selectedTicker').textContent = inst.ticker;
@@ -242,6 +297,14 @@ function closeModal() {
     pnlManuallyEdited = false;
     document.getElementById('pnlDisplay').value = '';
     document.getElementById('pnlDisplay').className = 'pnl-input';
+    const limitBanner = document.getElementById('limitBanner');
+    if (limitBanner) limitBanner.style.display = 'none';
+    const btnSave = document.getElementById('btnSave');
+    if (btnSave) {
+        btnSave.disabled = false;
+        btnSave.style.opacity = '1';
+        btnSave.style.cursor = 'pointer';
+    }
     direction = 'long';
     btnLong.classList.add('active');
     btnShort.classList.remove('active');
@@ -424,18 +487,12 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     const notes = document.getElementById('tradeNotes').value;
 
     if (!date || !symbol || !entry || !exit) {
-        const errorEl = document.getElementById('tradeErrorMsg');
-        errorEl.textContent = 'Please fill in all required fields.';
-        errorEl.style.display = 'block';
-        setTimeout(() => errorEl.style.display = 'none', 3000);
+        showToast('Please fill in all required fields.', 'error');
         return;
     }
 
     if (entry < 0 || exit < 0) {
-    const errorEl = document.getElementById('tradeErrorMsg');
-    errorEl.textContent = 'Entry and exit prices must be positive.';
-    errorEl.style.display = 'block';
-    setTimeout(() => errorEl.style.display = 'none', 3000);
+    showToast('Entry and exit prices must be positive.', 'error');
     return;
     }
 
@@ -444,6 +501,25 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     btnSave.disabled = true;
 
     const { data: { session } } = await supabaseClient.auth.getSession();
+    // Check trade limit (only for new trades, not edits)
+    if (!editingTradeId) {
+        const limit = PLAN_LIMITS[userPlan];
+        const now = new Date();
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+        const { count } = await supabaseClient
+            .from('trades')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', session.user.id)
+            .gte('created_at', firstOfMonth);
+  
+        if (count >= limit) {
+            showToast(`You've reached your ${limit} trades/month limit. Upgrade to log more.`, 'warning');
+            btnSave.textContent = 'Save Trade';
+            btnSave.disabled = false;
+            return;
+        }
+    }
     const pnlInputVal = parseFloat(document.getElementById('pnlDisplay').value);
     const symbolVal = document.getElementById('tradeSymbol').value || 'NQ';
     const pointValue = getPointValue(symbolVal);
@@ -484,7 +560,7 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     const { error } = result;
 
     if (error) {
-        alert('Error saving trade: ' + error.message);
+        showToast('Error saving trade: ' + error.message);
         btnSave.textContent = editingTradeId ? 'Update Trade' : 'Save Trade';
         btnSave.disabled = false;
     } else {
@@ -862,6 +938,18 @@ async function saveRule() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
+    const RULE_LIMITS = { free: 5, pro: 10, elite: 15 };
+    const ruleLimit = RULE_LIMITS[userPlan];
+    const currentSetId = document.getElementById('ruleSetSelect').value || null;
+    const rulesInSet = currentSetId 
+        ? rules.filter(r => r.set_id === currentSetId).length
+        : rules.filter(r => !r.set_id).length;
+    if (!editingRuleId && rulesInSet >= ruleLimit) {
+        showToast(`You've reached your ${ruleLimit} rules per set limit. Upgrade to add more.`, 'warning');
+        closeRuleModal();
+        return;
+    }
+
     const setId = document.getElementById('ruleSetSelect').value || null;
 
     if (editingRuleId) {
@@ -885,6 +973,14 @@ async function saveSet() {
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
+
+    const SET_LIMITS = { free: 1, pro: 3, elite: 5 };
+    const setLimit = SET_LIMITS[userPlan];
+    if (ruleSets.length >= setLimit) {
+        showToast(`You've reached your ${setLimit} rule set limit. Upgrade to add more.`, 'warning');
+        closeSetModal();
+        return;
+    }
 
     await supabaseClient.from('rule_sets').insert({
         user_id: session.user.id,
@@ -1126,6 +1222,12 @@ async function loadJournal() {
         .order('created_at', { ascending: false });
 
     allTrades = trades || [];
+
+    // Show/hide filter lock based on plan
+    const filterLockOverlay = document.getElementById('filterLockOverlay');
+    if (filterLockOverlay) {
+        filterLockOverlay.style.display = userPlan === 'free' ? 'flex' : 'none';
+    }
 
     // Populate symbol filter
     const symbols = [...new Set(allTrades.map(t => t.symbol))];
@@ -1804,6 +1906,18 @@ async function loadInsights() {
     `;
 
     equityChart.style.position = 'relative';
+
+    // Show/hide AI lock based on plan
+    const aiLock = document.querySelector('.insight-ai-lock');
+    const aiItems = document.querySelectorAll('.ai-insight-item.blurred');
+
+    if (userPlan === 'free') {
+        if (aiLock) aiLock.style.display = 'flex';
+        aiItems.forEach(item => item.classList.add('blurred'));
+    } else if (userPlan === 'pro' || userPlan === 'elite') {
+        if (aiLock) aiLock.style.display = 'none';
+        aiItems.forEach(item => item.classList.remove('blurred'));
+    }
     }
 
 window.addEventListener('scroll', () => {
@@ -1834,9 +1948,56 @@ document.getElementById('btnAddRuleInline').addEventListener('click', () => {
 
 document.getElementById('fabLogTrade')?.addEventListener('click', () => {
     modalOverlay.classList.add('active');
+    loadTradeCounter();
 });
 
+async function loadTradeCounter() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const limit = PLAN_LIMITS[userPlan];
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+    const { count } = await supabaseClient
+        .from('trades')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id)
+        .gte('created_at', firstOfMonth);
+
+    const counter = document.getElementById('tradeCounter');
+    if (!counter) return;
+
+    counter.textContent = `${count} / ${limit} trades this month`;
+    counter.className = 'trade-counter';
+
+    const limitBanner = document.getElementById('limitBanner');
+    const btnSave = document.getElementById('btnSave');
+
+    if (count >= limit) {
+        counter.classList.add('full');
+        if (limitBanner) limitBanner.style.display = 'flex';
+        if (btnSave) {
+            btnSave.disabled = true;
+            btnSave.style.opacity = '0.4';
+            btnSave.style.cursor = 'not-allowed';
+        }
+    } else {
+        if (limitBanner) limitBanner.style.display = 'none';
+        if (btnSave) {
+            btnSave.disabled = false;
+            btnSave.style.opacity = '1';
+            btnSave.style.cursor = 'pointer';
+        }
+        if (count >= limit * 0.8) {
+            counter.classList.add('warning');
+        }
+    }
+}
+
 //Init
+loadUserPlan();
+loadTradeCounter();
 renderSuggestions();
 loadRecentTrades();
 loadStreak();

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noxis Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; color: #fff; font-family: 'Space Grotesk', sans-serif; padding: 40px; }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        p { color: #888; font-size: 14px; margin-bottom: 32px; }
+        .card { background: #111; border: 1px solid #1a1a1a; border-radius: 16px; padding: 24px; max-width: 600px; }
+        .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        label { font-size: 13px; color: #888; }
+        input, select { background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 14px; font-family: 'Space Grotesk', sans-serif; outline: none; }
+        input:focus, select:focus { border-color: #00d4d4; }
+        button { background: #00d4d4; border: none; border-radius: 8px; padding: 10px 24px; color: #0a0a0a; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
+        button:hover { background: #fff; }
+        .msg { margin-top: 16px; font-size: 13px; }
+        .msg.success { color: #00c864; }
+        .msg.error { color: #ff4444; }
+        .users-list { margin-top: 32px; }
+        .user-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+        .plan-badge { padding: 2px 10px; border-radius: 50px; font-size: 11px; font-weight: 600; }
+        .plan-badge.free { background: #1a1a1a; color: #888; }
+        .plan-badge.pro { background: rgba(0,212,212,0.1); color: #00d4d4; border: 1px solid rgba(0,212,212,0.3); }
+        .plan-badge.elite { background: rgba(255,153,0,0.1); color: #ff9900; border: 1px solid rgba(255,153,0,0.3); }
+    </style>
+</head>
+<body>
+    <h1>Noxis Admin</h1>
+    <p>Manage user plans</p>
+
+    <div class="card">
+        <div class="field">
+            <label>User Email</label>
+            <input type="email" id="adminEmail" placeholder="user@email.com" />
+        </div>
+        <div class="field">
+            <label>Plan</label>
+            <select id="adminPlan">
+                <option value="free">Free</option>
+                <option value="pro">Pro</option>
+                <option value="elite">Elite</option>
+            </select>
+        </div>
+        <button id="adminSave">Update Plan</button>
+        <p class="msg" id="adminMsg"></p>
+    </div>
+
+    <div class="users-list" id="usersList"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config.js"></script>
+    <script>
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const ADMIN_EMAIL = 'nmorad.business@gmail.com';
+
+        async function init() {
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || session.user.email !== ADMIN_EMAIL) {
+                document.body.innerHTML = '<p style="color:#ff4444;padding:40px;">Access denied.</p>';
+                return;
+            }
+            loadUsers();
+        }
+
+        async function loadUsers() {
+            const { data } = await client.from('user_plans').select('*');
+            const list = document.getElementById('usersList');
+            if (!data || data.length === 0) return;
+            list.innerHTML = '<h2 style="margin-bottom:16px;font-size:16px;">All Users</h2>' +
+                data.map(u => `
+                    <div class="user-row">
+                        <span style="font-family:monospace;color:#888;">${u.user_id}</span>
+                        <span class="plan-badge ${u.plan}">${u.plan}</span>
+                    </div>
+                `).join('');
+        }
+
+        document.getElementById('adminSave').addEventListener('click', async () => {
+            const email = document.getElementById('adminEmail').value;
+            const plan = document.getElementById('adminPlan').value;
+            const msg = document.getElementById('adminMsg');
+
+            if (!email) { msg.textContent = 'Enter an email.'; msg.className = 'msg error'; return; }
+
+            // Get user by email via auth — need service role for this
+            // For now update by looking up in user_plans joined with auth
+            const { data, error } = await client.rpc('update_user_plan_by_email', { 
+                p_email: email, 
+                p_plan: plan 
+            });
+
+            if (error) {
+                msg.textContent = 'Error: ' + error.message;
+                msg.className = 'msg error';
+            } else {
+                msg.textContent = `✓ Updated ${email} to ${plan}`;
+                msg.className = 'msg success';
+                loadUsers();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
