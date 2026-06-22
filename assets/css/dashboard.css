@@ -2706,6 +2706,52 @@ select.journal-filter-input option {
     color: #ff4444;
 }
 
+.user-plan {
+    font-size: 11px;
+    color: #888888;
+}
+
+.user-plan.plan-free {
+    color: #888888;
+}
+
+.user-plan.plan-pro {
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
+.user-plan.plan-elite {
+    color: #ff9900;
+    font-weight: 600;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #1a1a1a;
+    margin-top: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.plan-bg-free {
+    background: #1a1a1a;
+    border-color: transparent;
+}
+
+.plan-bg-pro {
+    background: rgba(139, 92, 246, 0.05);
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.plan-bg-elite {
+    background: rgba(255, 153, 0, 0.05);
+    border-color: rgba(255, 153, 0, 0.2);
+}
+
 @media (max-width: 768px) {
     .toast-container {
         bottom: 100px;

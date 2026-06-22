@@ -73,6 +73,11 @@ async function loadUserPlan() {
     if (planEl) {
         const labels = { free: 'Free Plan', pro: 'Pro Plan', elite: 'Elite Plan' };
         planEl.textContent = labels[userPlan] || 'Free Plan';
+        planEl.className = 'user-plan plan-' + userPlan;
+        const sidebarUser = document.querySelector('.sidebar-user');
+        if (sidebarUser) {
+            sidebarUser.className = 'sidebar-user plan-bg-' + userPlan;
+        }
     }
 }
 
