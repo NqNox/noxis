@@ -439,7 +439,7 @@ nav {
 }
 
 .pricing-card.featured:hover {
-    border-top: 3px solid #8b5cf6;
+    border-top: 3px solid #00d4d4;
     box-shadow: 0 0 40px rgba(0, 212, 212, 0.15);
 }
 
