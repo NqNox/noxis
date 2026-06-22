@@ -435,12 +435,11 @@ nav {
 }
 
 .pricing-card.featured {
-    border-color: #00d4d4;
     box-shadow: 0 0 30px rgba(0, 212, 212, 0.1);
 }
 
 .pricing-card.featured:hover {
-    border-color: #00d4d4;
+    border-top: 3px solid #8b5cf6;
     box-shadow: 0 0 40px rgba(0, 212, 212, 0.15);
 }
 
@@ -879,6 +878,23 @@ footer {
     flex: 1;
     margin-top: 8px;
 }
+
+.pricing-card .free-card {
+    border-top: 3px solid #444444;
+}
+
+.pro-card {
+    border-top: 3px solid #00d4d4;;
+}
+
+.pricing-card.elite-card {
+    border-top: 3px solid #ff9900;
+}
+
+.plan-name.free { color: #888888; }
+.plan-name.pro { color: #00d4d4; }
+.plan-name.elite { color: #ff9900; }
+
 
 @media (max-width: 768px) {
     .hero-previews {
