@@ -51,7 +51,7 @@ body {
     width: 100%;
     max-width: 480px;
     padding: 24px;
-    max-height: 100vh;
+    max-height: 95vh;
     overflow-y: auto;
 }
 
