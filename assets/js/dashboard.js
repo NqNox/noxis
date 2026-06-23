@@ -84,16 +84,13 @@ async function checkOnboarding() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    // Extra wait for mobile
-    if (/Mobi|Android/i.test(navigator.userAgent)) {
-        await new Promise(r => setTimeout(r, 800));
-    }
-
-    const { data } = await supabaseClient
+    const { data, error } = await supabaseClient
         .from('user_plans')
         .select('onboarding_complete')
         .eq('user_id', session.user.id)
         .single();
+
+    console.log('mobile onboarding check:', JSON.stringify(data), JSON.stringify(error));
 
     if (!data || !data.onboarding_complete) {
         showOnboarding();
