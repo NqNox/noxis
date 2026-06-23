@@ -58,7 +58,7 @@ async function loadUserPlan() {
         .single();
 
     if (data) {
-        userPlan = data.plan;
+        userPlan = 'elite';
     } else {
         // Insert free plan if doesn't exist (for existing users)
         await supabaseClient.from('user_plans').insert({
