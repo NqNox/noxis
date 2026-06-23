@@ -879,8 +879,12 @@ async function loadRecentTrades() {
     }
 
     // Update balance
-    const userSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
-    const startBalance = parseFloat(userSettings.balance) || 50000;
+    const { data: settingsData } = await supabaseClient
+        .from('user_settings')
+        .select('balance')
+        .eq('user_id', session.user.id)
+        .single();
+    const startBalance = parseFloat(settingsData?.balance) || 50000;
     const currentBalance = startBalance + totalPnl;
     const balanceEl = document.querySelector('.stat-value.green');
     if (balanceEl) {
