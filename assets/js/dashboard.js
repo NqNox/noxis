@@ -84,16 +84,28 @@ async function checkOnboarding() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    // Wait a tick to ensure loadUserPlan has run first
-    await new Promise(r => setTimeout(r, 500));
+    // Retry up to 5 times waiting for loadUserPlan to create the row
+    let attempts = 0;
+    let data = null;
 
-    const { data } = await supabaseClient
-        .from('user_plans')
-        .select('onboarding_complete')
-        .eq('user_id', session.user.id)
-        .single();
+    while (attempts < 5) {
+        const { data: result } = await supabaseClient
+            .from('user_plans')
+            .select('onboarding_complete')
+            .eq('user_id', session.user.id)
+            .single();
 
-    if (!data) return; // Row doesn't exist yet, skip
+        if (result) { data = result; break; }
+        await new Promise(r => setTimeout(r, 500));
+        attempts++;
+    }
+
+    if (!data) {
+        // Row still doesn't exist — show onboarding anyway
+        showOnboarding();
+        return;
+    }
+
     if (!data.onboarding_complete) {
         showOnboarding();
     }
