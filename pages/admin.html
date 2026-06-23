@@ -121,23 +121,23 @@
 
         if (!email) { msg.textContent = 'Enter an email.'; msg.className = 'msg error'; return; }
 
-        const { error } = await client.rpc('update_user_plan_by_email', {
-            p_email: email,
-            p_plan: 'free'
-        });
-
-        // Reset onboarding separately
-        const { data: userData } = await client.rpc('get_user_id_by_email', { p_email: email });
+        const { data: userId, error: idError } = await client.rpc('get_user_id_by_email', { p_email: email });
         
-        await client.from('user_plans')
+        if (idError || !userId) {
+            msg.textContent = 'User not found.';
+            msg.className = 'msg error';
+            return;
+        }
+
+        const { error } = await client.from('user_plans')
             .update({ onboarding_complete: false })
-            .eq('user_id', userData);
+            .eq('user_id', userId);
 
         if (error) {
             msg.textContent = 'Error: ' + error.message;
             msg.className = 'msg error';
         } else {
-            msg.textContent = `✓ Onboarding reset for ${email}`;
+            msg.textContent = `✓ Onboarding reset for ${email} — also clear localStorage on their device`;
             msg.className = 'msg success';
         }
     });

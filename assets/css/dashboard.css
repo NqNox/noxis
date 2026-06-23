@@ -373,10 +373,16 @@ html, body {
 .stats-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 2.5vh 2.5vw;
     display: flex;
     align-items: center;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stats-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .stat-item {
@@ -414,13 +420,20 @@ html, body {
 .streak-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 2.5vh 2vw;
+    padding-top: 8px;
     display: flex;
     align-items: flex-start;
     gap: 20px;
     min-width: 22vw;
     overflow: visible;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.streak-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .streak-flame { font-size: 48px; }
@@ -489,13 +502,19 @@ html, body {
 .recent-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 2.5vh 2vw;
     min-height: calc(100vh - 35vh);
     height: auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.recent-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .recent-header {
@@ -664,15 +683,19 @@ html, body {
 .trade-card {
     background: #0a0a0a;
     border: 1px solid #2a2a2a;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.trade-card:hover { border-color: #333333; }
+.trade-card:hover {
+    border-color: #333333;
+    box-shadow: 0 0 20px rgba(0, 212, 212, 0.04);
+}
+
 .trade-card.win { border-left: 3px solid #00c864; }
 .trade-card.loss { border-left: 3px solid #ff4444; }
 
@@ -1364,15 +1387,15 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 .checklist-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 16px;
     height: 100%;
     overflow-y: auto;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-
 .checklist-header {
     display: flex;
     justify-content: space-between;
@@ -1929,11 +1952,17 @@ select.journal-filter-input option {
 .streak-stats-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px 32px;
     display: flex;
     flex-direction: row;
     align-items: center;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.streak-stats-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .streak-stat {
@@ -1967,13 +1996,19 @@ select.journal-filter-input option {
 .streak-current-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.streak-current-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .streak-rank-flame { font-size: 40px; flex-shrink: 0; }
@@ -1994,12 +2029,18 @@ select.journal-filter-input option {
 .streak-rank-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px 32px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.streak-rank-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .streak-rank-badge {
@@ -2053,11 +2094,17 @@ select.journal-filter-input option {
 .streak-calendar-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 28px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.streak-calendar-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .calendar-header {
@@ -2188,11 +2235,12 @@ select.journal-filter-input option {
 .settings-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .settings-field {
@@ -2330,11 +2378,17 @@ select.journal-filter-input option {
 .insight-stat-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 20px 24px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.insight-stat-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .insight-stat-label {
@@ -2363,11 +2417,17 @@ select.journal-filter-input option {
 .insight-card {
     background: #111111;
     border: 1px solid #1a1a1a;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.insight-card:hover {
+    border-color: #222222;
+    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .insight-full { margin-bottom: 16px; }
@@ -3330,4 +3390,14 @@ select.journal-filter-input option {
     font-size: 14px;
     font-weight: 600;
     color: #ffffff;
+}
+
+@keyframes page-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page.active {
+    display: block;
+    animation: page-in 0.3s ease;
 }
