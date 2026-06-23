@@ -55,6 +55,12 @@ body {
     overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+    .auth-container {
+        max-height: 95vh;
+    }
+}
+
 .auth-logo {
     font-size: 24px;
     font-weight: 700;
