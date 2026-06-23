@@ -81,20 +81,24 @@ async function loadUserPlan() {
 }
 
 async function checkOnboarding() {
+    // Check local flag first — fastest check
+    if (localStorage.getItem('noxis_onboarding_complete') === 'true') return;
+
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    const { data, error } = await supabaseClient
+    const { data } = await supabaseClient
         .from('user_plans')
         .select('onboarding_complete')
         .eq('user_id', session.user.id)
         .single();
 
-    console.log('mobile onboarding check:', JSON.stringify(data), JSON.stringify(error));
-
-    if (!data || !data.onboarding_complete) {
-        showOnboarding();
+    if (data?.onboarding_complete) {
+        localStorage.setItem('noxis_onboarding_complete', 'true');
+        return;
     }
+
+    showOnboarding();
 }
 
 async function completeOnboarding(settings) {
@@ -102,6 +106,7 @@ async function completeOnboarding(settings) {
     if (!session) return;
 
     localStorage.setItem('noxis_settings', JSON.stringify(settings));
+    localStorage.setItem('noxis_onboarding_complete', 'true');
 
     const { error } = await supabaseClient
         .from('user_plans')
