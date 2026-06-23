@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noxis AI — Under Maintenance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 2vw 2vw;
+            background-attachment: fixed;
+        }
+        .container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 40px;
+            max-width: 480px;
+        }
+        .logo { font-size: 28px; font-weight: 700; color: #ffffff; }
+        .logo span { color: #00d4d4; }
+        .icon { font-size: 64px; animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        h1 { font-size: 28px; font-weight: 700; }
+        p { font-size: 15px; color: #888888; line-height: 1.7; }
+        .eta {
+            background: #111111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 13px;
+            color: #888888;
+        }
+        .eta span { color: #00d4d4; font-weight: 600; }
+        .glow {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0,212,212,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="container">
+        <div class="logo">noxis <span>ai</span></div>
+        <div class="icon">🔧</div>
+        <h1>Under Maintenance</h1>
+        <p>We're working on something exciting. The platform will be back shortly with new features and improvements.</p>
+        <div class="eta">Back in approximately: <span id="eta">a few hours</span></div>
+    </div>
+</body>
+</html>

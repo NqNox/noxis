@@ -14,6 +14,13 @@
 </head>
 <body>
 
+    <script>
+        const MAINTENANCE_MODE = true; // Change to true to enable
+        if (MAINTENANCE_MODE && !window.location.pathname.includes('maintenance')) {
+            window.location.href = '/maintenance.html';
+        }
+    </script>
+
     <div class="bg-blobs">
     <div class="blob b1"></div>
     <div class="blob b2"></div>
