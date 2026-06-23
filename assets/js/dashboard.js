@@ -2246,35 +2246,30 @@ document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () =
     document.getElementById('btnSaveSettings').click();
 });
 
-//Init
-await loadUserPlan();
-checkOnboarding();
-loadTradeCounter();
-renderSuggestions();
-loadRecentTrades();
-loadStreak();
-loadRuleSets();
-loadRules();
-lucide.createIcons();
-// Restore last active page
-const lastPage = sessionStorage.getItem('noxis_active_page') || 'dashboard';
-pages.forEach(p => p.classList.remove('active'));
-navItems.forEach(n => n.classList.remove('active'));
-document.getElementById(`page-${lastPage}`)?.classList.add('active');
-document.querySelectorAll(`[data-page="${lastPage}"]`).forEach(el => el.classList.add('active'));
-
-if (lastPage === 'checklist') {
-    loadRuleSets()
-    loadRules();
-}
-if (lastPage === 'dashboard') {
+// Init
+(async () => {
+    renderSuggestions();
+    await loadUserPlan();
+    checkOnboarding();
     loadRecentTrades();
     loadStreak();
-}
-if (lastPage === 'journal') loadJournal();
-if (lastPage === 'streak') loadStreakPage();
-if (lastPage === 'settings') loadSettings();
-if (lastPage === 'ai') loadInsights();
+    loadRuleSets();
+    loadRules();
+    lucide.createIcons();
 
-const fab = document.getElementById('fabLogTrade');
-if (fab && lastPage !== 'dashboard') fab.style.display = 'none';
+    const lastPage = sessionStorage.getItem('noxis_active_page') || 'dashboard';
+    pages.forEach(p => p.classList.remove('active'));
+    navItems.forEach(n => n.classList.remove('active'));
+    document.getElementById(`page-${lastPage}`)?.classList.add('active');
+    document.querySelectorAll(`[data-page="${lastPage}"]`).forEach(el => el.classList.add('active'));
+
+    if (lastPage === 'checklist') { loadRuleSets(); loadRules(); }
+    if (lastPage === 'dashboard') { loadRecentTrades(); loadStreak(); }
+    if (lastPage === 'journal') loadJournal();
+    if (lastPage === 'streak') loadStreakPage();
+    if (lastPage === 'settings') loadSettings();
+    if (lastPage === 'ai') loadInsights();
+
+    const fab = document.getElementById('fabLogTrade');
+    if (fab && lastPage !== 'dashboard') fab.style.display = 'none';
+})();
