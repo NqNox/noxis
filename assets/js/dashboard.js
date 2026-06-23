@@ -105,15 +105,28 @@ async function completeOnboarding(settings) {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    localStorage.setItem('noxis_settings', JSON.stringify(settings));
     localStorage.setItem('noxis_onboarding_complete', 'true');
 
     const { error } = await supabaseClient
+        .from('user_settings')
+        .upsert({
+            user_id: session.user.id,
+            name: settings.name,
+            balance: settings.balance || null,
+            instrument: settings.instrument,
+            firm: settings.firm,
+            timezone: settings.timezone,
+            session_start: settings.sessionStart,
+            session_end: settings.sessionEnd,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+    if (error) console.log('settings error:', error);
+
+    await supabaseClient
         .from('user_plans')
         .update({ onboarding_complete: true })
         .eq('user_id', session.user.id);
-
-    if (error) console.log('onboarding error:', error);
 }
 
 // ============================================
@@ -1867,43 +1880,73 @@ async function loadSettings() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    document.getElementById('settingEmail').value = session.user.email || '';
+    const { data } = await supabaseClient
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
 
-    // Load saved settings from localStorage
-    const savedSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
-    if (savedSettings.name) document.getElementById('settingName').value = savedSettings.name;
-    if (savedSettings.balance) document.getElementById('settingBalance').value = savedSettings.balance;
-    if (savedSettings.instrument) document.getElementById('settingInstrument').value = savedSettings.instrument;
-    if (savedSettings.firm) document.getElementById('settingFirm').value = savedSettings.firm;
-    if (savedSettings.timezone) document.getElementById('settingTimezone').value = savedSettings.timezone;
-    if (savedSettings.sessionStart) document.getElementById('settingSessionStart').value = savedSettings.sessionStart;
-    if (savedSettings.sessionEnd) document.getElementById('settingSessionEnd').value = savedSettings.sessionEnd;
-    // Update sidebar user info
-    const displayName = savedSettings.name || session.user.email?.split('@')[0] || 'User';
-    document.querySelector('.user-name').textContent = displayName;
-    document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
+    if (data) {
+        document.getElementById('settingName').value = data.name || '';
+        document.getElementById('settingBalance').value = data.balance || '';
+        document.getElementById('settingInstrument').value = data.instrument || '';
+        document.getElementById('settingFirm').value = data.firm || '';
+        document.getElementById('settingTimezone').value = data.timezone || '';
+        document.getElementById('settingSessionStart').value = data.session_start || '';
+        document.getElementById('settingSessionEnd').value = data.session_end || '';
+
+        // Update sidebar
+        if (data.name) {
+            document.querySelector('.user-name').textContent = data.name;
+            document.querySelector('.user-avatar').textContent = data.name.charAt(0).toUpperCase();
+        }
+
+        // Update balance
+        if (data.balance) {
+            const balanceEl = document.querySelector('.stat-value.green');
+            if (balanceEl) balanceEl.textContent = '$' + Number(data.balance).toLocaleString();
+        }
+    }
+
+    const floatBtn = document.getElementById('settingsFloatSave');
+    if (floatBtn) floatBtn.classList.add('visible');
 }
 
-function saveSettingsAction(btn) {
+async function saveSettingsAction(btn) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
     const settings = {
+        user_id: session.user.id,
         name: document.getElementById('settingName').value,
-        balance: document.getElementById('settingBalance').value,
+        balance: document.getElementById('settingBalance').value || null,
         instrument: document.getElementById('settingInstrument').value,
         firm: document.getElementById('settingFirm').value,
         timezone: document.getElementById('settingTimezone').value,
-        sessionStart: document.getElementById('settingSessionStart').value,
-        sessionEnd: document.getElementById('settingSessionEnd').value,
+        session_start: document.getElementById('settingSessionStart').value,
+        session_end: document.getElementById('settingSessionEnd').value,
+        updated_at: new Date().toISOString()
     };
 
-    localStorage.setItem('noxis_settings', JSON.stringify(settings));
+    const { error } = await supabaseClient
+        .from('user_settings')
+        .upsert(settings, { onConflict: 'user_id' });
 
+    if (error) {
+        showToast('Error saving settings.', 'error');
+        return;
+    }
+
+    // Update sidebar
+    if (settings.name) {
+        document.querySelector('.user-name').textContent = settings.name;
+        document.querySelector('.user-avatar').textContent = settings.name.charAt(0).toUpperCase();
+    }
+
+    // Update balance
     if (settings.balance) {
         const balanceEl = document.querySelector('.stat-value.green');
         if (balanceEl) balanceEl.textContent = '$' + Number(settings.balance).toLocaleString();
-    }
-
-    if (settings.name) {
-        document.querySelector('.user-name').textContent = settings.name;
     }
 
     btn.textContent = 'Saved ✓';
