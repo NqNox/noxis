@@ -47,6 +47,17 @@
             </select>
         </div>
         <button id="adminSave">Update Plan</button>
+
+        <div class="card" style="margin-top:24px;">
+            <h3 style="font-size:16px;margin-bottom:16px;">Developer Tools</h3>
+            <div class="field">
+                <label>Reset Onboarding for User</label>
+                <input type="email" id="resetOnboardingEmail" placeholder="user@email.com" />
+            </div>
+            <button id="resetOnboarding">Reset Onboarding</button>
+            <p class="msg" id="resetOnboardingMsg"></p>
+        </div>
+
         <p class="msg" id="adminMsg"></p>
     </div>
 
@@ -103,6 +114,33 @@
                 loadUsers();
             }
         });
+
+        document.getElementById('resetOnboarding').addEventListener('click', async () => {
+        const email = document.getElementById('resetOnboardingEmail').value;
+        const msg = document.getElementById('resetOnboardingMsg');
+
+        if (!email) { msg.textContent = 'Enter an email.'; msg.className = 'msg error'; return; }
+
+        const { error } = await client.rpc('update_user_plan_by_email', {
+            p_email: email,
+            p_plan: 'free'
+        });
+
+        // Reset onboarding separately
+        const { data: userData } = await client.rpc('get_user_id_by_email', { p_email: email });
+        
+        await client.from('user_plans')
+            .update({ onboarding_complete: false })
+            .eq('user_id', userData);
+
+        if (error) {
+            msg.textContent = 'Error: ' + error.message;
+            msg.className = 'msg error';
+        } else {
+            msg.textContent = `✓ Onboarding reset for ${email}`;
+            msg.className = 'msg success';
+        }
+    });
 
         init();
     </script>

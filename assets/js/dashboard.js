@@ -80,6 +80,243 @@ async function loadUserPlan() {
     }
 }
 
+async function checkOnboarding() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    // Wait a tick to ensure loadUserPlan has run first
+    await new Promise(r => setTimeout(r, 500));
+
+    const { data } = await supabaseClient
+        .from('user_plans')
+        .select('onboarding_complete')
+        .eq('user_id', session.user.id)
+        .single();
+
+    if (!data) return; // Row doesn't exist yet, skip
+    if (!data.onboarding_complete) {
+        showOnboarding();
+    }
+}
+
+async function completeOnboarding(settings) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    localStorage.setItem('noxis_settings', JSON.stringify(settings));
+
+    const { error } = await supabaseClient
+        .from('user_plans')
+        .update({ onboarding_complete: true })
+        .eq('user_id', session.user.id);
+
+    if (error) console.log('onboarding error:', error);
+}
+
+// ============================================
+// ONBOARDING
+// ============================================
+
+function showOnboarding() {
+    document.getElementById('onboardingOverlay').classList.add('active');
+}
+
+function goToStep(newStep, direction = 'forward') {
+    const currentStep = document.querySelector('.onboarding-step.active');
+    const nextStep = document.getElementById(`onboStep${newStep}`);
+
+    currentStep.style.animation = direction === 'forward'
+        ? 'step-out 0.2s ease forwards'
+        : 'step-in-reverse 0.2s ease forwards';
+
+    setTimeout(() => {
+        currentStep.classList.remove('active');
+        currentStep.style.animation = '';
+        nextStep.classList.add('active');
+        nextStep.style.animation = direction === 'forward'
+            ? 'step-in 0.3s ease'
+            : 'step-in-reverse 0.3s ease';
+
+        document.querySelectorAll('.onboarding-dot').forEach(d => d.classList.remove('active'));
+        document.querySelector(`.onboarding-dot[data-step="${newStep}"]`).classList.add('active');
+    }, 200);
+}
+
+// Step 1 — Name validation
+const onboNameInput = document.getElementById('onboName');
+const onboNext1 = document.getElementById('onboNext1');
+
+onboNameInput.addEventListener('input', () => {
+    if (onboNameInput.value.trim().length > 0) {
+        onboNext1.classList.remove('disabled');
+    } else {
+        onboNext1.classList.add('disabled');
+    }
+});
+
+onboNext1.addEventListener('click', () => {
+    if (onboNameInput.value.trim()) goToStep(2);
+});
+
+// Step 2 — Balance presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const val = btn.dataset.value;
+        const customInput = document.getElementById('onboBalance');
+        if (val === 'custom') {
+            customInput.style.display = 'block';
+            customInput.focus();
+            customInput.value = '';
+        } else {
+            customInput.style.display = 'none';
+            customInput.value = val;
+        }
+    });
+});
+
+// Step 2 — Firm search
+const firmSearch = document.getElementById('onboFirmSearch');
+const firmList = document.getElementById('onboFirmList');
+const onboFirmHidden = document.getElementById('onboFirm');
+
+firmSearch.addEventListener('input', () => {
+    const query = firmSearch.value.toLowerCase();
+    firmList.querySelectorAll('.firm-option').forEach(opt => {
+        opt.style.display = opt.textContent.toLowerCase().includes(query) ? 'block' : 'none';
+    });
+});
+
+firmList.querySelectorAll('.firm-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        firmList.querySelectorAll('.firm-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        const val = opt.dataset.value;
+        onboFirmHidden.value = val;
+        firmSearch.value = opt.textContent;
+        if (val === 'Other') {
+            document.getElementById('onboFirmOther').style.display = 'block';
+        } else {
+            document.getElementById('onboFirmOther').style.display = 'none';
+        }
+    });
+});
+
+document.getElementById('onboFirmOther').addEventListener('input', (e) => {
+    onboFirmHidden.value = e.target.value;
+});
+
+document.getElementById('onboBack2').addEventListener('click', () => goToStep(1, 'back'));
+document.getElementById('onboNext2').addEventListener('click', () => goToStep(3));
+
+// Step 3 — Instrument search
+const instrumentSearch = document.getElementById('onboInstrumentSearch');
+const instrumentList = document.getElementById('onboInstrumentList');
+const onboInstrumentHidden = document.getElementById('onboInstrument');
+
+instrumentSearch.addEventListener('input', () => {
+    const query = instrumentSearch.value.toLowerCase();
+    instrumentList.querySelectorAll('.firm-option').forEach(opt => {
+        opt.style.display = opt.textContent.toLowerCase().includes(query) ? 'block' : 'none';
+    });
+});
+
+instrumentList.querySelectorAll('.firm-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        instrumentList.querySelectorAll('.firm-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        onboInstrumentHidden.value = opt.dataset.value;
+        instrumentSearch.value = opt.textContent;
+    });
+});
+
+// Step 3 — Session options
+document.querySelectorAll('.session-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.session-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        document.getElementById('onboSessionStart').value = opt.dataset.start;
+        document.getElementById('onboSessionEnd').value = opt.dataset.end;
+    });
+});
+
+document.getElementById('onboBack3').addEventListener('click', () => goToStep(2, 'back'));
+document.getElementById('onboNext3').addEventListener('click', () => {
+    // Build summary
+    const name = document.getElementById('onboName').value.trim();
+    const balance = document.getElementById('onboBalance').value;
+    const firm = document.getElementById('onboFirm').value;
+    const instrument = document.getElementById('onboInstrument').value;
+    const session = document.querySelector('.session-option.active');
+
+    const summary = document.getElementById('onboSummary');
+    summary.innerHTML = `
+        <div class="summary-row">
+            <span class="summary-label">Name</span>
+            <span class="summary-value">${name || '—'}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Balance</span>
+            <span class="summary-value">${balance ? '$' + Number(balance).toLocaleString() : '—'}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Firm</span>
+            <span class="summary-value">${firm || '—'}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Instrument</span>
+            <span class="summary-value">${instrument || '—'}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Session</span>
+            <span class="summary-value">${session ? session.querySelector('.session-name').textContent : '—'}</span>
+        </div>
+    `;
+
+    goToStep(4);
+});
+
+// Step 4 — Finish
+document.getElementById('onboFinish').addEventListener('click', async () => {
+    const settings = {
+        name: document.getElementById('onboName').value.trim(),
+        balance: document.getElementById('onboBalance').value,
+        firm: document.getElementById('onboFirmOther').style.display !== 'none'
+            ? document.getElementById('onboFirmOther').value
+            : document.getElementById('onboFirm').value,
+        instrument: document.getElementById('onboInstrument').value,
+        sessionStart: document.getElementById('onboSessionStart').value,
+        sessionEnd: document.getElementById('onboSessionEnd').value,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    };
+
+    // Closing animation
+    const modal = document.querySelector('.onboarding-modal');
+    const overlay = document.getElementById('onboardingOverlay');
+
+    modal.style.animation = 'onboarding-out 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    overlay.style.transition = 'opacity 0.4s ease';
+    overlay.style.opacity = '0';
+
+    setTimeout(async () => {
+        await completeOnboarding(settings);
+        overlay.classList.remove('active');
+        overlay.style.opacity = '';
+        modal.style.animation = '';
+
+        if (settings.name) {
+            document.querySelector('.user-name').textContent = settings.name;
+            document.querySelector('.user-avatar').textContent = settings.name.charAt(0).toUpperCase();
+        }
+
+        showToast('Welcome to Noxis AI! 🔥', 'success', 4000);
+        loadRecentTrades();
+        loadStreak();
+        loadSettings();
+    }, 400);
+});
+
 let pnlManuallyEdited = false;
 
 document.getElementById('pnlDisplay').addEventListener('input', () => {
@@ -90,6 +327,11 @@ const POINT_VALUES = {
     'NQ': 20, 'MNQ': 2, 'ES': 50, 'MES': 5,
     'GC': 100, 'MGC': 10, 'CL': 1000, 'MCL': 100,
     'YM': 5, 'MYM': 0.5, 'RTY': 50, 'M2K': 10,
+    'EUR/USD': 10, 'GBP/USD': 10, 'USD/JPY': 9.09,
+    'USD/CHF': 10, 'AUD/USD': 10, 'USD/CAD': 10,
+    'NZD/USD': 10, 'EUR/GBP': 12.5, 'EUR/JPY': 9.09,
+    'GBP/JPY': 9.09, 'XAU/USD': 1, 'XAG/USD': 50,
+    'BTC/USD': 1, 'ETH/USD': 1
 };
 
 function getPointValue(symbol) {
@@ -118,11 +360,33 @@ const INSTRUMENTS = [
     // Bonds
     { ticker: 'ZB', name: '30Y T-Bond', color: '#3a003a', category: 'Bonds' },
     { ticker: 'ZN', name: '10Y T-Note', color: '#3a003a', category: 'Bonds' },
+    // Forex Majors
+    { ticker: 'EUR/USD', name: 'Euro / US Dollar', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'GBP/USD', name: 'British Pound / USD', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'USD/JPY', name: 'US Dollar / Yen', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'USD/CHF', name: 'US Dollar / Swiss Franc', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'AUD/USD', name: 'Australian Dollar / USD', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'USD/CAD', name: 'US Dollar / Canadian Dollar', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'NZD/USD', name: 'New Zealand Dollar / USD', color: '#1a4a2a', category: 'Forex' },
+    // Forex Minors
+    { ticker: 'EUR/GBP', name: 'Euro / British Pound', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'EUR/JPY', name: 'Euro / Japanese Yen', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'GBP/JPY', name: 'British Pound / Yen', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'EUR/AUD', name: 'Euro / Australian Dollar', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'GBP/AUD', name: 'British Pound / AUD', color: '#1a4a2a', category: 'Forex' },
+    { ticker: 'AUD/JPY', name: 'Australian Dollar / Yen', color: '#1a4a2a', category: 'Forex' },
+    // Forex Metals
+    { ticker: 'XAU/USD', name: 'Gold / US Dollar', color: '#6b4a00', category: 'Forex' },
+    { ticker: 'XAG/USD', name: 'Silver / US Dollar', color: '#4a4a4a', category: 'Forex' },
+    // Crypto
+    { ticker: 'BTC/USD', name: 'Bitcoin / US Dollar', color: '#4a2a00', category: 'Crypto' },
+    { ticker: 'ETH/USD', name: 'Ethereum / US Dollar', color: '#1a1a4a', category: 'Crypto' },
 ];
 
 const BLOCKED_WORDS = [
     'nigger', 'nigga', 'faggot', 'retard', 'chink', 'spic', 'kike', 'cunt',
-    'tranny', 'wetback', 'beaner', 'gook', 'raghead', 'towelhead', 'cracker'
+    'tranny', 'wetback', 'beaner', 'gook', 'raghead', 'towelhead', 'cracker',
+    'fuck', 'slut'
 ];
 
 
@@ -1988,6 +2252,7 @@ document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () =
 
 //Init
 loadUserPlan();
+checkOnboarding();
 loadTradeCounter();
 renderSuggestions();
 loadRecentTrades();
