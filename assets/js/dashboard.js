@@ -60,12 +60,11 @@ async function loadUserPlan() {
     if (data) {
         userPlan = 'elite';
     } else {
-        // Insert free plan if doesn't exist (for existing users)
-        await supabaseClient.from('user_plans').insert({
-            user_id: session.user.id,
-            plan: 'free'
-        });
-        userPlan = 'free';
+    await supabaseClient.from('user_plans').insert({
+        user_id: session.user.id,
+        plan: 'free'
+    });
+    userPlan = 'elite'; // Temporary: everyone gets Elite during beta
     }
 
     // Update plan badge in sidebar
