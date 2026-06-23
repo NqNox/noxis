@@ -2317,24 +2317,6 @@ select.journal-filter-input option {
     color: #ffffff;
 }
 
-/* Floating save button */
-.settings-float-save {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.settings-float-save.visible {
-    opacity: 1;
-    pointer-events: all;
-    transform: translateY(0);
-}
-
 /* ============================================
    INSIGHTS PAGE
    ============================================ */
@@ -2750,6 +2732,18 @@ select.journal-filter-input option {
 .plan-bg-elite {
     background: rgba(255, 153, 0, 0.05);
     border-color: rgba(255, 153, 0, 0.2);
+}
+
+.settings-save-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 640px;
+}
+
+.settings-save-divider {
+    height: 1px;
+    background: #1a1a1a;
 }
 
 @media (max-width: 768px) {

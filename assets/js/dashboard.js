@@ -1617,7 +1617,7 @@ async function loadSettings() {
     document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
 }
 
-document.getElementById('btnSaveSettings').addEventListener('click', () => {
+function saveSettingsAction(btn) {
     const settings = {
         name: document.getElementById('settingName').value,
         balance: document.getElementById('settingBalance').value,
@@ -1630,20 +1630,25 @@ document.getElementById('btnSaveSettings').addEventListener('click', () => {
 
     localStorage.setItem('noxis_settings', JSON.stringify(settings));
 
-    // Update balance on dashboard
     if (settings.balance) {
         const balanceEl = document.querySelector('.stat-value.green');
         if (balanceEl) balanceEl.textContent = '$' + Number(settings.balance).toLocaleString();
     }
 
-    // Update name in sidebar
     if (settings.name) {
         document.querySelector('.user-name').textContent = settings.name;
     }
 
-    const btn = document.getElementById('btnSaveSettings');
     btn.textContent = 'Saved ✓';
     setTimeout(() => btn.textContent = 'Save Changes', 2000);
+}
+
+document.getElementById('btnSaveSettings').addEventListener('click', () => {
+    saveSettingsAction(document.getElementById('btnSaveSettings'));
+});
+
+document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () => {
+    saveSettingsAction(document.getElementById('btnSaveSettingsBottom'));
 });
 
 // Logout
@@ -1924,28 +1929,6 @@ async function loadInsights() {
     }
     }
 
-window.addEventListener('scroll', () => {
-    const lastPage = sessionStorage.getItem('noxis_active_page');
-    const floatBtn = document.getElementById('settingsFloatSave');
-    if (lastPage === 'settings' && window.scrollY > 100) {
-        floatBtn.classList.add('visible');
-    } else {
-        floatBtn?.classList.remove('visible');
-    }
-});
-
-document.querySelector('.main-content').addEventListener('scroll', () => {
-    const lastPage = sessionStorage.getItem('noxis_active_page');
-    const floatBtn = document.getElementById('settingsFloatSave');
-    if (lastPage === 'settings') {
-        floatBtn.classList.add('visible');
-    }
-});
-
-document.getElementById('btnSaveSettingsFloat').addEventListener('click', () => {
-    document.getElementById('btnSaveSettings').click();
-});
-
 document.getElementById('btnAddRuleInline').addEventListener('click', () => {
     ruleModalOverlay.classList.add('active');
 });
@@ -1998,6 +1981,10 @@ async function loadTradeCounter() {
         }
     }
 }
+
+document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () => {
+    document.getElementById('btnSaveSettings').click();
+});
 
 //Init
 loadUserPlan();
