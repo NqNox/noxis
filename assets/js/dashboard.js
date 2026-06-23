@@ -84,6 +84,11 @@ async function checkOnboarding() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
+    // Extra wait for mobile
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+        await new Promise(r => setTimeout(r, 800));
+    }
+
     const { data } = await supabaseClient
         .from('user_plans')
         .select('onboarding_complete')
