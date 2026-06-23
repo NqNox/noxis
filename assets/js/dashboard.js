@@ -2300,6 +2300,33 @@ document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () =
     document.getElementById('btnSaveSettings').click();
 });
 
+// Whats new modal
+const WHATS_NEW_VERSION = 'v1.2';
+const whatsNewSeen = localStorage.getItem('noxis_whats_new') === WHATS_NEW_VERSION;
+const whatsNewDot = document.getElementById('whatsNewDot');
+if (whatsNewSeen) whatsNewDot.classList.add('hidden');
+
+document.getElementById('whatsNewBtn').addEventListener('click', () => {
+    document.getElementById('whatsNewOverlay').classList.add('active');
+    localStorage.setItem('noxis_whats_new', WHATS_NEW_VERSION);
+    whatsNewDot.classList.add('hidden');
+});
+
+document.getElementById('whatsNewClose').addEventListener('click', () => {
+    document.getElementById('whatsNewOverlay').classList.remove('active');
+});
+
+document.getElementById('whatsNewOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('whatsNewOverlay')) {
+        document.getElementById('whatsNewOverlay').classList.remove('active');
+    }
+});
+
+function toggleChangelog(id) {
+    const entry = document.getElementById(id);
+    entry.classList.toggle('open');
+}
+
 // Init
 (async () => {
     renderSuggestions();

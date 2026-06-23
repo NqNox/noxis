@@ -69,6 +69,21 @@
         <h1>Under Maintenance</h1>
         <p>We're working on something exciting. The platform will be back shortly with new features and improvements.</p>
         <div class="eta">Back in approximately: <span id="eta">a few hours</span></div>
+        <div style="position:fixed;bottom:20px;right:20px;">
+            <button onclick="adminBypass()" style="background:transparent;border:1px solid #1a1a1a;border-radius:8px;padding:8px 16px;color:#333;font-size:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;">Admin</button>
+        </div>
     </div>
+
+    <script>
+        function adminBypass() {
+            const password = prompt('Admin password:');
+            if (password === 'AdminNoxis.') {
+                localStorage.setItem('noxis_admin_bypass', 'noxis_admin_2024');
+                window.location.href = '/';
+            } else {
+                alert('Wrong password.');
+            }
+        }
+    </script>
 </body>
 </html>
