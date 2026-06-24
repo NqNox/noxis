@@ -3051,7 +3051,7 @@ async function loadTradeCounter() {
 }
 
 // Whats new modal
-const WHATS_NEW_VERSION = 'v1.4';
+const WHATS_NEW_VERSION = 'v1.5';
 const whatsNewSeen = localStorage.getItem('noxis_whats_new') === WHATS_NEW_VERSION;
 const whatsNewDot = document.getElementById('whatsNewDot');
 if (whatsNewSeen) whatsNewDot.classList.add('hidden');
