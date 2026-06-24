@@ -60,7 +60,7 @@
                     <span class="whats-new-dot" id="whatsNewDot"></span>
                     <span class="whats-new-btn-title">What's New →</span>
                 </div>
-                <span class="whats-new-btn-desc">v1.2 — UI refresh & Forex support</span>
+                <span class="whats-new-btn-desc">v1.3 — Multi-step trade log & screenshots</span>
             </button>
             <a href="#" class="nav-item" data-page="settings">
                 <i data-lucide="settings" class="nav-icon"></i>
@@ -129,7 +129,7 @@
                             <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
                         </button>
                         <a href="#" data-page="journal" class="recent-link nav-item">View all</a>
-                        
+
                     </div>
                 </div>
                 <div class="recent-empty">
@@ -137,6 +137,8 @@
                     <button class="btn-log-trade-sm">+ Log your first trade</button>
                 </div>
             </div>
+
+            <p class="beta-note">Noxis is currently in beta — bugs may occur and features are subject to change.</p>
         </div>
         <div class="page" id="page-checklist">
             <div class="page-header">
@@ -559,99 +561,262 @@
     <!-- LOG TRADE MODAL -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
+
+            <!-- Modal Header -->
             <div class="modal-header">
-                <h2>Log Trade</h2>
+                <div class="modal-header-left">
+                    <h2 id="modalStepTitle">Log Trade</h2>
+                    <span class="modal-step-indicator" id="modalStepIndicator">Step 1 of 5</span>
+                </div>
                 <button class="modal-close" id="modalClose">✕</button>
             </div>
-            <div class="modal-body">
-                <div class="modal-row">
-                    <div class="modal-field">
-                        <label>Date</label>
-                        <input type="date" id="tradeDate" />
+
+            <!-- Step Progress Bar -->
+            <div class="modal-progress">
+                <div class="modal-progress-fill" id="modalProgressFill"></div>
+            </div>
+
+            <div class="modal-step-dots">
+                <div class="modal-step-dot active" data-modal-dot="1"></div>
+                <div class="modal-step-dot" data-modal-dot="2"></div>
+                <div class="modal-step-dot" data-modal-dot="3"></div>
+                <div class="modal-step-dot" data-modal-dot="4"></div>
+                <div class="modal-step-dot" data-modal-dot="5"></div>
+            </div>
+
+            <!-- Step 1 — Basics -->
+            <div class="modal-step active" id="modalStep1">
+                <div class="modal-body">
+                    <div class="modal-row">
+                        <div class="modal-field">
+                            <label>Date</label>
+                            <input type="date" id="tradeDate" />
+                        </div>
+                        <div class="modal-field">
+                            <label>Trade # <span class="optional">(auto)</span></label>
+                            <input type="number" id="tradeNumber" placeholder="e.g. 1" min="1" />
+                        </div>
                     </div>
-                    <div class="modal-field">
-                        <label>Trade # Today</label>
-                        <input type="number" id="tradeNumber" min="1" value="1" />
-                    </div>
-                </div>
-                <div class="modal-row">
                     <div class="modal-field">
                         <label>Symbol</label>
                         <div class="symbol-selector" id="symbolSelector">
                             <div class="symbol-selected" id="symbolSelected">
-                                <div class="symbol-option-left">
-                                    <span class="symbol-option-ticker-large" id="selectedTicker">NQ</span>
-                                </div>
-                                <span class="symbol-category-pill" id="selectedCategory" style="background:#1e3a5f">Index</span>
-                                <i data-lucide="chevron-down" style="width:14px;height:14px;color:#888;margin-left:8px;flex-shrink:0"></i>
+                                <span id="symbolName" style="font-size:14px;color:#888888;">Select instrument</span>
+                                <i data-lucide="chevron-down" style="width:14px;height:14px;color:#888;margin-left:auto;"></i>
                             </div>
                             <div class="symbol-dropdown" id="symbolDropdown">
-                                <input type="text" class="symbol-search" id="symbolSearch" placeholder="Search..." />
+                                <input type="text" class="symbol-search" id="symbolSearch" placeholder="Search symbol..." />
                                 <div class="symbol-list" id="symbolList"></div>
                             </div>
                         </div>
-                        <input type="hidden" id="tradeSymbol" value="NQ" />
+                        <input type="hidden" id="tradeSymbol" />
                     </div>
                     <div class="modal-field">
-                        <label>Size (contracts)</label>
-                        <input type="number" id="tradeSize" min="1" step="1" value="1" />
-                        <span style="font-size:11px;color:#888;">Whole contracts only</span>
-                    </div>
-                </div>
-                <div class="modal-field">
-                    <label>Direction</label>
-                    <div class="direction-toggle">
-                        <button class="dir-btn active" id="btnLong">↑ Long</button>
-                        <button class="dir-btn" id="btnShort">↓ Short</button>
-                    </div>
-                </div>
-                <div class="modal-row">
-                    <div class="modal-field">
-                        <label>Entry Price</label>
-                        <input type="number" id="tradeEntry" placeholder="0.00" step="0.25" min="0" />
+                        <label>Direction</label>
+                        <div class="direction-toggle">
+                            <button class="dir-btn active" id="btnLong">
+                                <i data-lucide="trending-up" style="width:14px;height:14px;"></i> Long
+                            </button>
+                            <button class="dir-btn" id="btnShort">
+                                <i data-lucide="trending-down" style="width:14px;height:14px;"></i> Short
+                            </button>
+                        </div>
                     </div>
                     <div class="modal-field">
-                        <label>Exit Price</label>
-                        <input type="number" id="tradeExit" placeholder="0.00" step="0.25" min="0" />
+                        <label>Contracts / Size</label>
+                        <input type="number" id="tradeSize" placeholder="e.g. 1" min="0.01" step="0.01" />
                     </div>
                 </div>
-                <div class="modal-field">
-                    <label>P&L <span style="font-size:11px;color:#888;font-weight:400;">(auto-calculated — tap to edit)</span></label>
-                    <input type="number" id="pnlDisplay" class="pnl-input" step="0.01" placeholder="0.00" />
-                </div>
-                <div class="modal-field">
-                    <label>Emotions</label>
-                    <div class="emotion-tags-container" id="emotionTagsContainer">
-                        <div class="emotion-tags" id="emotionTags"></div>
-                        <input type="text" id="emotionInput" placeholder="Type an emotion and press Enter..." />
-                    </div>
-                    <div class="emotion-suggestions" id="emotionSuggestions"></div>
-                </div>
-                <div class="modal-field">
-                    <label>Followed your rules today?</label>
-                    <div class="rules-toggle">
-                        <button class="rule-btn active" id="btnYes">
-                            <i data-lucide="check" style="width:14px;height:14px;"></i> Yes
-                        </button>
-                        <button class="rule-btn" id="btnNo">
-                            <i data-lucide="x" style="width:14px;height:14px;"></i> No
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-field">
-                    <label>Notes <span class="optional">optional</span></label>
-                    <textarea id="tradeNotes" placeholder="What happened? What did you learn?"></textarea>
+                <div class="modal-footer">
+                    <span class="trade-counter" id="tradeCounter">— / —</span>
+                    <span id="tradeErrorMsg" style="display:none;color:#ff4444;font-size:13px;"></span>
+                    <button class="btn-save" id="modalNext1">Next →</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <span class="trade-counter" id="tradeCounter">— / —</span>
-                <div class="limit-banner" id="limitBanner" style="display:none;">
-                    <span>⚠️ You've reached your monthly limit</span>
-                    <a href="#" class="limit-upgrade-btn">Upgrade →</a>
+
+            <!-- Step 2 — Prices & P&L -->
+            <div class="modal-step" id="modalStep2">
+                <div class="modal-body">
+                    <div class="modal-row">
+                        <div class="modal-field">
+                            <label>Entry Price</label>
+                            <input type="number" id="tradeEntry" placeholder="0.00" step="0.25" min="0" />
+                        </div>
+                        <div class="modal-field">
+                            <label>Exit Price</label>
+                            <input type="number" id="tradeExit" placeholder="0.00" step="0.25" min="0" />
+                        </div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-field">
+                            <label>Stop Loss Price<span class="optional"> (optional)</span></label>
+                            <input type="number" id="tradeStopLoss" placeholder="0.00" step="0.25" min="0" />
+                        </div>
+                        <div class="modal-field">
+                            <label>Target Price<span class="optional"> (optional)</span></label>
+                            <input type="number" id="tradeTarget" placeholder="0.00" step="0.25" min="0" />
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>P&L</label>
+                        <input type="number" id="pnlDisplay" class="pnl-input" placeholder="Auto-calculated" step="0.01" />
+                    </div>
                 </div>
-                <button class="btn-cancel" id="btnCancel">Cancel</button>
-                <button class="btn-save" id="btnSave">Save Trade</button>
+                <div class="modal-footer">
+                    <button class="btn-cancel" id="modalBack2">← Back</button>
+                    <button class="btn-save" id="modalNext2">Next →</button>
+                </div>
             </div>
+
+            <!-- Step 3 — Psychology -->
+            <div class="modal-step" id="modalStep3">
+                <div class="modal-body">
+                    <div class="modal-field">
+                        <label>Mental State</label>
+                        <div class="mental-state-options">
+                            <div class="mental-option" data-value="Focused">🎯 Focused</div>
+                            <div class="mental-option" data-value="Calm">😌 Calm</div>
+                            <div class="mental-option" data-value="Distracted">😵 Distracted</div>
+                            <div class="mental-option" data-value="Tired">😴 Tired</div>
+                            <div class="mental-option" data-value="Rushed">⚡ Rushed</div>
+                            <div class="mental-option" data-value="Anxious">😰 Anxious</div>
+                        </div>
+                        <input type="hidden" id="tradeMentalState" />
+                    </div>
+                    <div class="modal-field">
+                        <label>Emotions</label>
+                        <div class="emotion-tags-container" id="emotionTagsContainer">
+                            <div class="emotion-tags" id="emotionTags"></div>
+                            <input type="text" id="emotionInput" placeholder="Type an emotion and press Enter..." />
+                        </div>
+                        <div class="emotion-suggestions" id="emotionSuggestions"></div>
+                    </div>
+                    <div class="modal-field">
+                        <label>Followed your rules?</label>
+                        <div class="rules-toggle">
+                            <button class="rule-btn active" id="btnYes">
+                                <i data-lucide="check" style="width:14px;height:14px;"></i> Yes
+                            </button>
+                            <button class="rule-btn" id="btnNo">
+                                <i data-lucide="x" style="width:14px;height:14px;"></i> No
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel" id="modalBack3">← Back</button>
+                    <button class="btn-save" id="modalNext3">Next →</button>
+                </div>
+            </div>
+
+            <!-- Step 4 — Analysis -->
+            <div class="modal-step" id="modalStep4">
+                <div class="modal-body">
+                    <div class="modal-row">
+                        <div class="modal-field">
+                            <label>Setup Type</label>
+                            <select id="tradeSetupType">
+                                <option value="">Select setup</option>
+                                <option value="Reversal">Reversal</option>
+                                <option value="Continuation">Continuation</option>
+                                <option value="Breakout">Breakout</option>
+                                <option value="Counter-trend">Counter-trend</option>
+                                <option value="News">News</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="modal-field">
+                            <label>Session</label>
+                            <select id="tradeSession">
+                                <option value="">Select session</option>
+                                <option value="Asia">Asia</option>
+                                <option value="London">London</option>
+                                <option value="NY AM">NY AM</option>
+                                <option value="NY PM">NY PM</option>
+                                <option value="Overnight">Overnight</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>Confluences present</label>
+                        <div class="trade-confluences" id="tradeConfluences">
+                            <span style="font-size:12px;color:#444;">Complete setup wizard to see your confluences</span>
+                        </div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-field">
+                            <label>Setup Rating</label>
+                            <div class="star-rating" id="setupRating" data-field="setup_rating">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                            <input type="hidden" id="tradeSetupRating" />
+                        </div>
+                        <div class="modal-field">
+                            <label>Management Rating</label>
+                            <div class="star-rating" id="managementRating" data-field="management_rating">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                            <input type="hidden" id="tradeManagementRating" />
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>Would you take this trade again?</label>
+                        <div class="rules-toggle">
+                            <button class="rule-btn" id="btnTakeAgainYes">
+                                <i data-lucide="check" style="width:14px;height:14px;"></i> Yes
+                            </button>
+                            <button class="rule-btn" id="btnTakeAgainNo">
+                                <i data-lucide="x" style="width:14px;height:14px;"></i> No
+                            </button>
+                        </div>
+                        <input type="hidden" id="tradeTakeAgain" value="" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel" id="modalBack4">← Back</button>
+                    <button class="btn-save" id="modalNext4">Next →</button>
+                </div>
+            </div>
+
+            <!-- Step 5 — Notes -->
+            <div class="modal-step" id="modalStep5">
+                <div class="modal-body">
+                    <div class="modal-field">
+                        <label>Screenshots <span class="optional">(optional)</span></label>
+                        <div class="screenshot-upload-area" id="screenshotUploadArea">
+                            <input type="file" id="screenshotInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;" />
+                            <div class="screenshot-upload-placeholder" id="screenshotPlaceholder">
+                                <i data-lucide="image-plus" style="width:24px;height:24px;color:#444;"></i>
+                                <span>Click or drag to upload screenshots</span>
+                                <span style="font-size:11px;color:#333;">Max 5MB per image — JPG, PNG, WebP</span>
+                            </div>
+                            <div class="screenshot-previews" id="screenshotPreviews"></div>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>Notes <span class="optional">(optional)</span></label>
+                        <textarea id="tradeNotes" placeholder="What happened? What did you learn?" rows="5"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="trade-counter" id="tradeCounter2"></span>
+                    <div class="limit-banner" id="limitBanner" style="display:none;">
+                        <span>⚠️ You've reached your monthly limit</span>
+                        <a href="#" class="limit-upgrade-btn">Upgrade →</a>
+                    </div>
+                    <button class="btn-cancel" id="modalBack5">← Back</button>
+                    <button class="btn-save" id="btnSave">Save Trade</button>
+                </div>
+            </div>
+
         </div>
     </div>
 

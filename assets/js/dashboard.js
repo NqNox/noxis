@@ -701,9 +701,15 @@ function initSymbolSelector() {
                 const category = opt.dataset.category;
 
             hiddenInput.value = ticker;
-            document.getElementById('selectedTicker').textContent = ticker;
-            document.getElementById('selectedCategory').textContent = category;
-            document.getElementById('selectedCategory').style.background = color;
+            document.getElementById('symbolName').textContent = `${ticker} — ${name}`;
+            document.getElementById('symbolName').style.color = '#ffffff';
+
+            document.getElementById('symbolName').innerHTML = `
+                <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">${ticker}</span>
+                <span style="color:#888888;font-size:12px;"> — ${name}</span>
+                <span style="background:${color};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px;margin-left:8px;">${category}</span>
+            `;
+            document.getElementById('symbolName').style.color = '#ffffff';
 
                 dropdown.classList.remove('active');
                 search.value = '';
@@ -795,6 +801,7 @@ let currentView = window.innerWidth < 768 ? 'cards' : 'table';
 const modalOverlay = document.getElementById('modalOverlay');
 const modalClose = document.getElementById('modalClose');
 const btnCancel = document.getElementById('btnCancel');
+if (btnCancel) btnCancel.addEventListener('click', closeModal);
 const logTradeButtons = document.querySelectorAll('.btn-log-trade, .btn-log-trade-sm');
 let editingTradeId = null;
 
@@ -803,56 +810,121 @@ document.getElementById('tradeDate').value = today;
 
 logTradeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        modalOverlay.classList.add('active');
+        openModal();
+        goToModalStep(1);
+        loadTradeConfluences();
         loadTradeCounter();
-        const lastSymbol = document.getElementById('tradeSymbol').value || 'NQ';
-        const inst = INSTRUMENTS.find(i => i.ticker === lastSymbol) || INSTRUMENTS[0];
-        document.getElementById('selectedTicker').textContent = inst.ticker;
-        document.getElementById('selectedCategory').textContent = inst.category;
-        document.getElementById('selectedCategory').style.background = inst.color;
-        document.getElementById('tradeSymbol').value = inst.ticker;
         updatePnL();
-        modalOverlay.classList.add('active');
     });
 });
 
+document.getElementById('fabLogTrade')?.addEventListener('click', () => {
+    openModal();
+    goToModalStep(1);
+    loadTradeConfluences();
+    loadTradeCounter();
+});
+
+function openModal() {
+    const overlay = document.getElementById('modalOverlay');
+    const modal = document.querySelector('#modalOverlay .modal');
+    modal.style.opacity = '0';
+    modal.style.transform = 'scale(0.96) translateY(16px)';
+    overlay.classList.add('active');
+    overlay.animate([
+        { opacity: 0 },
+        { opacity: 1 }
+    ], { duration: 250, easing: 'cubic-bezier(0.2, 0, 0, 1)' });
+    modal.animate([
+        { opacity: 0, transform: 'scale(0.96) translateY(16px)' },
+        { opacity: 1, transform: 'scale(1) translateY(0)' }
+    ], { duration: 250, easing: 'cubic-bezier(0.2, 0, 0, 1)', fill: 'forwards' });
+}
+
 function closeModal() {
-    modalOverlay.classList.remove('active');
-    editingTradeId = null;
-    document.querySelector('.modal-header h2').textContent = 'Log Trade';
-    document.getElementById('btnSave').textContent = 'Save Trade';
-    document.getElementById('tradeDate').value = today;
-    document.getElementById('tradeNumber').value = '1';
-    document.getElementById('tradeSize').value = '1';
-    document.getElementById('tradeEntry').value = '';
-    document.getElementById('tradeExit').value = '';
-    document.getElementById('tradeNotes').value = '';
-    pnlManuallyEdited = false;
-    document.getElementById('pnlDisplay').value = '';
-    document.getElementById('pnlDisplay').className = 'pnl-input';
-    const limitBanner = document.getElementById('limitBanner');
-    if (limitBanner) limitBanner.style.display = 'none';
-    const btnSave = document.getElementById('btnSave');
-    if (btnSave) {
-        btnSave.disabled = false;
-        btnSave.style.opacity = '1';
-        btnSave.style.cursor = 'pointer';
-    }
-    direction = 'long';
-    btnLong.classList.add('active');
-    btnShort.classList.remove('active');
-    followedRules = true;
-    btnYes.classList.add('active');
-    btnNo.classList.remove('active');
-    selectedEmotions = [];
-    renderEmotionTags();
-    renderSuggestions();
+    const modal = document.querySelector('#modalOverlay .modal');
+    const overlay = document.getElementById('modalOverlay');
+
+    modal.animate([
+        { opacity: 1, transform: 'scale(1) translateY(0)' },
+        { opacity: 0, transform: 'scale(0.96) translateY(16px)' }
+    ], { duration: 200, easing: 'cubic-bezier(0.2, 0, 0, 1)', fill: 'forwards' });
+
+    overlay.animate([
+        { opacity: 1 },
+        { opacity: 0 }
+    ], { duration: 200, easing: 'cubic-bezier(0.2, 0, 0, 1)' }).onfinish = () => {
+        modalOverlay.classList.remove('active');
+        modal.style.opacity = '';
+        modal.style.transform = '';
+
+        editingTradeId = null;
+        document.getElementById('modalStepTitle').textContent = 'Log Trade';
+        document.getElementById('btnSave').textContent = 'Save Trade';
+        document.getElementById('tradeDate').value = today;
+        document.getElementById('tradeNumber').value = '1';
+        document.getElementById('tradeSize').value = '1';
+        document.getElementById('tradeEntry').value = '';
+        document.getElementById('tradeExit').value = '';
+        document.getElementById('tradeStopLoss').value = '';
+        document.getElementById('tradeTarget').value = '';
+        document.getElementById('tradeNotes').value = '';
+        document.getElementById('tradeSetupType').value = '';
+        document.getElementById('tradeSession').value = '';
+        document.getElementById('tradeSetupRating').value = '';
+        document.getElementById('tradeManagementRating').value = '';
+        document.getElementById('tradeTakeAgain').value = '';
+        document.getElementById('tradeMentalState').value = '';
+
+        // Reset stars
+        document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+
+        // Reset mental state
+        document.querySelectorAll('.mental-option').forEach(o => o.classList.remove('active'));
+
+        // Reset take again
+        document.getElementById('btnTakeAgainYes').classList.remove('active');
+        document.getElementById('btnTakeAgainNo').classList.remove('active');
+        document.getElementById('btnTakeAgainYes').style.cssText = '';
+        document.getElementById('btnTakeAgainNo').style.cssText = '';
+
+        pnlManuallyEdited = false;
+        document.getElementById('pnlDisplay').value = '';
+        document.getElementById('pnlDisplay').className = 'pnl-input';
+
+        const limitBanner = document.getElementById('limitBanner');
+        if (limitBanner) limitBanner.style.display = 'none';
+
+        const btnSave = document.getElementById('btnSave');
+        if (btnSave) {
+            btnSave.disabled = false;
+            btnSave.style.opacity = '1';
+            btnSave.style.cursor = 'pointer';
+        }
+
+        direction = 'long';
+        btnLong.classList.add('active');
+        btnShort.classList.remove('active');
+        followedRules = true;
+        btnYes.classList.add('active');
+        btnNo.classList.remove('active');
+        selectedEmotions = [];
+        renderEmotionTags();
+        renderSuggestions();
+        screenshotFiles = [];
+        renderScreenshotPreviews();
+        screenshotPlaceholder.style.display = 'flex';
+    };
 }
 
 modalClose.addEventListener('click', closeModal);
-btnCancel.addEventListener('click', closeModal);
 modalOverlay.addEventListener('click', (e) => {
     if (e.target === modalOverlay) closeModal();
+});
+
+document.getElementById('modalClose')?.addEventListener('click', closeModal);
+document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
 });
 
 // Direction toggle
@@ -1074,6 +1146,19 @@ document.getElementById('btnSave').addEventListener('click', async () => {
             notes
         }).eq('id', editingTradeId);
     } else {
+        // Upload screenshots
+        let screenshotUrls = [];
+        if (screenshotFiles.length > 0) {
+            const { data: { session: uploadSession } } = await supabaseClient.auth.getSession();
+            for (const file of screenshotFiles) {
+                const ext = file.name.split('.').pop();
+                const path = `${uploadSession.user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+                const { data, error } = await supabaseClient.storage
+                    .from('trade-screenshots')
+                    .upload(path, file);
+                if (!error) screenshotUrls.push(data.path);
+            }
+        }
         result = await supabaseClient.from('trades').insert({
             user_id: session.user.id,
             date,
@@ -1086,7 +1171,17 @@ document.getElementById('btnSave').addEventListener('click', async () => {
             pnl,
             emotions: selectedEmotions.join(', '),
             followed_rules: followedRules,
-            notes
+            screenshots: screenshotUrls,
+            notes,
+            stop_loss: document.getElementById('tradeStopLoss').value || null,
+            target: document.getElementById('tradeTarget').value || null,
+            setup_type: document.getElementById('tradeSetupType').value || null,
+            session: document.getElementById('tradeSession').value || null,
+            mental_state: document.getElementById('tradeMentalState').value || null,
+            setup_rating: document.getElementById('tradeSetupRating').value || null,
+            management_rating: document.getElementById('tradeManagementRating').value || null,
+            take_again: document.getElementById('tradeTakeAgain').value === 'true' ? true : document.getElementById('tradeTakeAgain').value === 'false' ? false : null,
+            confluences: [...document.querySelectorAll('.trade-confluence-tag.active')].map(t => t.textContent)
         });
     }
 
@@ -1159,75 +1254,85 @@ async function loadRecentTrades() {
     container.id = 'tradesTable';
 
     if (currentView === 'table') {
-        container.className = 'trades-table';
-        container.innerHTML = `
-            <div class="trades-header-row">
-                <span>Date</span>
-                <span>Symbol</span>
-                <span>Direction</span>
-                <span>Size</span>
-                <span>P&L</span>
-                <span>Rules</span>
-                <span></span>
+    container.className = 'trades-table';
+    container.innerHTML = `
+        <div class="trades-header-row">
+            <span>Date</span>
+            <span>Symbol</span>
+            <span>Direction</span>
+            <span>Size</span>
+            <span>P&L</span>
+            <span>Setup</span>
+            <span>Session</span>
+            <span>Rules</span>
+            <span></span>
+        </div>
+        ${displayTrades.map(trade => `
+            <div class="trade-row">
+                <span>${trade.date}</span>
+                <span>${trade.symbol}</span>
+                <span class="${trade.direction === 'long' ? 'long' : 'short'}">
+                    ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
+                </span>
+                <span>${trade.size}</span>
+                <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                </span>
+                <span>${trade.setup_type || '—'}</span>
+                <span>${trade.session || '—'}</span>
+                <span>${trade.followed_rules ? '✓' : '✗'}</span>
+                <span class="trade-actions">
+                    <button class="trade-edit-btn" data-id="${trade.id}">
+                        <i data-lucide="pencil" class="pencil-icon"></i>
+                    </button>
+                    <button class="trade-delete-btn" data-id="${trade.id}">
+                        <i data-lucide="trash-2" class="trash-icon"></i>
+                    </button>
+                </span>
             </div>
-            ${displayTrades.map(trade => `
-                <div class="trade-row">
-                    <span>${trade.date}</span>
-                    <span>${trade.symbol}</span>
-                    <span class="${trade.direction === 'long' ? 'long' : 'short'}">
-                        ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
-                    </span>
-                    <span>${trade.size}</span>
-                    <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                        ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                    </span>
-                    <span>${trade.followed_rules ? '✓' : '✗'}</span>
-                    <span class="trade-actions">
-                        <button class="trade-edit-btn" data-id="${trade.id}">
-                            <i data-lucide="pencil" class="pencil-icon"></i>
-                        </button>
-                        <button class="trade-delete-btn" data-id="${trade.id}">
-                            <i data-lucide="trash-2" class="trash-icon"></i>
-                        </button>
-                    </span>
-                </div>
-            `).join('')}
-        `;
-    } else if (currentView === 'cards') {
-        container.className = 'trades-cards';
-        container.innerHTML = displayTrades.map(trade => `
-            <div class="trade-card ${trade.pnl >= 0 ? 'win' : 'loss'}">
-                <div class="trade-card-header">
-                    <span class="trade-card-symbol">${trade.symbol}</span>
-                    <span class="trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                        ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                    </span>
-                </div>
-                <div class="trade-card-details">
-                    <span class="trade-card-tag ${trade.direction}">${trade.direction === 'long' ? '↑ Long' : '↓ Short'}</span>
-                    </span>
-                    <span class="trade-card-tag">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
-                    <span class="trade-card-tag">${trade.followed_rules ? '✓ Rules' : '✗ Rules'}</span>
-                    ${trade.emotions ? `<span class="trade-card-tag">${trade.emotions}</span>` : ''}
-                </div>
-                <div class="trade-card-footer">
-                    <span class="trade-card-date">${trade.date}</span>
-                    <div class="trade-card-actions">
-                        <button class="trade-edit-btn" data-id="${trade.id}">
-                            <i data-lucide="pencil" class="pencil-icon"></i>
-                        </button>
-                        <button class="trade-delete-btn" data-id="${trade.id}">
-                            <i data-lucide="trash-2" class="trash-icon"></i>
-                        </button>
-                    </div>
+        `).join('')}
+    `;
+} else if (currentView === 'cards') {
+    container.className = 'trades-cards';
+    container.innerHTML = displayTrades.map(trade => `
+        <div class="trade-card ${trade.pnl >= 0 ? 'win' : 'loss'}">
+            <div class="trade-card-header">
+                <span class="trade-card-symbol">${trade.symbol}</span>
+                <span class="trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
+                </span>
+            </div>
+            <div class="trade-card-details">
+                <span class="trade-card-tag ${trade.direction}">${trade.direction === 'long' ? '↑ Long' : '↓ Short'}</span>
+                <span class="trade-card-tag">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
+                <span class="trade-card-tag">${trade.followed_rules ? '✓ Rules' : '✗ Rules'}</span>
+                ${trade.setup_type ? `<span class="trade-card-tag" style="color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">${trade.setup_type}</span>` : ''}
+                ${trade.session ? `<span class="trade-card-tag">${trade.session}</span>` : ''}
+                ${trade.mental_state ? `<span class="trade-card-tag">${trade.mental_state}</span>` : ''}
+            </div>
+            <div class="trade-card-ratings">
+                ${trade.setup_rating ? `<span style="font-size:11px;color:#444;">Setup: ${'★'.repeat(trade.setup_rating)}${'☆'.repeat(5-trade.setup_rating)}</span>` : ''}
+                ${trade.management_rating ? `<span style="font-size:11px;color:#444;">Mgmt: ${'★'.repeat(trade.management_rating)}${'☆'.repeat(5-trade.management_rating)}</span>` : ''}
+                ${trade.take_again !== null && trade.take_again !== undefined ? `<span style="font-size:11px;color:${trade.take_again ? '#00c864' : '#ff4444'};">${trade.take_again ? '✓ Would take again' : '✗ Wouldn\'t take again'}</span>` : ''}
+            </div>
+            <div class="trade-card-footer">
+                <span class="trade-card-date">${trade.date}</span>
+                <div class="trade-card-actions">
+                    <button class="trade-edit-btn" data-id="${trade.id}">
+                        <i data-lucide="pencil" class="pencil-icon"></i>
+                    </button>
+                    <button class="trade-delete-btn" data-id="${trade.id}">
+                        <i data-lucide="trash-2" class="trash-icon"></i>
+                    </button>
                 </div>
             </div>
-        `).join('');
-    } 
-
+        </div>
+    `).join('');
+}
     recentCard.appendChild(container);
     lucide.createIcons();
-}
+    } 
+
 
 // Edit and delete handler
 document.addEventListener('click', async (e) => {
@@ -1243,22 +1348,20 @@ document.addEventListener('click', async (e) => {
 
         if (!trade) return;
 
+        // Step 1
         document.getElementById('tradeDate').value = trade.date;
         document.getElementById('tradeNumber').value = trade.trade_number;
         document.getElementById('tradeSymbol').value = trade.symbol;
         const inst = INSTRUMENTS.find(i => i.ticker === trade.symbol);
         if (inst) {
-            document.getElementById('selectedTicker').textContent = inst.ticker;
-            document.getElementById('selectedCategory').textContent = inst.category;
-            document.getElementById('selectedCategory').style.background = inst.color;
+            document.getElementById('symbolName').innerHTML = `
+                <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">${inst.ticker}</span>
+                <span style="color:#888888;font-size:12px;"> — ${inst.name}</span>
+                <span style="background:${inst.color};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px;margin-left:8px;">${inst.category}</span>
+            `;
+            document.getElementById('symbolName').style.color = '#ffffff';
         }
-        updatePnL();
         document.getElementById('tradeSize').value = trade.size;
-        document.getElementById('tradeEntry').value = trade.entry_price;
-        document.getElementById('tradeExit').value = trade.exit_price;
-        document.getElementById('tradeNotes').value = trade.notes || '';
-        document.getElementById('pnlDisplay').value = trade.pnl || '';
-        document.getElementById('pnlDisplay').className = 'pnl-input ' + (trade.pnl >= 0 ? 'positive' : 'negative');
 
         direction = trade.direction;
         if (direction === 'long') {
@@ -1267,6 +1370,26 @@ document.addEventListener('click', async (e) => {
         } else {
             btnShort.classList.add('active');
             btnLong.classList.remove('active');
+        }
+
+        // Step 2
+        document.getElementById('tradeEntry').value = trade.entry_price;
+        document.getElementById('tradeExit').value = trade.exit_price;
+        document.getElementById('tradeStopLoss').value = trade.stop_loss || '';
+        document.getElementById('tradeTarget').value = trade.target || '';
+        document.getElementById('pnlDisplay').value = trade.pnl || '';
+        document.getElementById('pnlDisplay').className = 'pnl-input ' + (trade.pnl >= 0 ? 'positive' : 'negative');
+
+        // Step 3
+        selectedEmotions = trade.emotions ? trade.emotions.split(', ').filter(Boolean) : [];
+        renderEmotionTags();
+        renderSuggestions();
+
+        if (trade.mental_state) {
+            document.querySelectorAll('.mental-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.value === trade.mental_state);
+            });
+            document.getElementById('tradeMentalState').value = trade.mental_state;
         }
 
         followedRules = trade.followed_rules;
@@ -1278,14 +1401,40 @@ document.addEventListener('click', async (e) => {
             btnYes.classList.remove('active');
         }
 
-        selectedEmotions = trade.emotions ? trade.emotions.split(', ').filter(Boolean) : [];
-        renderEmotionTags();
-        renderSuggestions();
-        updatePnL();
+        // Step 4
+        if (trade.setup_type) document.getElementById('tradeSetupType').value = trade.setup_type;
+        if (trade.session) document.getElementById('tradeSession').value = trade.session;
+        if (trade.setup_rating) {
+            document.getElementById('tradeSetupRating').value = trade.setup_rating;
+            document.querySelectorAll('#setupRating .star').forEach(s => {
+                s.classList.toggle('active', parseInt(s.dataset.value) <= trade.setup_rating);
+            });
+        }
+        if (trade.management_rating) {
+            document.getElementById('tradeManagementRating').value = trade.management_rating;
+            document.querySelectorAll('#managementRating .star').forEach(s => {
+                s.classList.toggle('active', parseInt(s.dataset.value) <= trade.management_rating);
+            });
+        }
+        if (trade.take_again !== null) {
+            document.getElementById('tradeTakeAgain').value = trade.take_again;
+            if (trade.take_again) {
+                document.getElementById('btnTakeAgainYes').classList.add('active');
+                document.getElementById('btnTakeAgainNo').classList.remove('active');
+            } else {
+                document.getElementById('btnTakeAgainNo').classList.add('active');
+                document.getElementById('btnTakeAgainYes').classList.remove('active');
+            }
+        }
 
-        document.querySelector('.modal-header h2').textContent = 'Edit Trade';
+        // Step 5
+        document.getElementById('tradeNotes').value = trade.notes || '';
+
+        document.getElementById('modalStepTitle').textContent = 'Edit Trade';
         document.getElementById('btnSave').textContent = 'Update Trade';
-        modalOverlay.classList.add('active');
+        openModal();
+        goToModalStep(1);
+        loadTradeConfluences();
         lucide.createIcons();
     }
 
@@ -1830,7 +1979,33 @@ function renderJournal() {
     const start = (journalPage - 1) * TRADES_PER_PAGE;
     const pageTrades = filteredTrades.slice(start, start + TRADES_PER_PAGE);
 
-    entriesEl.innerHTML = pageTrades.map(trade => `
+    entriesEl.innerHTML = pageTrades.map(trade => {
+
+        // Stars helper
+        const renderStars = (rating) => {
+            if (!rating) return '<span style="color:#333;font-size:11px;">Not rated</span>';
+            return Array.from({length: 5}, (_, i) => 
+                `<span style="color:${i < rating ? '#ff9900' : '#2a2a2a'};font-size:13px;">★</span>`
+            ).join('');
+        };
+
+        // Screenshots
+        const screenshots = trade.screenshots && trade.screenshots.length > 0
+            ? `<div class="entry-screenshots">
+                ${trade.screenshots.map(path => 
+                    `<img data-screenshot-path="${path}" class="entry-screenshot-thumb" src="" />`
+                ).join('')}
+            </div>`
+            : '';
+
+        // Confluences
+        const confluences = trade.confluences && trade.confluences.length > 0
+            ? `<div class="entry-confluences">
+                ${trade.confluences.map(c => `<span class="entry-confluence-tag">${c}</span>`).join('')}
+               </div>`
+            : '';
+
+        return `
         <div class="journal-entry ${trade.pnl > 0 ? 'win' : trade.pnl < 0 ? 'loss' : ''}">
             
             <!-- LEFT - Trade Data -->
@@ -1847,18 +2022,42 @@ function renderJournal() {
                             ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
                         </span>
                         <span class="entry-size">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
+                        ${trade.session ? `<span class="entry-session">${trade.session}</span>` : ''}
                     </div>
                     <div class="entry-prices">
                         <span>In: ${trade.entry_price}</span>
                         <span>Out: ${trade.exit_price}</span>
+                        ${trade.stop_loss ? `<span>SL: ${trade.stop_loss}</span>` : ''}
+                        ${trade.target ? `<span>TP: ${trade.target}</span>` : ''}
                     </div>
                 </div>
                 <div class="entry-bottom">
                     <span class="entry-date">${trade.date}</span>
                     <span class="entry-trade-num">Trade #${trade.trade_number}</span>
+                    ${trade.setup_type ? `<span class="entry-setup-tag">${trade.setup_type}</span>` : ''}
                     <span class="entry-rules-badge ${trade.followed_rules ? 'followed' : 'broke'}">
                         ${trade.followed_rules ? '✓ Rules followed' : '✗ Broke rules'}
                     </span>
+                    ${trade.mental_state ? `<span class="entry-mental-state">${trade.mental_state}</span>` : ''}
+                </div>
+                <div class="entry-ratings">
+                    ${trade.setup_rating ? `
+                        <div class="entry-rating-row">
+                            <span class="entry-rating-label">Setup</span>
+                            <span>${renderStars(trade.setup_rating)}</span>
+                        </div>` : ''}
+                    ${trade.management_rating ? `
+                        <div class="entry-rating-row">
+                            <span class="entry-rating-label">Mgmt</span>
+                            <span>${renderStars(trade.management_rating)}</span>
+                        </div>` : ''}
+                    ${trade.take_again !== null && trade.take_again !== undefined ? `
+                        <div class="entry-rating-row">
+                            <span class="entry-rating-label">Again?</span>
+                            <span style="font-size:12px;color:${trade.take_again ? '#00c864' : '#ff4444'};">
+                                ${trade.take_again ? '✓ Yes' : '✗ No'}
+                            </span>
+                        </div>` : ''}
                 </div>
             </div>
 
@@ -1866,15 +2065,17 @@ function renderJournal() {
             <div class="entry-journal">
                 <div class="entry-emotions">
                     ${trade.emotions 
-                        ? trade.emotions.split(', ').map(e => `<span class="entry-emotion-tag">${e}</span>`).join('')
+                        ? trade.emotions.split(', ').filter(Boolean).map(e => `<span class="entry-emotion-tag">${e}</span>`).join('')
                         : ''
                     }
                 </div>
+                ${confluences}
                 <textarea 
                     class="entry-notes-editable" 
                     data-trade-id="${trade.id}"
                     placeholder="Click to add notes..."
                 >${trade.notes || ''}</textarea>
+                ${screenshots}
                 <div class="entry-actions">
                     <button class="trade-edit-btn" data-id="${trade.id}">
                         <i data-lucide="pencil" class="pencil-icon"></i>
@@ -1885,7 +2086,20 @@ function renderJournal() {
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
+
+    // Load signed URLs for screenshots
+    entriesEl.querySelectorAll('[data-screenshot-path]').forEach(async (img) => {
+        const path = img.dataset.screenshotPath;
+        const { data } = await supabaseClient.storage
+            .from('trade-screenshots')
+            .createSignedUrl(path, 3600);
+        if (data) {
+            img.src = data.signedUrl;
+            img.onclick = () => openImageLightbox(data.signedUrl);
+        }
+    });
 
     // Pagination
     paginationEl.innerHTML = `
@@ -1913,27 +2127,18 @@ function renderJournal() {
 
     lucide.createIcons();
 
-    // Auto-save notes on blur
+    // Auto-save notes
     document.querySelectorAll('.entry-notes-editable').forEach(textarea => {
         let saveTimeout;
         textarea.addEventListener('input', () => {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(async () => {
-                const tradeId = textarea.dataset.tradeId;
-                await supabaseClient
-                    .from('trades')
-                    .update({ notes: textarea.value })
-                    .eq('id', tradeId);
+                await supabaseClient.from('trades').update({ notes: textarea.value }).eq('id', textarea.dataset.tradeId);
             }, 1000);
         });
-
         textarea.addEventListener('blur', async () => {
             clearTimeout(saveTimeout);
-            const tradeId = textarea.dataset.tradeId;
-            await supabaseClient
-                .from('trades')
-                .update({ notes: textarea.value })
-                .eq('id', tradeId);
+            await supabaseClient.from('trades').update({ notes: textarea.value }).eq('id', textarea.dataset.tradeId);
         });
     });
 }
@@ -2502,11 +2707,6 @@ document.getElementById('btnAddRuleInline').addEventListener('click', () => {
     ruleModalOverlay.classList.add('active');
 });
 
-document.getElementById('fabLogTrade')?.addEventListener('click', () => {
-    modalOverlay.classList.add('active');
-    loadTradeCounter();
-});
-
 async function loadTradeCounter() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
@@ -2556,7 +2756,7 @@ document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () =
 });
 
 // Whats new modal
-const WHATS_NEW_VERSION = 'v1.2';
+const WHATS_NEW_VERSION = 'v1.3';
 const whatsNewSeen = localStorage.getItem('noxis_whats_new') === WHATS_NEW_VERSION;
 const whatsNewDot = document.getElementById('whatsNewDot');
 if (whatsNewSeen) whatsNewDot.classList.add('hidden');
@@ -2696,6 +2896,237 @@ document.getElementById('restartOnboardingBtn').addEventListener('click', async 
     goToStep(1);
 });
 
+// Modal step navigation
+let currentModalStep = 1;
+const TOTAL_MODAL_STEPS = 5;
+
+function goToModalStep(step) {
+    document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+    document.getElementById(`modalStep${step}`).classList.add('active');
+    currentModalStep = step;
+
+    // Progress bar
+    document.getElementById('modalProgressFill').style.width = `${(step / TOTAL_MODAL_STEPS) * 100}%`;
+    document.getElementById('modalStepIndicator').textContent = `Step ${step} of ${TOTAL_MODAL_STEPS}`;
+
+    // Step dots
+    document.querySelectorAll('.modal-step-dot').forEach(dot => {
+        const dotStep = parseInt(dot.dataset.modalDot);
+        dot.classList.remove('active', 'done');
+        if (dotStep === step) dot.classList.add('active');
+        else if (dotStep < step) dot.classList.add('done');
+    });
+
+    lucide.createIcons();
+}
+
+// Step 1 next
+document.getElementById('modalNext1').addEventListener('click', () => {
+    const date = document.getElementById('tradeDate').value;
+    const symbol = document.getElementById('tradeSymbol').value;
+
+    if (!date || !symbol) {
+        showToast('Please fill in date and symbol.', 'error');
+        return;
+    }
+    goToModalStep(2);
+});
+
+// Step 2
+document.getElementById('modalBack2').addEventListener('click', () => goToModalStep(1));
+document.getElementById('modalNext2').addEventListener('click', () => {
+    const entry = document.getElementById('tradeEntry').value;
+    const exit = document.getElementById('tradeExit').value;
+    if (!entry || !exit) {
+        showToast('Please enter entry and exit prices.', 'error');
+        return;
+    }
+    goToModalStep(3);
+});
+
+// Step 3
+document.getElementById('modalBack3').addEventListener('click', () => goToModalStep(2));
+document.getElementById('modalNext3').addEventListener('click', () => goToModalStep(4));
+
+// Step 4 — Load confluences from user strategy
+document.getElementById('modalBack4').addEventListener('click', () => goToModalStep(3));
+document.getElementById('modalNext4').addEventListener('click', () => goToModalStep(5));
+
+// Step 5
+document.getElementById('modalBack5').addEventListener('click', () => goToModalStep(4));
+
+// Mental state
+document.querySelectorAll('.mental-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.mental-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        document.getElementById('tradeMentalState').value = opt.dataset.value;
+    });
+});
+
+// Take again toggle
+document.getElementById('btnTakeAgainYes').addEventListener('click', () => {
+    document.getElementById('btnTakeAgainYes').classList.add('active');
+    document.getElementById('btnTakeAgainNo').classList.remove('active');
+    document.getElementById('tradeTakeAgain').value = 'true';
+});
+
+document.getElementById('btnTakeAgainNo').addEventListener('click', () => {
+    document.getElementById('btnTakeAgainNo').classList.add('active');
+    document.getElementById('btnTakeAgainYes').classList.remove('active');
+    document.getElementById('tradeTakeAgain').value = 'false';
+});
+
+// Star ratings
+document.querySelectorAll('.star-rating').forEach(ratingEl => {
+    const stars = ratingEl.querySelectorAll('.star');
+    const hiddenInput = ratingEl.id === 'setupRating'
+        ? document.getElementById('tradeSetupRating')
+        : document.getElementById('tradeManagementRating');
+
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.value);
+            hiddenInput.value = val;
+            stars.forEach(s => {
+                s.classList.toggle('active', parseInt(s.dataset.value) <= val);
+            });
+        });
+
+        star.addEventListener('mouseover', () => {
+            const val = parseInt(star.dataset.value);
+            stars.forEach(s => {
+                s.style.color = parseInt(s.dataset.value) <= val ? '#ff9900' : '#2a2a2a';
+            });
+        });
+
+        star.addEventListener('mouseleave', () => {
+            const currentVal = parseInt(hiddenInput.value) || 0;
+            stars.forEach(s => {
+                s.style.color = '';
+                s.classList.toggle('active', parseInt(s.dataset.value) <= currentVal);
+            });
+        });
+    });
+});
+
+// Load user confluences on step 4
+async function loadTradeConfluences() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const { data } = await supabaseClient
+        .from('user_strategy')
+        .select('confluences')
+        .eq('user_id', session.user.id)
+        .single();
+
+    const container = document.getElementById('tradeConfluences');
+
+    if (!data || !data.confluences || data.confluences.length === 0) {
+        container.innerHTML = '<span style="font-size:12px;color:#444;">Complete setup wizard to see your confluences</span>';
+        return;
+    }
+
+    container.innerHTML = '';
+    data.confluences.forEach(c => {
+        const tag = document.createElement('div');
+        tag.className = 'trade-confluence-tag';
+        tag.textContent = c;
+        tag.addEventListener('click', () => tag.classList.toggle('active'));
+        container.appendChild(tag);
+    });
+}
+
+// Screenshot upload
+let screenshotFiles = [];
+const MAX_SCREENSHOTS = { free: 1, pro: 3, elite: 3 };
+
+const screenshotArea = document.getElementById('screenshotUploadArea');
+const screenshotInput = document.getElementById('screenshotInput');
+const screenshotPreviews = document.getElementById('screenshotPreviews');
+const screenshotPlaceholder = document.getElementById('screenshotPlaceholder');
+
+screenshotArea.addEventListener('click', () => screenshotInput.click());
+
+screenshotArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    screenshotArea.classList.add('dragover');
+});
+
+screenshotArea.addEventListener('dragleave', () => {
+    screenshotArea.classList.remove('dragover');
+});
+
+screenshotArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    screenshotArea.classList.remove('dragover');
+    handleScreenshotFiles(Array.from(e.dataTransfer.files));
+});
+
+screenshotInput.addEventListener('change', () => {
+    handleScreenshotFiles(Array.from(screenshotInput.files));
+    screenshotInput.value = '';
+});
+
+function handleScreenshotFiles(files) {
+    const limit = MAX_SCREENSHOTS[userPlan] || 1;
+    const remaining = limit - screenshotFiles.length;
+
+    if (remaining <= 0) {
+        showToast(`Max ${limit} screenshot${limit > 1 ? 's' : ''} allowed on your plan.`, 'warning');
+        return;
+    }
+
+    const toAdd = files.slice(0, remaining);
+
+    toAdd.forEach(file => {
+        if (file.size > 5 * 1024 * 1024) {
+            showToast(`${file.name} is too large. Max 5MB.`, 'error');
+            return;
+        }
+        screenshotFiles.push(file);
+        renderScreenshotPreviews();
+    });
+}
+
+function renderScreenshotPreviews() {
+    screenshotPreviews.innerHTML = '';
+    const limit = MAX_SCREENSHOTS[userPlan] || 1;
+
+    if (screenshotFiles.length === 0) {
+        screenshotPlaceholder.style.display = 'flex';
+        return;
+    }
+
+    screenshotPlaceholder.style.display = 'none';
+
+    screenshotFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'screenshot-preview';
+            div.innerHTML = `
+                <img src="${e.target.result}" alt="screenshot" />
+                <button class="screenshot-remove" data-index="${index}">✕</button>
+            `;
+            div.querySelector('.screenshot-remove').addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                screenshotFiles.splice(index, 1);
+                renderScreenshotPreviews();
+            });
+            screenshotPreviews.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    const countEl = document.createElement('div');
+    countEl.className = 'screenshot-count';
+    countEl.textContent = `${screenshotFiles.length} / ${limit} screenshots`;
+    screenshotPreviews.appendChild(countEl);
+}
+
+
 // Init
 (async () => {
     renderSuggestions();
@@ -2723,3 +3154,15 @@ document.getElementById('restartOnboardingBtn').addEventListener('click', async 
     const fab = document.getElementById('fabLogTrade');
     if (fab && lastPage !== 'dashboard') fab.style.display = 'none';
 })();
+
+function openImageLightbox(src) {
+    const overlay = document.createElement('div');
+    overlay.className = 'image-lightbox';
+    overlay.innerHTML = `<img src="${src}" class="lightbox-img" />`;
+    overlay.addEventListener('click', () => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 200);
+    });
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.style.opacity = '1');
+}
