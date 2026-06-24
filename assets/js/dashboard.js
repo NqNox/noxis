@@ -2313,7 +2313,15 @@ document.getElementById('whatsNewBtn').addEventListener('click', () => {
     whatsNewDot.classList.add('hidden');
 });
 
+document.getElementById('whatsNewModalClose').addEventListener('click', () => {
+    document.getElementById('whatsNewOverlay').classList.remove('active');
+});
 
+document.getElementById('whatsNewOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('whatsNewOverlay')) {
+        document.getElementById('whatsNewOverlay').classList.remove('active');
+    }
+});
 
 function toggleChangelog(id) {
     const entry = document.getElementById(id);
