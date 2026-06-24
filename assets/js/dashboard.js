@@ -258,13 +258,220 @@ document.querySelectorAll('.session-option').forEach(opt => {
 });
 
 document.getElementById('onboBack3').addEventListener('click', () => goToStep(2, 'back'));
-document.getElementById('onboNext3').addEventListener('click', () => {
+document.getElementById('onboNext3').addEventListener('click', () => {goToStep(4);});
+
+// Confluence presets per strategy
+const CONFLUENCE_PRESETS = {
+    'ICT/SMC': {
+        'Price Structure': ['Market Structure Shift', 'Break of Structure', 'Change of Character'],
+        'Entry Models': ['Fair Value Gap', 'Order Block', 'Breaker Block', 'Optimal Trade Entry'],
+        'Liquidity': ['Liquidity Sweep', 'Equal Highs/Lows', 'Stop Hunt'],
+        'Time': ['Kill Zone', 'Midnight Open', 'Session Open']
+    },
+    'CRT': {
+        'Candle Structure': ['Candle Range', 'Body Midpoint', 'Wick Rejection'],
+        'Entry': ['Range Expansion', 'Inside Candle', 'Outside Candle'],
+        'Time': ['Session Alignment', 'HTF Confluence']
+    },
+    'Wyckoff': {
+        'Phases': ['Accumulation', 'Distribution', 'Markup', 'Markdown'],
+        'Events': ['Spring', 'Upthrust', 'Test', 'Sign of Strength'],
+        'Volume': ['Volume Climax', 'No Supply', 'No Demand']
+    },
+    'Orderflow': {
+        'DOM': ['Large Bid/Ask', 'Iceberg Orders', 'Stacked Imbalance'],
+        'Footprint': ['Delta Divergence', 'Point of Control', 'High Volume Node'],
+        'Tape': ['Absorption', 'Exhaustion', 'Momentum']
+    },
+    'Quarterly Theory': {
+        'Quarters': ['Q1 Accumulation', 'Q2 Manipulation', 'Q3 Distribution', 'Q4 Continuation'],
+        'Alignment': ['HTF Alignment', 'Session Confluence', 'Key Level']
+    },
+    'AMD': {
+        'Phases': ['Accumulation', 'Manipulation', 'Distribution'],
+        'Confirmation': ['Phase Transition', 'Key Level Reaction', 'Session Alignment']
+    },
+    'PDI/Mech': {
+        'Phases': ['Accumulation', 'Valid Manipulation', 'Clear Leg'],
+        'Confirmation': ['IFVG', 'CISD', 'Displacement ']
+    },
+    'Other': {
+        'General': ['Trend Direction', 'Key Level', 'Support/Resistance', 'Moving Average', 'Volume', 'Momentum', 'Session Open', 'News Event']
+    }
+};
+
+const RULE_PRESETS = {
+    'ICT/SMC': ['Only trade during Kill Zones', 'Wait for liquidity sweep before entry', 'Confirm market structure shift', 'Minimum 2 confluences required', 'No trades during news events'],
+    'Price Action': ['Wait for candle close confirmation', 'Only trade at key levels', 'Minimum 1:2 risk to reward', 'No counter-trend trades', 'Set stop loss before entry'],
+    'Technical': ['Confirm with volume', 'Wait for indicator alignment', 'No trades in choppy market', 'Follow trend direction', 'Use proper position sizing'],
+    'News': ['Check economic calendar before trading', 'No trades 30 min before high impact news', 'Trade the reaction not the news', 'Use wider stops during news'],
+    'Other': ['Follow your trading plan', 'Set stop loss before entry', 'Minimum 1:2 risk to reward', 'No revenge trading', 'Max 3 trades per day']
+};
+
+let selectedConfluences = [];
+let onboRules = [];
+
+// Step 4 — Trading style
+document.querySelectorAll('.style-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.style-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        document.getElementById('onboTradingStyle').value = opt.dataset.value;
+        checkStep4Valid();
+    });
+});
+
+document.querySelectorAll('.strategy-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.strategy-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        const val = opt.dataset.value;
+        document.getElementById('onboStrategyType').value = val;
+        const otherInput = document.getElementById('onboStrategyOther');
+        if (val === 'Other') {
+            otherInput.style.display = 'block';
+            otherInput.focus();
+        } else {
+            otherInput.style.display = 'none';
+        }
+        checkStep4Valid();
+    });
+});
+
+document.getElementById('onboStrategyOther').addEventListener('input', (e) => {
+    document.getElementById('onboStrategyType').value = e.target.value;
+    checkStep4Valid();
+});
+
+function checkStep4Valid() {
+    const style = document.getElementById('onboTradingStyle').value;
+    const strategy = document.getElementById('onboStrategyType').value;
+    const btn = document.getElementById('onboNext4');
+    if (style && strategy) {
+        btn.classList.remove('disabled');
+    } else {
+        btn.classList.add('disabled');
+    }
+}
+
+document.getElementById('onboBack4').addEventListener('click', () => goToStep(3, 'back'));
+document.getElementById('onboNext4').addEventListener('click', () => {
+    const strategy = document.getElementById('onboStrategyType').value;
+    if (!strategy) return;
+
+    const presets = CONFLUENCE_PRESETS[strategy] || CONFLUENCE_PRESETS['Other'];
+    const list = document.getElementById('onboConfluenceList');
+    list.innerHTML = '';
+    selectedConfluences = [];
+
+    Object.entries(presets).forEach(([category, items]) => {
+        const catEl = document.createElement('div');
+        catEl.innerHTML = `<div class="confluence-category-title">${category}</div>
+        <div class="confluence-tags-row"></div>`;
+        
+        const row = catEl.querySelector('.confluence-tags-row');
+        items.forEach(c => {
+            const tag = document.createElement('div');
+            tag.className = 'confluence-tag';
+            tag.textContent = c;
+            tag.addEventListener('click', () => {
+                tag.classList.toggle('active');
+                if (tag.classList.contains('active')) {
+                    selectedConfluences.push(c);
+                } else {
+                    selectedConfluences = selectedConfluences.filter(x => x !== c);
+                }
+            });
+            row.appendChild(tag);
+        });
+
+        list.appendChild(catEl);
+    });
+
+    goToStep(5);
+});
+
+// Step 5 — Confluences
+document.getElementById('onboAddConfluence').addEventListener('click', () => {
+    const input = document.getElementById('onboCustomConfluence');
+    const val = input.value.trim();
+    if (!val) return;
+
+    const list = document.getElementById('onboConfluenceList');
+    const tag = document.createElement('div');
+    tag.className = 'confluence-tag active';
+    tag.textContent = val;
+    selectedConfluences.push(val);
+    tag.addEventListener('click', () => {
+        tag.classList.toggle('active');
+        if (tag.classList.contains('active')) {
+            selectedConfluences.push(val);
+        } else {
+            selectedConfluences = selectedConfluences.filter(x => x !== val);
+        }
+    });
+    list.appendChild(tag);
+    input.value = '';
+});
+
+document.getElementById('onboCustomConfluence').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('onboAddConfluence').click();
+});
+
+document.getElementById('onboBack5').addEventListener('click', () => goToStep(4, 'back'));
+document.getElementById('onboNext5').addEventListener('click', () => {
+    const strategy = document.getElementById('onboStrategyType').value;
+    
+    // Load rule presets
+    onboRules = [...(RULE_PRESETS[strategy] || RULE_PRESETS['Other'])];
+    renderOnboRules();
+    goToStep(6);
+});
+
+// Step 6 — Rules
+function renderOnboRules() {
+    const preview = document.getElementById('onboRulesPreview');
+    preview.innerHTML = '';
+    onboRules.forEach((rule, index) => {
+        const el = document.createElement('div');
+        el.className = 'rule-preview-item';
+        el.innerHTML = `
+            <span class="rule-preview-number">${String(index + 1).padStart(2, '0')}</span>
+            <span class="rule-preview-text">${rule}</span>
+            <button class="rule-remove-btn" data-index="${index}">✕</button>
+        `;
+        el.querySelector('.rule-remove-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            onboRules.splice(index, 1);
+            renderOnboRules();
+        });
+        preview.appendChild(el);
+    });
+}
+
+document.getElementById('onboAddRule').addEventListener('click', () => {
+    const input = document.getElementById('onboCustomRule');
+    const val = input.value.trim();
+    if (!val) return;
+    onboRules.push(val);
+    renderOnboRules();
+    input.value = '';
+});
+
+document.getElementById('onboCustomRule').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('onboAddRule').click();
+});
+
+document.getElementById('onboBack6').addEventListener('click', () => goToStep(5, 'back'));
+document.getElementById('onboNext6').addEventListener('click', () => {
     // Build summary
     const name = document.getElementById('onboName').value.trim();
     const balance = document.getElementById('onboBalance').value;
     const firm = document.getElementById('onboFirm').value;
     const instrument = document.getElementById('onboInstrument').value;
     const session = document.querySelector('.session-option.active');
+    const style = document.getElementById('onboTradingStyle').value;
+    const strategy = document.getElementById('onboStrategyType').value;
 
     const summary = document.getElementById('onboSummary');
     summary.innerHTML = `
@@ -288,13 +495,31 @@ document.getElementById('onboNext3').addEventListener('click', () => {
             <span class="summary-label">Session</span>
             <span class="summary-value">${session ? session.querySelector('.session-name').textContent : '—'}</span>
         </div>
+        <div class="summary-row">
+            <span class="summary-label">Style</span>
+            <span class="summary-value">${style || '—'}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Strategy</span>
+            <span class="summary-value">${strategy || '—'}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Confluences</span>
+            <span class="summary-value">${selectedConfluences.length} selected</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Rules</span>
+            <span class="summary-value">${onboRules.length} rules</span>
+        </div>
     `;
 
-    goToStep(4);
+    goToStep(7);
 });
 
-// Step 4 — Finish
 document.getElementById('onboFinish').addEventListener('click', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
     const settings = {
         name: document.getElementById('onboName').value.trim(),
         balance: document.getElementById('onboBalance').value,
@@ -307,16 +532,39 @@ document.getElementById('onboFinish').addEventListener('click', async () => {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     };
 
+    const strategyData = {
+        user_id: session.user.id,
+        trading_style: document.getElementById('onboTradingStyle').value,
+        strategy_type: document.getElementById('onboStrategyType').value,
+        confluences: selectedConfluences,
+        updated_at: new Date().toISOString()
+    };
+
     // Closing animation
     const modal = document.querySelector('.onboarding-modal');
     const overlay = document.getElementById('onboardingOverlay');
-
     modal.style.animation = 'onboarding-out 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards';
     overlay.style.transition = 'opacity 0.4s ease';
     overlay.style.opacity = '0';
 
     setTimeout(async () => {
+        // Save settings
         await completeOnboarding(settings);
+
+        // Save strategy
+        await supabaseClient.from('user_strategy').upsert(strategyData, { onConflict: 'user_id' });
+
+        // Save rules to Supabase
+        if (onboRules.length > 0) {
+            const rulesData = onboRules.map((rule, i) => ({
+                user_id: session.user.id,
+                rule,
+                position: i,
+                set_id: null
+            }));
+            await supabaseClient.from('rules').insert(rulesData);
+        }
+
         overlay.classList.remove('active');
         overlay.style.opacity = '';
         modal.style.animation = '';
@@ -330,6 +578,7 @@ document.getElementById('onboFinish').addEventListener('click', async () => {
         loadRecentTrades();
         loadStreak();
         loadSettings();
+        loadRules();
     }, 400);
 });
 

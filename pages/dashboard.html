@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../assets/css/dashboard.css?v=4">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
@@ -792,23 +793,36 @@
                     <label>Trading Session</label>
                     <div class="session-options">
                         <div class="session-option" data-start="02:00" data-end="05:00">
-                            <span class="session-name"><i data-lucide="globe" style="width:14px;height:14px;"></i> Asia</span>
+                            <span class="session-icon" style="background:rgba(99,102,241,0.15);">
+                                <span class="fi fi-jp" style="width:20px;height:20px;border-radius:4px;"></span>
+                            </span>
+                            <span class="session-name">Asia</span>
                             <span class="session-time">2:00 – 5:00 AM NY</span>
                         </div>
                         <div class="session-option" data-start="03:00" data-end="08:30">
-                            <span class="session-name"><i data-lucide="building-2" style="width:14px;height:14px;"></i> London</span>
+                            <span class="session-icon" style="background:rgba(239,68,68,0.15);">
+                                <span class="fi fi-gb" style="width:20px;height:20px;border-radius:4px;"></span>
+                            </span>
+                            <span class="session-name">London</span>
                             <span class="session-time">3:00 – 8:30 AM NY</span>
                         </div>
                         <div class="session-option" data-start="09:30" data-end="12:00">
-                            <span class="session-name"><i data-lucide="sun" style="width:14px;height:14px;"></i> NY AM</span>
+                            <span class="session-icon" style="background:rgba(0,212,212,0.15);">
+                                <span class="fi fi-us" style="width:20px;height:20px;border-radius:4px;"></span>
+                            </span>
+                            <span class="session-name">NY AM</span>
                             <span class="session-time">9:30 – 12:00 PM NY</span>
                         </div>
                         <div class="session-option" data-start="13:30" data-end="16:00">
-                            <span class="session-name"><i data-lucide="sunset" style="width:14px;height:14px;"></i> NY PM</span>
+                            <span class="session-icon" style="background:rgba(251,146,60,0.15);">
+                                <span class="fi fi-us" style="width:20px;height:20px;border-radius:4px;"></span>
+                            </span>
+                            <span class="session-name">NY PM</span>
                             <span class="session-time">1:30 – 4:00 PM NY</span>
                         </div>
                         <div class="session-option" data-start="18:00" data-end="21:00">
-                            <span class="session-name"><i data-lucide="moon" style="width:14px;height:14px;"></i> Overnight</span>
+                            <span class="session-icon" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">🌙</span>
+                            <span class="session-name">Overnight</span>
                             <span class="session-time">6:00 – 9:00 PM NY</span>
                         </div>
                     </div>
@@ -822,8 +836,135 @@
                 </div>
             </div>
 
-            <!-- Step 4 — Done -->
+            <!-- Step 4 — Trading Style -->
             <div class="onboarding-step" id="onboStep4">
+                <div class="onboarding-emoji">🎯</div>
+                <h2>Your <span style="color:#00d4d4;">Style</span></h2>
+                <p>How do you trade?</p>
+
+                <div class="onboarding-field">
+                    <label>Trading Style</label>
+                    <div class="style-options">
+                        <div class="style-option" data-value="Scalper">
+                            <span class="style-icon">⚡</span>
+                            <span class="style-name">Scalper</span>
+                            <span class="style-desc">Seconds to minutes</span>
+                        </div>
+                        <div class="style-option" data-value="Day Trader">
+                            <span class="style-icon">📈</span>
+                            <span class="style-name">Day Trader</span>
+                            <span class="style-desc">Minutes to hours</span>
+                        </div>
+                        <div class="style-option" data-value="Swing Trader">
+                            <span class="style-icon">🌊</span>
+                            <span class="style-name">Swing Trader</span>
+                            <span class="style-desc">Days to weeks</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="onboTradingStyle" />
+                </div>
+
+                <div class="onboarding-field">
+                    <label>Strategy Type</label>
+                    <div class="strategy-options">
+                        <div class="strategy-option" data-value="ICT/SMC">
+                            <span class="strategy-name">ICT / SMC</span>
+                            <span class="strategy-desc">Inner Circle Trader / Smart Money</span>
+                        </div>
+                        <div class="strategy-option" data-value="CRT">
+                            <span class="strategy-name">CRT</span>
+                            <span class="strategy-desc">Candle Range Theory</span>
+                        </div>
+                        <div class="strategy-option" data-value="Wyckoff">
+                            <span class="strategy-name">Wyckoff</span>
+                            <span class="strategy-desc">Accumulation & Distribution</span>
+                        </div>
+                        <div class="strategy-option" data-value="Orderflow">
+                            <span class="strategy-name">Orderflow</span>
+                            <span class="strategy-desc">DOM, Footprint & Delta</span>
+                        </div>
+                        <div class="strategy-option" data-value="Quarterly Theory">
+                            <span class="strategy-name">Quarterly Theory</span>
+                            <span class="strategy-desc">Q1–Q4 Price Cycles</span>
+                        </div>
+                        <div class="strategy-option" data-value="AMD">
+                            <span class="strategy-name">AMD</span>
+                            <span class="strategy-desc">Accumulation, Manipulation, Distribution</span>
+                        </div>
+                        <div class="strategy-option" data-value="PDI/Mech">
+                            <span class="strategy-name">PDI / Mech</span>
+                            <span class="strategy-desc">PB Trading's AMD model</span>
+                        </div>
+                        <div class="strategy-option" data-value="Other">
+                            <span class="strategy-name">Other</span>
+                            <span class="strategy-desc">Custom strategy</span>
+                        </div>
+                    </div>
+                    <input type="text" id="onboStrategyOther" placeholder="Enter your strategy name" style="display:none;margin-top:8px;" />
+                    <input type="hidden" id="onboStrategyType" />
+                    <input type="hidden" id="onboStrategyType" />
+                </div>
+
+                <div class="onboarding-nav">
+                    <button class="onboarding-back" id="onboBack4">← Back</button>
+                    <button class="onboarding-next disabled" id="onboNext4">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 5 — Confluences -->
+            <div class="onboarding-step" id="onboStep5">
+                <div class="onboarding-emoji">🔍</div>
+                <h2>Your <span style="color:#00d4d4;">Confluences</span></h2>
+                <p>What do you look for before entering a trade?</p>
+
+                <div class="onboarding-field">
+                    <label>Select your confluences</label>
+                    <div class="confluence-categories" id="onboConfluenceList"></div>
+                </div>
+
+                <div class="onboarding-field">
+                    <label>Add custom confluence</label>
+                    <div style="display:flex;gap:8px;">
+                        <input type="text" id="onboCustomConfluence" placeholder="e.g. Volume spike" />
+                        <button class="onboarding-add-btn" id="onboAddConfluence">+</button>
+                    </div>
+                </div>
+
+                <div class="onboarding-nav">
+                    <button class="onboarding-back" id="onboBack5">← Back</button>
+                    <button class="onboarding-next" id="onboNext5">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 6 — Rules -->
+            <div class="onboarding-step" id="onboStep6">
+                <div class="onboarding-emoji">📋</div>
+                <h2>Your <span style="color:#00d4d4;">Rules</span></h2>
+                <p>These will populate your checklist. Edit as needed.</p>
+
+                <div class="onboarding-field">
+                    <div class="clipboard">
+                        <div class="clipboard-top">
+                            <div class="clipboard-clip"></div>
+                        </div>
+                        <div class="clipboard-body">
+                            <div class="rules-preview" id="onboRulesPreview"></div>
+                            <div class="clipboard-add">
+                                <input type="text" id="onboCustomRule" placeholder="Add a rule..." />
+                                <button class="onboarding-add-btn" id="onboAddRule">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="onboarding-nav">
+                    <button class="onboarding-back" id="onboBack6">← Back</button>
+                    <button class="onboarding-next" id="onboNext6">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 7 — Done -->
+            <div class="onboarding-step" id="onboStep7">
                 <div class="onboarding-done-icon">🔥</div>
                 <h2>You're all set!</h2>
                 <p>Your account is ready. Start logging trades and building your streak.</p>
@@ -837,6 +978,9 @@
                 <div class="onboarding-dot" data-step="2"></div>
                 <div class="onboarding-dot" data-step="3"></div>
                 <div class="onboarding-dot" data-step="4"></div>
+                <div class="onboarding-dot" data-step="5"></div>
+                <div class="onboarding-dot" data-step="6"></div>
+                <div class="onboarding-dot" data-step="7"></div>
             </div>
 
         </div>
