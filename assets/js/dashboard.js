@@ -58,13 +58,13 @@ async function loadUserPlan() {
         .single();
 
     if (data) {
-        userPlan = 'elite';
+        userPlan = 'pro';
     } else {
     await supabaseClient.from('user_plans').insert({
         user_id: session.user.id,
         plan: 'free'
     });
-    userPlan = 'elite'; // Temporary: everyone gets Elite during beta
+    userPlan = 'pro'; // Temporary: everyone gets Elite during beta
     }
 
     // Update plan badge in sidebar
@@ -2991,11 +2991,11 @@ async function loadInsights() {
             .eq('user_id', session.user.id)
             .single();
 
-        if (cached) {
-            aiLock.style.display = 'none';
-            aiItems.forEach(item => item.classList.remove('blurred'));
-            displayAIInsights(cached.insights);
-        } else {
+            if (cached) {
+                aiLock.style.display = 'none';
+                aiItems.forEach(item => item.classList.remove('blurred'));
+                displayAIInsights(cached.insights, cached.generated_at);
+            } else {
             aiLock.style.display = 'flex';
             aiLockText.textContent = 'Generate your personalized AI analysis';
             btnGenerate.style.display = 'block';
@@ -3440,8 +3440,29 @@ async function generateAIInsights() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    // Show loading state
     showAILoading();
+
+    const today = new Date().toISOString().slice(0, 10);
+    const MANUAL_LIMITS = { free: 0, pro: 0, elite: 2 };
+
+    const { data: insightRecord } = await supabaseClient
+        .from('ai_insights')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+    const isManualRefresh = insightRecord?.last_auto_date === today;
+    const manualUsed = insightRecord?.last_manual_date === today
+        ? insightRecord.manual_refreshes_today || 0
+        : 0;
+
+    if (isManualRefresh) {
+        const limit = MANUAL_LIMITS[userPlan];
+        if (manualUsed >= limit) {
+            showAIEmpty(`You've used all ${limit} manual refreshes for today. Come back tomorrow.`);
+            return;
+        }
+    }
 
     // Fetch all trades
     const { data: trades } = await supabaseClient
@@ -3635,7 +3656,7 @@ Rules:
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: 'claude-sonnet-4-6',
-                max_tokens: 1000,
+                max_tokens: 2000,
                 messages: [{ role: 'user', content: prompt }]
             })
         });
@@ -3649,7 +3670,10 @@ Rules:
         await supabaseClient.from('ai_insights').upsert({
             user_id: session.user.id,
             insights: parsed,
-            generated_at: new Date().toISOString()
+            generated_at: new Date().toISOString(),
+            last_auto_date: isManualRefresh ? insightRecord.last_auto_date : today,
+            manual_refreshes_today: isManualRefresh ? manualUsed + 1 : 0,
+            last_manual_date: isManualRefresh ? today : insightRecord?.last_manual_date
         }, { onConflict: 'user_id' });
 
         displayAIInsights(parsed);
@@ -3677,52 +3701,99 @@ function showAIEmpty(message) {
     `;
 }
 
-function displayAIInsights(data) {
+function displayAIInsights(data, generatedAt) {
     const preview = document.querySelector('.insight-ai-preview');
-    preview.innerHTML = `
-        <!-- Insight Cards -->
-        ${data.insights.map(insight => `
-            <div class="ai-insight-item">
-                <div class="ai-insight-icon">${insight.icon}</div>
-                <div class="ai-insight-text">
-                    <span class="ai-insight-title">${insight.title}</span>
-                    <span class="ai-insight-desc">${insight.description}</span>
-                </div>
-            </div>
-        `).join('')}
 
-        <!-- Written Analysis -->
-        <div class="ai-analysis-section">
-            <div class="ai-analysis-block">
-                <div class="ai-analysis-title">💪 Strengths</div>
-                <ul class="ai-analysis-list">
-                    ${data.strengths.map(s => `<li>${s}</li>`).join('')}
-                </ul>
+    // Determine card type from icon
+    const getType = (icon) => {
+        if (['⚠️','🚨','❌','😰'].includes(icon)) return 'warning';
+        if (['✅','💪','📈','🎯'].includes(icon)) return 'positive';
+        if (['📊','🧠','💡','ℹ️'].includes(icon)) return 'info';
+        if (['⛔','📉'].includes(icon)) return 'negative';
+        return 'info';
+    };
+
+    const generatedTime = generatedAt 
+        ? `Last generated: ${new Date(generatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+        : '';
+
+    preview.innerHTML = `
+        <p class="insight-ai-generated">${generatedTime}</p>
+
+        <div class="ai-insights-layout">
+            <!-- LEFT — Insight Cards -->
+            <div class="ai-insights-left">
+                ${data.insights.map(insight => `
+                    <div class="ai-insight-item ${getType(insight.icon)}">
+                        <div class="ai-insight-icon">${insight.icon}</div>
+                        <div class="ai-insight-text">
+                            <span class="ai-insight-title">${insight.title}</span>
+                            <span class="ai-insight-desc">${insight.description}</span>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
-            <div class="ai-analysis-block">
-                <div class="ai-analysis-title">⚠️ Weaknesses</div>
-                <ul class="ai-analysis-list">
-                    ${data.weaknesses.map(w => `<li>${w}</li>`).join('')}
-                </ul>
-            </div>
-            <div class="ai-analysis-block">
-                <div class="ai-analysis-title">🎯 Areas to Improve</div>
-                <ul class="ai-analysis-list">
-                    ${data.improvements.map(i => `<li>${i}</li>`).join('')}
-                </ul>
-            </div>
-            <div class="ai-analysis-block">
-                <div class="ai-analysis-title">📊 Trader Profile</div>
-                <p class="ai-analysis-profile">${data.profile}</p>
+
+            <!-- RIGHT — Tabs -->
+            <div class="ai-insights-right">
+                <div class="ai-tabs">
+                    <button class="ai-tab active" data-tab="strengths">💪 Strengths</button>
+                    <button class="ai-tab" data-tab="weaknesses">⚠️ Weaknesses</button>
+                    <button class="ai-tab" data-tab="improvements">🎯 Improve</button>
+                    <button class="ai-tab" data-tab="profile">📊 Profile</button>
+                </div>
+
+                <div class="ai-tab-content active" id="tab-strengths">
+                    <div class="ai-analysis-block">
+                        <ul class="ai-analysis-list">
+                            ${data.strengths.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <div class="ai-tab-content" id="tab-weaknesses">
+                    <div class="ai-analysis-block">
+                        <ul class="ai-analysis-list">
+                            ${data.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <div class="ai-tab-content" id="tab-improvements">
+                    <div class="ai-analysis-block">
+                        <ul class="ai-analysis-list">
+                            ${data.improvements.map(i => `<li>${i}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <div class="ai-tab-content" id="tab-profile">
+                    <div class="ai-analysis-block">
+                        <p class="ai-analysis-profile">${data.profile}</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Regenerate button -->
         <button class="btn-regenerate" id="btnRegenerateAI">
             <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
             Regenerate Analysis
         </button>
     `;
+
+    // Tab switching
+    document.querySelectorAll('.ai-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.ai-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+        });
+    });
+
+    // Animate insight cards in
+    setTimeout(() => {
+        document.querySelectorAll('.ai-insight-item:not(.blurred)').forEach((card, i) => {
+            setTimeout(() => card.classList.add('visible'), i * 120);
+        });
+    }, 100);
 
     document.getElementById('btnRegenerateAI')?.addEventListener('click', generateAIInsights);
     lucide.createIcons();
