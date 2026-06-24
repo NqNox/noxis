@@ -881,7 +881,9 @@ function closeModal() {
 
         // Reset mental state
         document.querySelectorAll('.mental-option').forEach(o => o.classList.remove('active'));
-
+        selectedMentalStates = [];
+        document.getElementById('tradeMentalState').value = '';
+        
         // Reset take again
         document.getElementById('btnTakeAgainYes').classList.remove('active');
         document.getElementById('btnTakeAgainNo').classList.remove('active');
@@ -2956,11 +2958,18 @@ document.getElementById('modalNext4').addEventListener('click', () => goToModalS
 document.getElementById('modalBack5').addEventListener('click', () => goToModalStep(4));
 
 // Mental state
+let selectedMentalStates = [];
+
 document.querySelectorAll('.mental-option').forEach(opt => {
     opt.addEventListener('click', () => {
-        document.querySelectorAll('.mental-option').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
-        document.getElementById('tradeMentalState').value = opt.dataset.value;
+        opt.classList.toggle('active');
+        const val = opt.dataset.value;
+        if (opt.classList.contains('active')) {
+            selectedMentalStates.push(val);
+        } else {
+            selectedMentalStates = selectedMentalStates.filter(s => s !== val);
+        }
+        document.getElementById('tradeMentalState').value = selectedMentalStates.join(', ');
     });
 });
 
