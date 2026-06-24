@@ -14,11 +14,13 @@
 </head>
 <body>
 
-    <script>    
-        const MAINTENANCE_MODE = true;
-        const ADMIN_BYPASS = 'noxis_admin_2024';
-        if (MAINTENANCE_MODE && localStorage.getItem('noxis_admin_bypass') !== ADMIN_BYPASS) {
-            window.location.href = '/maintenance.html';
+    <script>
+        const MAINTENANCE_MODE = false;
+        const ADMIN_BYPASS = 'AdminNoxis.';
+        if (MAINTENANCE_MODE) {
+            if (localStorage.getItem('noxis_admin_bypass') !== ADMIN_BYPASS) {
+                window.location.href = '/maintenance.html';
+            }
         }
     </script>
 
@@ -49,6 +51,10 @@
             </a>
         </nav>
         <div class="sidebar-bottom">
+            <button class="restart-onboarding-btn" id="restartOnboardingBtn">
+                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+                <span class="nav-label">Setup Wizard</span>
+            </button>
             <button class="whats-new-btn" id="whatsNewBtn">
                 <div class="whats-new-btn-top">
                     <span class="whats-new-dot" id="whatsNewDot"></span>

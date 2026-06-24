@@ -2163,6 +2163,12 @@ async function loadSettings() {
 
     const floatBtn = document.getElementById('settingsFloatSave');
     if (floatBtn) floatBtn.classList.add('visible');
+
+    // Set wizard button state based on onboarding completion
+    const wizardBtn = document.getElementById('restartOnboardingBtn');
+    if (localStorage.getItem('noxis_onboarding_complete') === 'true') {
+        wizardBtn.classList.add('completed');
+}
 }
 
 async function saveSettingsAction(btn) {
@@ -2635,6 +2641,60 @@ async function loadChangelog() {
         }, index * 100);
     });
 }
+
+document.getElementById('restartOnboardingBtn').addEventListener('click', async () => {
+    const isCompleted = document.getElementById('restartOnboardingBtn').classList.contains('completed');
+    
+    if (isCompleted) {
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const confirmDelete = document.getElementById('confirmDelete');
+        const confirmCancel = document.getElementById('confirmCancel');
+
+        document.querySelector('.confirm-popup h3').textContent = 'Restart Setup Wizard?';
+        document.querySelector('.confirm-popup p').textContent = 'Your current settings and strategy will be overwritten.';
+        document.querySelector('.confirm-icon').textContent = '⚙️';
+        confirmDelete.textContent = 'Restart';
+        confirmOverlay.classList.add('active');
+
+        confirmDelete.onclick = async () => {
+            confirmOverlay.classList.remove('active');
+            document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
+            document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
+            document.querySelector('.confirm-icon').textContent = '🗑️';
+            confirmDelete.textContent = 'Delete';
+
+            localStorage.removeItem('noxis_onboarding_complete');
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                await supabaseClient.from('user_plans')
+                    .update({ onboarding_complete: false })
+                    .eq('user_id', session.user.id);
+            }
+            document.getElementById('restartOnboardingBtn').classList.remove('completed');
+            showOnboarding();
+            goToStep(1);
+        };
+
+        confirmCancel.onclick = () => {
+            confirmOverlay.classList.remove('active');
+            document.querySelector('.confirm-popup h3').textContent = 'Delete Trade?';
+            document.querySelector('.confirm-popup p').textContent = "This action can't be undone.";
+            document.querySelector('.confirm-icon').textContent = '🗑️';
+            confirmDelete.textContent = 'Delete';
+        };
+        return;
+    }
+
+    localStorage.removeItem('noxis_onboarding_complete');
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        await supabaseClient.from('user_plans')
+            .update({ onboarding_complete: false })
+            .eq('user_id', session.user.id);
+    }
+    showOnboarding();
+    goToStep(1);
+});
 
 // Init
 (async () => {

@@ -3956,3 +3956,37 @@ select.journal-filter-input option {
 
 .clipboard-add input:focus { border-color: #00d4d4; }
 .clipboard-add input::placeholder { color: #333333; }
+
+.restart-onboarding-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(0, 212, 212, 0.08);
+    border: 1px solid rgba(0, 212, 212, 0.2);
+    color: #00d4d4;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.restart-onboarding-btn:hover {
+    background: rgba(0, 212, 212, 0.15);
+    border-color: rgba(0, 212, 212, 0.4);
+}
+
+.restart-onboarding-btn.completed {
+    background: transparent;
+    border-color: #2a2a2a;
+    color: #888888;
+}
+
+.restart-onboarding-btn.completed:hover {
+    border-color: #444444;
+    color: #aaaaaa;
+}
