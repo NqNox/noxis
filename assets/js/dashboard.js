@@ -15,11 +15,7 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
             }
         });
     } else {
-        const { data: settingsData } = await supabaseClient
-        .from('user_settings')
-        .select('balance')
-        .eq('user_id', session.user.id)
-        .single();
+        const userSettings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
         const displayName = userSettings.name || session.user.email?.split('@')[0] || 'User';
         document.querySelector('.user-name').textContent = displayName;
         document.querySelector('.user-avatar').textContent = displayName.charAt(0).toUpperCase();
@@ -1234,7 +1230,7 @@ async function loadRecentTrades() {
         .select('balance')
         .eq('user_id', session.user.id)
         .single();
-    const startBalance = parseFloat(settingsData?.balance) || 50000;;
+    const startBalance = parseFloat(settingsData?.balance) || 50000;
     const currentBalance = startBalance + totalPnl;
     const balanceEl = document.querySelector('.stat-value.green');
     if (balanceEl) {
