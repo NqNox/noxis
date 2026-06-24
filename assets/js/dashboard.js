@@ -883,7 +883,7 @@ function closeModal() {
         document.querySelectorAll('.mental-option').forEach(o => o.classList.remove('active'));
         selectedMentalStates = [];
         document.getElementById('tradeMentalState').value = '';
-        
+
         // Reset take again
         document.getElementById('btnTakeAgainYes').classList.remove('active');
         document.getElementById('btnTakeAgainNo').classList.remove('active');
@@ -2700,7 +2700,7 @@ async function loadInsights() {
         if (aiLock) aiLock.style.display = 'flex';
         aiItems.forEach(item => item.classList.add('blurred'));
     } else if (userPlan === 'pro' || userPlan === 'elite') {
-        if (aiLock) aiLock.style.display = 'none';
+        if (aiLock) aiLock.style.display = 'flex';
         aiItems.forEach(item => item.classList.remove('blurred'));
     }
     }
