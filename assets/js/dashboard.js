@@ -2696,6 +2696,282 @@ async function loadInsights() {
 
     equityChart.style.position = 'relative';
 
+    // RULES FOLLOWED VS BROKEN
+    const rulesChart = document.getElementById('rulesChart');
+    const followed = trades.filter(t => t.followed_rules);
+    const broken = trades.filter(t => !t.followed_rules);
+    const followedWinRate = followed.length > 0 ? (followed.filter(t => t.pnl > 0).length / followed.length * 100).toFixed(1) : 0;
+    const brokenWinRate = broken.length > 0 ? (broken.filter(t => t.pnl > 0).length / broken.length * 100).toFixed(1) : 0;
+    const followedAvg = followed.length > 0 ? (followed.reduce((s,t) => s + t.pnl, 0) / followed.length).toFixed(2) : 0;
+    const brokenAvg = broken.length > 0 ? (broken.reduce((s,t) => s + t.pnl, 0) / broken.length).toFixed(2) : 0;
+
+    rulesChart.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px;width:100%;justify-content:center;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;color:#888;font-family:'JetBrains Mono',monospace;width:80px;">✓ Followed</span>
+                <div style="flex:1;height:28px;background:#1a1a1a;border-radius:6px;overflow:hidden;">
+                    <div style="width:${followedWinRate}%;height:100%;background:rgba(0,200,100,0.4);border-radius:6px;display:flex;align-items:center;padding-left:8px;">
+                        <span style="font-size:11px;color:#00c864;font-weight:700;">${followedWinRate}% WR</span>
+                    </div>
+                </div>
+                <span style="font-size:11px;color:${followedAvg >= 0 ? '#00c864' : '#ff4444'};font-family:'JetBrains Mono',monospace;width:60px;text-align:right;">${followedAvg >= 0 ? '+' : ''}$${followedAvg}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:12px;color:#888;font-family:'JetBrains Mono',monospace;width:80px;">✗ Broken</span>
+                <div style="flex:1;height:28px;background:#1a1a1a;border-radius:6px;overflow:hidden;">
+                    <div style="width:${brokenWinRate}%;height:100%;background:rgba(255,68,68,0.4);border-radius:6px;display:flex;align-items:center;padding-left:8px;">
+                        <span style="font-size:11px;color:#ff4444;font-weight:700;">${brokenWinRate}% WR</span>
+                    </div>
+                </div>
+                <span style="font-size:11px;color:${brokenAvg >= 0 ? '#00c864' : '#ff4444'};font-family:'JetBrains Mono',monospace;width:60px;text-align:right;">${brokenAvg >= 0 ? '+' : ''}$${brokenAvg}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #1a1a1a;">
+                <span style="font-size:11px;color:#444;">${followed.length} trades with rules</span>
+                <span style="font-size:11px;color:#444;">${broken.length} trades without</span>
+            </div>
+        </div>
+    `;
+    rulesChart.style.alignItems = 'center';
+
+    // PERFORMANCE BY SESSION
+    const sessionChart = document.getElementById('sessionChart');
+    const sessionStats = {};
+    trades.forEach(t => {
+        if (!t.session) return;
+        if (!sessionStats[t.session]) sessionStats[t.session] = { wins: 0, total: 0, pnl: 0 };
+        sessionStats[t.session].total++;
+        sessionStats[t.session].pnl += t.pnl;
+        if (t.pnl > 0) sessionStats[t.session].wins++;
+    });
+
+    if (Object.keys(sessionStats).length === 0) {
+        sessionChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No session data yet.</p>';
+        sessionChart.style.alignItems = 'center';
+    } else {
+        const sessionList = document.createElement('div');
+        sessionList.className = 'emotion-list';
+        Object.entries(sessionStats)
+            .sort((a, b) => b[1].pnl - a[1].pnl)
+            .forEach(([session, stats]) => {
+                const wr = (stats.wins / stats.total * 100).toFixed(0);
+                const avgPnl = (stats.pnl / stats.total).toFixed(2);
+                const color = stats.pnl >= 0 ? 'high' : 'low';
+                const row = document.createElement('div');
+                row.className = 'emotion-row';
+                row.innerHTML = `
+                    <span class="emotion-name">${session}</span>
+                    <div class="emotion-bar-wrap">
+                        <div class="emotion-bar-fill ${color}" style="width:${wr}%"></div>
+                    </div>
+                    <span class="emotion-pct">${wr}%</span>
+                    <span style="font-size:10px;color:${avgPnl >= 0 ? '#00c864' : '#ff4444'};font-family:'JetBrains Mono',monospace;margin-left:8px;">${avgPnl >= 0 ? '+' : ''}$${avgPnl}</span>
+                `;
+                sessionList.appendChild(row);
+            });
+        sessionChart.innerHTML = '';
+        sessionChart.appendChild(sessionList);
+        sessionChart.style.alignItems = 'stretch';
+        sessionChart.style.height = 'auto';
+    }
+
+    // PERFORMANCE BY MENTAL STATE
+    const mentalStateChart = document.getElementById('mentalStateChart');
+    const mentalStats = {};
+    trades.forEach(t => {
+        if (!t.mental_state) return;
+        t.mental_state.split(', ').forEach(state => {
+            if (!state) return;
+            if (!mentalStats[state]) mentalStats[state] = { wins: 0, total: 0, pnl: 0 };
+            mentalStats[state].total++;
+            mentalStats[state].pnl += t.pnl;
+            if (t.pnl > 0) mentalStats[state].wins++;
+        });
+    });
+
+    if (Object.keys(mentalStats).length === 0) {
+        mentalStateChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No mental state data yet.</p>';
+        mentalStateChart.style.alignItems = 'center';
+    } else {
+        const mentalList = document.createElement('div');
+        mentalList.className = 'emotion-list';
+        Object.entries(mentalStats)
+            .sort((a, b) => b[1].pnl - a[1].pnl)
+            .forEach(([state, stats]) => {
+                const wr = (stats.wins / stats.total * 100).toFixed(0);
+                const avgPnl = (stats.pnl / stats.total).toFixed(2);
+                const color = stats.pnl >= 0 ? 'high' : 'low';
+                const row = document.createElement('div');
+                row.className = 'emotion-row';
+                row.innerHTML = `
+                    <span class="emotion-name">${state}</span>
+                    <div class="emotion-bar-wrap">
+                        <div class="emotion-bar-fill ${color}" style="width:${wr}%"></div>
+                    </div>
+                    <span class="emotion-pct">${wr}%</span>
+                    <span style="font-size:10px;color:${avgPnl >= 0 ? '#00c864' : '#ff4444'};font-family:'JetBrains Mono',monospace;margin-left:8px;">${avgPnl >= 0 ? '+' : ''}$${avgPnl}</span>
+                `;
+                mentalList.appendChild(row);
+            });
+        mentalStateChart.innerHTML = '';
+        mentalStateChart.appendChild(mentalList);
+        mentalStateChart.style.alignItems = 'stretch';
+        mentalStateChart.style.height = 'auto';
+    }
+
+    // PERFORMANCE BY SETUP TYPE
+    const setupTypeChart = document.getElementById('setupTypeChart');
+    const setupStats = {};
+    trades.forEach(t => {
+        if (!t.setup_type) return;
+        if (!setupStats[t.setup_type]) setupStats[t.setup_type] = { wins: 0, total: 0, pnl: 0 };
+        setupStats[t.setup_type].total++;
+        setupStats[t.setup_type].pnl += t.pnl;
+        if (t.pnl > 0) setupStats[t.setup_type].wins++;
+    });
+
+    if (Object.keys(setupStats).length === 0) {
+        setupTypeChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No setup data yet.</p>';
+        setupTypeChart.style.alignItems = 'center';
+    } else {
+        const setupList = document.createElement('div');
+        setupList.className = 'emotion-list';
+        Object.entries(setupStats)
+            .sort((a, b) => b[1].pnl - a[1].pnl)
+            .forEach(([setup, stats]) => {
+                const wr = (stats.wins / stats.total * 100).toFixed(0);
+                const avgPnl = (stats.pnl / stats.total).toFixed(2);
+                const color = stats.pnl >= 0 ? 'high' : 'low';
+                const row = document.createElement('div');
+                row.className = 'emotion-row';
+                row.innerHTML = `
+                    <span class="emotion-name">${setup}</span>
+                    <div class="emotion-bar-wrap">
+                        <div class="emotion-bar-fill ${color}" style="width:${wr}%"></div>
+                    </div>
+                    <span class="emotion-pct">${wr}%</span>
+                    <span style="font-size:10px;color:${avgPnl >= 0 ? '#00c864' : '#ff4444'};font-family:'JetBrains Mono',monospace;margin-left:8px;">${avgPnl >= 0 ? '+' : ''}$${avgPnl}</span>
+                `;
+                setupList.appendChild(row);
+            });
+        setupTypeChart.innerHTML = '';
+        setupTypeChart.appendChild(setupList);
+        setupTypeChart.style.alignItems = 'stretch';
+        setupTypeChart.style.height = 'auto';
+    }
+
+    // SETUP RATING VS OUTCOME
+    const setupRatingChart = document.getElementById('setupRatingChart');
+    const setupRatingStats = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+    trades.forEach(t => {
+        if (t.setup_rating) setupRatingStats[t.setup_rating].push(t.pnl);
+    });
+
+    const hasSetupRating = Object.values(setupRatingStats).some(arr => arr.length > 0);
+    if (!hasSetupRating) {
+        setupRatingChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No rating data yet.</p>';
+        setupRatingChart.style.alignItems = 'center';
+    } else {
+        setupRatingChart.innerHTML = '';
+        setupRatingChart.style.alignItems = 'flex-end';
+        setupRatingChart.style.padding = '8px 0';
+        const maxAvg = Math.max(...Object.entries(setupRatingStats).map(([r, arr]) => arr.length > 0 ? Math.abs(arr.reduce((s,v)=>s+v,0)/arr.length) : 0), 1);
+        [1,2,3,4,5].forEach(rating => {
+            const arr = setupRatingStats[rating];
+            const avg = arr.length > 0 ? arr.reduce((s,v)=>s+v,0)/arr.length : null;
+            const heightPct = avg !== null ? (Math.abs(avg) / maxAvg) * 100 : 4;
+            const color = avg > 0 ? 'rgba(0,200,100,0.6)' : avg < 0 ? 'rgba(255,68,68,0.6)' : '#2a2a2a';
+            const group = document.createElement('div');
+            group.className = 'day-bar-group';
+            group.innerHTML = `
+                <span class="day-bar-value" style="color:${avg > 0 ? '#00c864' : avg < 0 ? '#ff4444' : '#444'}">
+                    ${avg !== null ? (avg >= 0 ? '+' : '') + '$' + avg.toFixed(0) : '—'}
+                </span>
+                <div class="day-bar" style="height:${Math.max(heightPct,4)}%;background:${color};width:100%;border-radius:4px 4px 0 0;"></div>
+                <span class="day-bar-label">${'★'.repeat(rating)}</span>
+            `;
+            setupRatingChart.appendChild(group);
+        });
+    }
+
+    // MANAGEMENT RATING VS OUTCOME
+    const managementRatingChart = document.getElementById('managementRatingChart');
+    const mgmtRatingStats = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+    trades.forEach(t => {
+        if (t.management_rating) mgmtRatingStats[t.management_rating].push(t.pnl);
+    });
+
+    const hasMgmtRating = Object.values(mgmtRatingStats).some(arr => arr.length > 0);
+    if (!hasMgmtRating) {
+        managementRatingChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No rating data yet.</p>';
+        managementRatingChart.style.alignItems = 'center';
+    } else {
+        managementRatingChart.innerHTML = '';
+        managementRatingChart.style.alignItems = 'flex-end';
+        managementRatingChart.style.padding = '8px 0';
+        const maxAvgM = Math.max(...Object.entries(mgmtRatingStats).map(([r, arr]) => arr.length > 0 ? Math.abs(arr.reduce((s,v)=>s+v,0)/arr.length) : 0), 1);
+        [1,2,3,4,5].forEach(rating => {
+            const arr = mgmtRatingStats[rating];
+            const avg = arr.length > 0 ? arr.reduce((s,v)=>s+v,0)/arr.length : null;
+            const heightPct = avg !== null ? (Math.abs(avg) / maxAvgM) * 100 : 4;
+            const color = avg > 0 ? 'rgba(0,200,100,0.6)' : avg < 0 ? 'rgba(255,68,68,0.6)' : '#2a2a2a';
+            const group = document.createElement('div');
+            group.className = 'day-bar-group';
+            group.innerHTML = `
+                <span class="day-bar-value" style="color:${avg > 0 ? '#00c864' : avg < 0 ? '#ff4444' : '#444'}">
+                    ${avg !== null ? (avg >= 0 ? '+' : '') + '$' + avg.toFixed(0) : '—'}
+                </span>
+                <div class="day-bar" style="height:${Math.max(heightPct,4)}%;background:${color};width:100%;border-radius:4px 4px 0 0;"></div>
+                <span class="day-bar-label">${'★'.repeat(rating)}</span>
+            `;
+            managementRatingChart.appendChild(group);
+        });
+    }
+
+    // CONFLUENCE COUNT VS OUTCOME
+    const confluenceChart = document.getElementById('confluenceChart');
+    const confluenceStats = {};
+    trades.forEach(t => {
+        if (!t.confluences || !t.confluences.length) return;
+        t.confluences.forEach(c => {
+            if (!confluenceStats[c]) confluenceStats[c] = { wins: 0, total: 0, pnl: 0 };
+            confluenceStats[c].total++;
+            confluenceStats[c].pnl += t.pnl;
+            if (t.pnl > 0) confluenceStats[c].wins++;
+        });
+    });
+
+    if (Object.keys(confluenceStats).length === 0) {
+        confluenceChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;">No confluence data yet.</p>';
+        confluenceChart.style.alignItems = 'center';
+        confluenceChart.style.justifyContent = 'center';
+    } else {
+        const confList = document.createElement('div');
+        confList.className = 'emotion-list';
+        Object.entries(confluenceStats)
+            .sort((a, b) => b[1].pnl - a[1].pnl)
+            .slice(0, 8)
+            .forEach(([confluence, stats]) => {
+                const wr = (stats.wins / stats.total * 100).toFixed(0);
+                const avgPnl = (stats.pnl / stats.total).toFixed(2);
+                const color = stats.pnl >= 0 ? 'high' : 'low';
+                const row = document.createElement('div');
+                row.className = 'emotion-row';
+                row.innerHTML = `
+                    <span class="emotion-name" style="width:140px;">${confluence}</span>
+                    <div class="emotion-bar-wrap">
+                        <div class="emotion-bar-fill ${color}" style="width:${wr}%"></div>
+                    </div>
+                    <span class="emotion-pct">${wr}%</span>
+                    <span style="font-size:10px;color:${avgPnl >= 0 ? '#00c864' : '#ff4444'};font-family:'JetBrains Mono',monospace;margin-left:8px;">${avgPnl >= 0 ? '+' : ''}$${avgPnl}</span>
+                `;
+                confList.appendChild(row);
+            });
+        confluenceChart.innerHTML = '';
+        confluenceChart.appendChild(confList);
+        confluenceChart.style.alignItems = 'stretch';
+        confluenceChart.style.height = 'auto';
+    }
+
     // Show/hide AI lock based on plan
     const aiLock = document.querySelector('.insight-ai-lock');
     const aiItems = document.querySelectorAll('.ai-insight-item.blurred');
