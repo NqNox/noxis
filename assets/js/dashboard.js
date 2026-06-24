@@ -2627,8 +2627,12 @@ async function loadInsights() {
 
     // EQUITY CURVE
     const equityChart = document.getElementById('equityChart');
-    const settings = JSON.parse(localStorage.getItem('noxis_settings') || '{}');
-    const startBalance = parseFloat(settings.balance) || 50000;
+    const { data: settingsData } = await supabaseClient
+        .from('user_settings')
+        .select('balance')
+        .eq('user_id', session.user.id)
+        .single();
+    const startBalance = parseFloat(settingsData?.balance) || 50000;
 
     let balance = startBalance;
     const points = [{ date: 'Start', balance }];
