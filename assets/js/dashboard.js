@@ -3776,7 +3776,12 @@ function displayAIInsights(data, generatedAt) {
             <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
             Regenerate Analysis
         </button>
+        ${userPlan === 'elite' ? '<p class="ai-refresh-count" id="aiRefreshCount">— / 2 refreshes left today</p>' : ''}
+        ${userPlan === 'pro' ? '<p class="ai-refresh-count">Auto-refreshes daily on login</p>' : ''}
+        
     `;
+
+    
 
     // Tab switching
     document.querySelectorAll('.ai-tab').forEach(tab => {
@@ -3798,6 +3803,9 @@ function displayAIInsights(data, generatedAt) {
     document.getElementById('btnRegenerateAI')?.addEventListener('click', generateAIInsights);
     lucide.createIcons();
 }
+
+const countEl = document.getElementById('aiRefreshCount');
+if (countEl) countEl.textContent = `${remaining} / 2 refreshes left today`;
 
 // Init
 (async () => {
