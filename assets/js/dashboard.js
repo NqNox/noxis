@@ -58,13 +58,13 @@ async function loadUserPlan() {
         .single();
 
     if (data) {
-        userPlan = 'pro';
+        userPlan = 'elite';
     } else {
     await supabaseClient.from('user_plans').insert({
         user_id: session.user.id,
         plan: 'free'
     });
-    userPlan = 'pro'; // Temporary: everyone gets Elite during beta
+    userPlan = 'elite'; // Temporary: everyone gets Elite during beta
     }
 
     // Update plan badge in sidebar
