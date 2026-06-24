@@ -23,6 +23,12 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
     
 }); 
 
+function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
 let userPlan = 'free';
 const PLAN_LIMITS = { free: 50, pro: 100, elite: 120 };
 
@@ -33,10 +39,14 @@ function showToast(message, type = 'error', duration = 3000) {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type]}</span>
-        <span class="toast-message">${message}</span>
-    `;
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'toast-icon';
+    iconSpan.textContent = icons[type];
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'toast-message';
+    msgSpan.textContent = message;
+    toast.appendChild(iconSpan);
+    toast.appendChild(msgSpan);
 
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
@@ -691,7 +701,6 @@ function initSymbolSelector() {
 
         list.querySelectorAll('.symbol-option').forEach(opt => {
             opt.addEventListener('mousedown', (e) => {
-                console.log('option clicked:', opt.dataset.ticker);
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -924,11 +933,6 @@ modalOverlay.addEventListener('click', (e) => {
     if (e.target === modalOverlay) closeModal();
 });
 
-document.getElementById('modalClose')?.addEventListener('click', closeModal);
-document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalOverlay')) closeModal();
-});
-
 // Direction toggle
 const btnLong = document.getElementById('btnLong');
 const btnShort = document.getElementById('btnShort');
@@ -1002,14 +1006,12 @@ const emotionInput = document.getElementById('emotionInput');
 const emotionTagsEl = document.getElementById('emotionTags');
 const emotionSuggestions = document.getElementById('emotionSuggestions');
 const emotionTagsContainer = document.getElementById('emotionTagsContainer');
-console.log('emotion elements:', emotionInput, emotionTagsEl, emotionSuggestions, emotionTagsContainer);
 
 let selectedEmotions = [];
 let savedEmotions = JSON.parse(localStorage.getItem('noxis_emotions') || '[]');
 const defaultEmotions = ['FOMO', 'Anxious', 'Confident', 'Frustrated', 'Calm', 'Revenge', 'Greedy', 'Patient'];
 
 function renderSuggestions() {
-    console.log('renderSuggestions called, savedEmotions:', savedEmotions);
     const allSuggestions = [...new Set([...defaultEmotions, ...savedEmotions])];
     const filtered = allSuggestions.filter(e => !selectedEmotions.includes(e));
     emotionSuggestions.innerHTML = '';
@@ -1043,7 +1045,7 @@ function renderSuggestions() {
 
 function addEmotion(emotion) {
     const clean = emotion.trim();
-    if (!clean || selectedEmotions.includes(clean)) { console.log('2. early return'); return; }
+    if (!clean || selectedEmotions.includes(clean)) return;
     if (containsBlockedWord(clean)) {
         return;
     }
@@ -1248,7 +1250,7 @@ async function loadRecentTrades() {
         return;
     }
     
-        const displayTrades = trades.slice(0, );
+        const displayTrades = trades.slice(0, 10);
 
     recentEmpty.style.display = 'none';
 
@@ -1271,8 +1273,8 @@ async function loadRecentTrades() {
         </div>
         ${displayTrades.map(trade => `
             <div class="trade-row">
-                <span>${trade.date}</span>
-                <span>${trade.symbol}</span>
+                <span>${esc(trade.date)}</span>
+                <span>${esc(trade.symbol)}</span>
                 <span class="${trade.direction === 'long' ? 'long' : 'short'}">
                     ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
                 </span>
@@ -1280,8 +1282,8 @@ async function loadRecentTrades() {
                 <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
                     ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
                 </span>
-                <span>${trade.setup_type || '—'}</span>
-                <span>${trade.session || '—'}</span>
+                <span>${esc(trade.setup_type || '—')}</span>
+                <span>${esc(trade.session || '—')}</span>
                 <span>${trade.followed_rules ? '✓' : '✗'}</span>
                 <span class="trade-actions">
                     <button class="trade-edit-btn" data-id="${trade.id}">
@@ -1299,7 +1301,7 @@ async function loadRecentTrades() {
     container.innerHTML = displayTrades.map(trade => `
         <div class="trade-card ${trade.pnl >= 0 ? 'win' : 'loss'}">
             <div class="trade-card-header">
-                <span class="trade-card-symbol">${trade.symbol}</span>
+                <span class="trade-card-symbol">${esc(trade.symbol)}</span>
                 <span class="trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
                     ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
                 </span>
@@ -1308,9 +1310,9 @@ async function loadRecentTrades() {
                 <span class="trade-card-tag ${trade.direction}">${trade.direction === 'long' ? '↑ Long' : '↓ Short'}</span>
                 <span class="trade-card-tag">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
                 <span class="trade-card-tag">${trade.followed_rules ? '✓ Rules' : '✗ Rules'}</span>
-                ${trade.setup_type ? `<span class="trade-card-tag" style="color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">${trade.setup_type}</span>` : ''}
-                ${trade.session ? `<span class="trade-card-tag">${trade.session}</span>` : ''}
-                ${trade.mental_state ? `<span class="trade-card-tag">${trade.mental_state}</span>` : ''}
+                ${trade.setup_type ? `<span class="trade-card-tag" style="color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">${esc(trade.setup_type)}</span>` : ''}
+                ${trade.session ? `<span class="trade-card-tag">${esc(trade.session)}</span>` : ''}
+                ${trade.mental_state ? `<span class="trade-card-tag">${esc(trade.mental_state)}</span>` : ''}
             </div>
             <div class="trade-card-ratings">
                 ${trade.setup_rating ? `<span style="font-size:11px;color:#444;">Setup: ${'★'.repeat(trade.setup_rating)}${'☆'.repeat(5-trade.setup_rating)}</span>` : ''}
@@ -1496,9 +1498,6 @@ async function loadStreak() {
         .select('date, followed_rules')
         .eq('user_id', session.user.id)
         .order('date', { ascending: true });
-        console.log('today:', today.toLocaleDateString('en-CA'));
-        console.log('sevenDaysAgo:', sevenDaysAgo.toLocaleDateString('en-CA'));
-        console.log('trades fetched:', trades); 
 
     // Get last 5 weekdays starting from Monday
     const days = [];
@@ -1540,17 +1539,17 @@ async function loadStreak() {
         streakDaysEl.appendChild(circle);
     });
 
-    // Count streak
-    // Count streak using same logic as streak page
-    const tradingDates = [...tradedDays].sort();
+    // Count consecutive trading days ending at today (or most recent)
     let streakCount = 0;
-    for (const date of [...tradingDates].reverse()) {
-        if (tradedDays.has(date)) {
-            streakCount++;
-        } else {
-            break;
-        }
-    }  
+    const checkDate = new Date(today);
+    const todayStr = checkDate.toLocaleDateString('en-CA');
+    if (!tradedDays.has(todayStr)) {
+        checkDate.setDate(checkDate.getDate() - 1);
+    }
+    while (tradedDays.has(checkDate.toLocaleDateString('en-CA'))) {
+        streakCount++;
+        checkDate.setDate(checkDate.getDate() - 1);
+    }
 
     const flame = document.querySelector('.streak-flame');
     flame.textContent = streakCount > 0 ? '🔥' : '💤';
@@ -1810,7 +1809,7 @@ function renderRules() {
         ? rules
         : rules.filter(r => r.set_id === activeSetId);
 
-    const checked = filteredRules.filter(r => checkedRules.has(r.id)).size || [...filteredRules].filter(r => checkedRules.has(r.id)).length;
+    const checked = filteredRules.filter(r => checkedRules.has(r.id)).length;
     const total = filteredRules.length;
 
     checkedCount.textContent = checked;
@@ -1825,9 +1824,9 @@ function renderRules() {
     rulesList.innerHTML = filteredRules.map(rule => `
         <div class="rule-item ${checkedRules.has(rule.id) ? 'checked' : ''}" data-id="${rule.id}">
             <div class="rule-checkbox">${checkedRules.has(rule.id) ? '✓' : ''}</div>
-            <span class="rule-text">${rule.rule}</span>
+            <span class="rule-text">${esc(rule.rule)}</span>
             <div class="rule-actions">
-                <button class="rule-edit-btn" data-rule-id="${rule.id}" data-rule-text="${rule.rule}" data-rule-set="${rule.set_id || ''}">
+                <button class="rule-edit-btn" data-rule-id="${rule.id}" data-rule-text="${esc(rule.rule)}" data-rule-set="${rule.set_id || ''}">
                     <i data-lucide="pencil"></i>
                 </button>
                 <button class="rule-delete" data-rule-id="${rule.id}">
@@ -1961,10 +1960,7 @@ function applyFilters() {
         filteredTrades.sort((a, b) => a.pnl - b.pnl);
     }
     journalPage = 1;
-    console.log('sorted:', filteredTrades.map(t => t.date + ' #' + t.trade_number));
     renderJournal();
-    console.log('allTrades:', allTrades.length);
-    console.log('filters:', { dateFrom, dateTo, symbol, direction, rules });
 }
 
 function renderJournal() {
@@ -2003,7 +1999,7 @@ function renderJournal() {
         // Confluences
         const confluences = trade.confluences && trade.confluences.length > 0
             ? `<div class="entry-confluences">
-                ${trade.confluences.map(c => `<span class="entry-confluence-tag">${c}</span>`).join('')}
+                ${trade.confluences.map(c => `<span class="entry-confluence-tag">${esc(c)}</span>`).join('')}
                </div>`
             : '';
 
@@ -2014,7 +2010,7 @@ function renderJournal() {
             <div class="entry-data">
                 <div class="entry-top">
                     <div class="entry-header-row">
-                        <span class="entry-symbol">${trade.symbol}</span>
+                        <span class="entry-symbol">${esc(trade.symbol)}</span>
                         <span class="entry-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
                             ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
                         </span>
@@ -2024,7 +2020,7 @@ function renderJournal() {
                             ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
                         </span>
                         <span class="entry-size">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
-                        ${trade.session ? `<span class="entry-session">${trade.session}</span>` : ''}
+                        ${trade.session ? `<span class="entry-session">${esc(trade.session)}</span>` : ''}
                     </div>
                     <div class="entry-prices">
                         <span>In: ${trade.entry_price}</span>
@@ -2036,11 +2032,11 @@ function renderJournal() {
                 <div class="entry-bottom">
                     <span class="entry-date">${trade.date}</span>
                     <span class="entry-trade-num">Trade #${trade.trade_number}</span>
-                    ${trade.setup_type ? `<span class="entry-setup-tag">${trade.setup_type}</span>` : ''}
+                    ${trade.setup_type ? `<span class="entry-setup-tag">${esc(trade.setup_type)}</span>` : ''}
                     <span class="entry-rules-badge ${trade.followed_rules ? 'followed' : 'broke'}">
                         ${trade.followed_rules ? '✓ Rules followed' : '✗ Broke rules'}
                     </span>
-                    ${trade.mental_state ? `<span class="entry-mental-state">${trade.mental_state}</span>` : ''}
+                    ${trade.mental_state ? `<span class="entry-mental-state">${esc(trade.mental_state)}</span>` : ''}
                 </div>
                 <div class="entry-ratings">
                     ${trade.setup_rating ? `
@@ -2067,7 +2063,7 @@ function renderJournal() {
             <div class="entry-journal">
                 <div class="entry-emotions">
                     ${trade.emotions 
-                        ? trade.emotions.split(', ').filter(Boolean).map(e => `<span class="entry-emotion-tag">${e}</span>`).join('')
+                        ? trade.emotions.split(', ').filter(Boolean).map(e => `<span class="entry-emotion-tag">${esc(e)}</span>`).join('')
                         : ''
                     }
                 </div>
@@ -2076,7 +2072,7 @@ function renderJournal() {
                     class="entry-notes-editable" 
                     data-trade-id="${trade.id}"
                     placeholder="Click to add notes..."
-                >${trade.notes || ''}</textarea>
+                >${esc(trade.notes || '')}</textarea>
                 ${screenshots}
                 <div class="entry-actions">
                     <button class="trade-edit-btn" data-id="${trade.id}">
@@ -3000,7 +2996,7 @@ async function loadInsights() {
             aiLockText.textContent = 'Generate your personalized AI analysis';
             btnGenerate.style.display = 'block';
             aiItems.forEach(item => item.classList.add('blurred'));
-            btnGenerate.addEventListener('click', generateAIInsights);
+            btnGenerate.onclick = generateAIInsights;
         }
     }
 
@@ -3053,10 +3049,6 @@ async function loadTradeCounter() {
         }
     }
 }
-
-document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () => {
-    document.getElementById('btnSaveSettings').click();
-});
 
 // Whats new modal
 const WHATS_NEW_VERSION = 'v1.4';
@@ -3440,6 +3432,11 @@ async function generateAIInsights() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
+    if (userPlan === 'free') {
+        showAIEmpty('Upgrade to Pro to unlock AI insights.');
+        return;
+    }
+
     showAILoading();
 
     const today = new Date().toISOString().slice(0, 10);
@@ -3451,15 +3448,15 @@ async function generateAIInsights() {
         .eq('user_id', session.user.id)
         .single();
 
-    const isManualRefresh = insightRecord?.last_auto_date === today;
+    const alreadyGeneratedToday = insightRecord?.last_auto_date === today;
     const manualUsed = insightRecord?.last_manual_date === today
         ? insightRecord.manual_refreshes_today || 0
         : 0;
 
-    if (isManualRefresh) {
+    if (alreadyGeneratedToday) {
         const limit = MANUAL_LIMITS[userPlan];
         if (manualUsed >= limit) {
-            showAIEmpty(`You've used all ${limit} manual refreshes for today. Come back tomorrow.`);
+            showAIEmpty(`You've used all ${limit} manual refresh${limit !== 1 ? 'es' : ''} for today. Come back tomorrow.`);
             return;
         }
     }
@@ -3471,7 +3468,7 @@ async function generateAIInsights() {
         .eq('user_id', session.user.id)
         .order('date', { ascending: true });
 
-    if (!trades || trades.length < 4) {
+    if (!trades || trades.length < 5) {
         showAIEmpty('Log at least 5 trades to generate AI insights.');
         return;
     }
@@ -3607,7 +3604,7 @@ async function generateAIInsights() {
     });
 
     // BUILD PROMPT
-    const data = {
+    const statsPayload = {
         overview: { totalTrades, winRate: winRate + '%', totalPnl: '$' + totalPnl, avgPnl: '$' + avgPnl, profitFactor },
         bySession: sessionData,
         byMentalState: mentalData,
@@ -3627,7 +3624,7 @@ TRADER CONTEXT:
 - Known Confluences: ${strategy?.confluences?.join(', ') || 'None specified'}
 
 PERFORMANCE DATA:
-${JSON.stringify(data, null, 2)}
+${JSON.stringify(statsPayload, null, 2)}
 
 Respond ONLY with a valid JSON object in this exact format:
 {
@@ -3667,16 +3664,20 @@ Rules:
         const parsed = JSON.parse(clean);
 
         // Cache to Supabase
+        const remaining = alreadyGeneratedToday
+            ? MANUAL_LIMITS[userPlan] - (manualUsed + 1)
+            : MANUAL_LIMITS[userPlan];
+
         await supabaseClient.from('ai_insights').upsert({
             user_id: session.user.id,
             insights: parsed,
             generated_at: new Date().toISOString(),
-            last_auto_date: isManualRefresh ? insightRecord.last_auto_date : today,
-            manual_refreshes_today: isManualRefresh ? manualUsed + 1 : 0,
-            last_manual_date: isManualRefresh ? today : insightRecord?.last_manual_date
+            last_auto_date: alreadyGeneratedToday ? insightRecord.last_auto_date : today,
+            manual_refreshes_today: alreadyGeneratedToday ? manualUsed + 1 : 0,
+            last_manual_date: alreadyGeneratedToday ? today : insightRecord?.last_manual_date
         }, { onConflict: 'user_id' });
 
-        displayAIInsights(parsed);
+        displayAIInsights(parsed, null, remaining);
 
     } catch (err) {
         console.error('AI insights error:', err);
@@ -3701,7 +3702,7 @@ function showAIEmpty(message) {
     `;
 }
 
-function displayAIInsights(data, generatedAt) {
+function displayAIInsights(data, generatedAt, refreshesRemaining) {
     const preview = document.querySelector('.insight-ai-preview');
 
     // Determine card type from icon
@@ -3776,7 +3777,8 @@ function displayAIInsights(data, generatedAt) {
             <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
             Regenerate Analysis
         </button>
-        ${userPlan === 'elite' ? '<p class="ai-refresh-count" id="aiRefreshCount">— / 2 refreshes left today</p>' : ''}
+        ${userPlan === 'elite' && refreshesRemaining !== undefined ? `<p class="ai-refresh-count">${refreshesRemaining} / 2 refreshes left today</p>` : ''}
+        ${userPlan === 'elite' && refreshesRemaining === undefined ? '<p class="ai-refresh-count">2 manual refreshes per day</p>' : ''}
         ${userPlan === 'pro' ? '<p class="ai-refresh-count">Auto-refreshes daily on login</p>' : ''}
         
     `;
@@ -3803,9 +3805,6 @@ function displayAIInsights(data, generatedAt) {
     document.getElementById('btnRegenerateAI')?.addEventListener('click', generateAIInsights);
     lucide.createIcons();
 }
-
-const countEl = document.getElementById('aiRefreshCount');
-if (countEl) countEl.textContent = `${remaining} / 2 refreshes left today`;
 
 // Init
 (async () => {
