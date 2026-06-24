@@ -14,7 +14,7 @@
 <body>
 
     <script>    
-        const MAINTENANCE_MODE = false;
+        const MAINTENANCE_MODE = true;
         const ADMIN_BYPASS = 'noxis_admin_2024';
         if (MAINTENANCE_MODE && localStorage.getItem('noxis_admin_bypass') !== ADMIN_BYPASS) {
             window.location.href = '/maintenance.html';
