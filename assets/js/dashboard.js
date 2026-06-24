@@ -2308,23 +2308,75 @@ if (whatsNewSeen) whatsNewDot.classList.add('hidden');
 
 document.getElementById('whatsNewBtn').addEventListener('click', () => {
     document.getElementById('whatsNewOverlay').classList.add('active');
+    loadChangelog();
     localStorage.setItem('noxis_whats_new', WHATS_NEW_VERSION);
     whatsNewDot.classList.add('hidden');
 });
 
-document.getElementById('whatsNewClose').addEventListener('click', () => {
-    document.getElementById('whatsNewOverlay').classList.remove('active');
-});
 
-document.getElementById('whatsNewOverlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('whatsNewOverlay')) {
-        document.getElementById('whatsNewOverlay').classList.remove('active');
-    }
-});
 
 function toggleChangelog(id) {
     const entry = document.getElementById(id);
     entry.classList.toggle('open');
+}
+
+async function loadChangelog() {
+    const modalBody = document.querySelector('#whatsNewOverlay .modal-body');
+    
+    // Show skeleton while loading
+    modalBody.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="changelog-skeleton"></div>
+            <div class="changelog-skeleton"></div>
+            <div class="changelog-skeleton"></div>
+        </div>
+    `;
+
+    const { data, error } = await supabaseClient
+        .from('changelog')
+        .select('*')
+        .order('date', { ascending: false });
+
+    if (error || !data) {
+        modalBody.innerHTML = '<p style="color:#444;text-align:center;padding:20px;">Failed to load changelog.</p>';
+        return;
+    }
+
+    modalBody.innerHTML = '';
+
+    data.forEach((entry, index) => {
+        const isLatest = entry.is_latest;
+        const isFirst = index === 0;
+        const items = entry.description.split('\n').filter(l => l.trim());
+
+        const el = document.createElement('div');
+        el.className = `changelog-entry ${isFirst ? 'active' : 'collapsed'}`;
+        el.id = `changelog-${entry.version.replace('.', '-')}`;
+
+        el.innerHTML = `
+            <div class="changelog-header" ${!isFirst ? `onclick="toggleChangelog('changelog-${entry.version.replace('.', '-')}')"` : ''}>
+                <div class="changelog-version ${!isFirst ? 'old' : ''}">${entry.version}</div>
+                <div class="changelog-date ${!isFirst ? 'old' : ''}">${new Date(entry.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
+                <div class="changelog-release-tag ${entry.release_type}">${entry.release_type.replace('-', ' ')}</div>
+                ${isLatest ? '<div class="changelog-tag">Latest</div>' : ''}
+                ${!isFirst ? '<div class="changelog-toggle">▸</div>' : ''}
+            </div>
+            <ul class="changelog-list ${!isFirst ? 'old' : ''}">
+                ${items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+        `;
+
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+        el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        modalBody.appendChild(el);
+
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
 }
 
 // Init
