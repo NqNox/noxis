@@ -2973,17 +2973,38 @@ async function loadInsights() {
     }
 
     // Show/hide AI lock based on plan
-    const aiLock = document.querySelector('.insight-ai-lock');
-    const aiItems = document.querySelectorAll('.ai-insight-item.blurred');
+    const aiLock = document.getElementById('aiLockOverlay');
+    const btnGenerate = document.getElementById('btnGenerateAI');
+    const aiLockText = document.getElementById('aiLockText');
+    const aiItems = document.querySelectorAll('.ai-insight-item');
 
     if (userPlan === 'free') {
-        if (aiLock) aiLock.style.display = 'flex';
+        aiLock.style.display = 'flex';
+        aiLockText.textContent = 'Upgrade to Pro to unlock AI insights';
+        btnGenerate.style.display = 'none';
         aiItems.forEach(item => item.classList.add('blurred'));
-    } else if (userPlan === 'pro' || userPlan === 'elite') {
-        if (aiLock) aiLock.style.display = 'flex';
-        aiItems.forEach(item => item.classList.remove('blurred'));
+    } else {
+        // Check for cached insights first
+        const { data: cached } = await supabaseClient
+            .from('ai_insights')
+            .select('insights, generated_at')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (cached) {
+            aiLock.style.display = 'none';
+            aiItems.forEach(item => item.classList.remove('blurred'));
+            displayAIInsights(cached.insights);
+        } else {
+            aiLock.style.display = 'flex';
+            aiLockText.textContent = 'Generate your personalized AI analysis';
+            btnGenerate.style.display = 'block';
+            aiItems.forEach(item => item.classList.add('blurred'));
+            btnGenerate.addEventListener('click', generateAIInsights);
+        }
     }
-    }
+
+}
 
 document.getElementById('btnAddRuleInline').addEventListener('click', () => {
     ruleModalOverlay.classList.add('active');
@@ -3038,7 +3059,7 @@ document.getElementById('btnSaveSettingsBottom')?.addEventListener('click', () =
 });
 
 // Whats new modal
-const WHATS_NEW_VERSION = 'v1.3';
+const WHATS_NEW_VERSION = 'v1.4';
 const whatsNewSeen = localStorage.getItem('noxis_whats_new') === WHATS_NEW_VERSION;
 const whatsNewDot = document.getElementById('whatsNewDot');
 if (whatsNewSeen) whatsNewDot.classList.add('hidden');
@@ -3415,6 +3436,297 @@ function renderScreenshotPreviews() {
     screenshotPreviews.appendChild(countEl);
 }
 
+async function generateAIInsights() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    // Show loading state
+    showAILoading();
+
+    // Fetch all trades
+    const { data: trades } = await supabaseClient
+        .from('trades')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('date', { ascending: true });
+
+    if (!trades || trades.length < 4) {
+        showAIEmpty('Log at least 5 trades to generate AI insights.');
+        return;
+    }
+
+    // Fetch user strategy
+    const { data: strategy } = await supabaseClient
+        .from('user_strategy')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+    // PREPARE STATS
+    const totalTrades = trades.length;
+    const wins = trades.filter(t => t.pnl > 0);
+    const losses = trades.filter(t => t.pnl < 0);
+    const winRate = (wins.length / totalTrades * 100).toFixed(1);
+    const totalPnl = trades.reduce((s, t) => s + t.pnl, 0).toFixed(2);
+    const avgPnl = (trades.reduce((s, t) => s + t.pnl, 0) / totalTrades).toFixed(2);
+    const grossWin = wins.reduce((s, t) => s + t.pnl, 0);
+    const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+    const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '∞';
+
+    // By session
+    const sessionStats = {};
+    trades.forEach(t => {
+        if (!t.session) return;
+        if (!sessionStats[t.session]) sessionStats[t.session] = { wins: 0, total: 0, pnl: 0 };
+        sessionStats[t.session].total++;
+        sessionStats[t.session].pnl += t.pnl;
+        if (t.pnl > 0) sessionStats[t.session].wins++;
+    });
+    const sessionData = Object.entries(sessionStats).map(([s, d]) => ({
+        session: s,
+        winRate: (d.wins / d.total * 100).toFixed(1) + '%',
+        avgPnl: (d.pnl / d.total).toFixed(2),
+        trades: d.total
+    }));
+
+    // By mental state
+    const mentalStats = {};
+    trades.forEach(t => {
+        if (!t.mental_state) return;
+        t.mental_state.split(', ').forEach(state => {
+            if (!state) return;
+            if (!mentalStats[state]) mentalStats[state] = { wins: 0, total: 0, pnl: 0 };
+            mentalStats[state].total++;
+            mentalStats[state].pnl += t.pnl;
+            if (t.pnl > 0) mentalStats[state].wins++;
+        });
+    });
+    const mentalData = Object.entries(mentalStats).map(([s, d]) => ({
+        state: s,
+        winRate: (d.wins / d.total * 100).toFixed(1) + '%',
+        avgPnl: (d.pnl / d.total).toFixed(2),
+        trades: d.total
+    }));
+
+    // By setup type
+    const setupStats = {};
+    trades.forEach(t => {
+        if (!t.setup_type) return;
+        if (!setupStats[t.setup_type]) setupStats[t.setup_type] = { wins: 0, total: 0, pnl: 0 };
+        setupStats[t.setup_type].total++;
+        setupStats[t.setup_type].pnl += t.pnl;
+        if (t.pnl > 0) setupStats[t.setup_type].wins++;
+    });
+    const setupData = Object.entries(setupStats).map(([s, d]) => ({
+        setup: s,
+        winRate: (d.wins / d.total * 100).toFixed(1) + '%',
+        avgPnl: (d.pnl / d.total).toFixed(2),
+        trades: d.total
+    }));
+
+    // By emotion
+    const emotionStats = {};
+    trades.forEach(t => {
+        if (!t.emotions) return;
+        t.emotions.split(', ').forEach(e => {
+            if (!e) return;
+            if (!emotionStats[e]) emotionStats[e] = { wins: 0, total: 0 };
+            emotionStats[e].total++;
+            if (t.pnl > 0) emotionStats[e].wins++;
+        });
+    });
+    const emotionData = Object.entries(emotionStats).map(([e, d]) => ({
+        emotion: e,
+        winRate: (d.wins / d.total * 100).toFixed(1) + '%',
+        trades: d.total
+    }));
+
+    // Rules
+    const followedTrades = trades.filter(t => t.followed_rules);
+    const brokenTrades = trades.filter(t => !t.followed_rules);
+    const rulesData = {
+        followed: {
+            trades: followedTrades.length,
+            winRate: followedTrades.length > 0 ? (followedTrades.filter(t => t.pnl > 0).length / followedTrades.length * 100).toFixed(1) + '%' : 'N/A',
+            avgPnl: followedTrades.length > 0 ? (followedTrades.reduce((s, t) => s + t.pnl, 0) / followedTrades.length).toFixed(2) : 'N/A'
+        },
+        broken: {
+            trades: brokenTrades.length,
+            winRate: brokenTrades.length > 0 ? (brokenTrades.filter(t => t.pnl > 0).length / brokenTrades.length * 100).toFixed(1) + '%' : 'N/A',
+            avgPnl: brokenTrades.length > 0 ? (brokenTrades.reduce((s, t) => s + t.pnl, 0) / brokenTrades.length).toFixed(2) : 'N/A'
+        }
+    };
+
+    // By confluence
+    const confluenceStats = {};
+    trades.forEach(t => {
+        if (!t.confluences || !t.confluences.length) return;
+        t.confluences.forEach(c => {
+            if (!confluenceStats[c]) confluenceStats[c] = { wins: 0, total: 0, pnl: 0 };
+            confluenceStats[c].total++;
+            confluenceStats[c].pnl += t.pnl;
+            if (t.pnl > 0) confluenceStats[c].wins++;
+        });
+    });
+    const confluenceData = Object.entries(confluenceStats).map(([c, d]) => ({
+        confluence: c,
+        winRate: (d.wins / d.total * 100).toFixed(1) + '%',
+        avgPnl: (d.pnl / d.total).toFixed(2),
+        trades: d.total
+    }));
+
+    // Ratings
+    const setupRatingData = {};
+    const mgmtRatingData = {};
+    [1,2,3,4,5].forEach(r => {
+        const sr = trades.filter(t => t.setup_rating == r);
+        const mr = trades.filter(t => t.management_rating == r);
+        if (sr.length > 0) setupRatingData[r + ' stars'] = { avgPnl: (sr.reduce((s,t) => s+t.pnl, 0)/sr.length).toFixed(2), trades: sr.length };
+        if (mr.length > 0) mgmtRatingData[r + ' stars'] = { avgPnl: (mr.reduce((s,t) => s+t.pnl, 0)/mr.length).toFixed(2), trades: mr.length };
+    });
+
+    // BUILD PROMPT
+    const data = {
+        overview: { totalTrades, winRate: winRate + '%', totalPnl: '$' + totalPnl, avgPnl: '$' + avgPnl, profitFactor },
+        bySession: sessionData,
+        byMentalState: mentalData,
+        bySetupType: setupData,
+        byEmotion: emotionData,
+        rules: rulesData,
+        byConfluence: confluenceData,
+        setupRatings: setupRatingData,
+        managementRatings: mgmtRatingData
+    };
+
+    const prompt = `You are an expert trading coach and behavioral analyst specializing in funded/evaluation traders. You analyze trading journal data and provide honest, specific, actionable insights.
+
+TRADER CONTEXT:
+- Trading Style: ${strategy?.trading_style || 'Unknown'}
+- Strategy: ${strategy?.strategy_type || 'Unknown'}
+- Known Confluences: ${strategy?.confluences?.join(', ') || 'None specified'}
+
+PERFORMANCE DATA:
+${JSON.stringify(data, null, 2)}
+
+Respond ONLY with a valid JSON object in this exact format:
+{
+  "insights": [
+    { "icon": "emoji", "title": "short title", "description": "one specific sentence with numbers from the data" }
+  ],
+  "strengths": ["bullet point 1", "bullet point 2", "bullet point 3"],
+  "weaknesses": ["bullet point 1", "bullet point 2", "bullet point 3"],
+  "improvements": ["bullet point 1", "bullet point 2", "bullet point 3"],
+  "profile": "2-3 sentence overall trader assessment"
+}
+
+Rules:
+- insights array must have 3-5 items
+- Each insight must reference specific numbers from the data
+- strengths, weaknesses, improvements must have 2-4 bullet points each
+- profile must be honest, not overly positive
+- If there is not enough data for a meaningful insight, say so honestly
+- Never make up numbers not in the data
+- Be direct and specific, not generic`;
+
+    // CALL CLAUDE API
+    try {
+        const response = await fetch('/api/insights', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 1000,
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+
+        const result = await response.json();
+        const text = result.content[0].text;
+        const clean = text.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+
+        // Cache to Supabase
+        await supabaseClient.from('ai_insights').upsert({
+            user_id: session.user.id,
+            insights: parsed,
+            generated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+        displayAIInsights(parsed);
+
+    } catch (err) {
+        console.error('AI insights error:', err);
+        showAIEmpty('Failed to generate insights. Please try again.');
+    }
+}
+
+function showAILoading() {
+    const preview = document.querySelector('.insight-ai-preview');
+    preview.innerHTML = `
+        <div class="ai-loading">
+            <div class="ai-loading-spinner"></div>
+            <span class="ai-loading-text">Analyzing your trading data...</span>
+        </div>
+    `;
+}
+
+function showAIEmpty(message) {
+    const preview = document.querySelector('.insight-ai-preview');
+    preview.innerHTML = `
+        <div style="text-align:center;padding:32px;color:#444;font-size:14px;">${message}</div>
+    `;
+}
+
+function displayAIInsights(data) {
+    const preview = document.querySelector('.insight-ai-preview');
+    preview.innerHTML = `
+        <!-- Insight Cards -->
+        ${data.insights.map(insight => `
+            <div class="ai-insight-item">
+                <div class="ai-insight-icon">${insight.icon}</div>
+                <div class="ai-insight-text">
+                    <span class="ai-insight-title">${insight.title}</span>
+                    <span class="ai-insight-desc">${insight.description}</span>
+                </div>
+            </div>
+        `).join('')}
+
+        <!-- Written Analysis -->
+        <div class="ai-analysis-section">
+            <div class="ai-analysis-block">
+                <div class="ai-analysis-title">💪 Strengths</div>
+                <ul class="ai-analysis-list">
+                    ${data.strengths.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="ai-analysis-block">
+                <div class="ai-analysis-title">⚠️ Weaknesses</div>
+                <ul class="ai-analysis-list">
+                    ${data.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="ai-analysis-block">
+                <div class="ai-analysis-title">🎯 Areas to Improve</div>
+                <ul class="ai-analysis-list">
+                    ${data.improvements.map(i => `<li>${i}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="ai-analysis-block">
+                <div class="ai-analysis-title">📊 Trader Profile</div>
+                <p class="ai-analysis-profile">${data.profile}</p>
+            </div>
+        </div>
+
+        <!-- Regenerate button -->
+        <button class="btn-regenerate" id="btnRegenerateAI">
+            <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+            Regenerate Analysis
+        </button>
+    `;
+
+    document.getElementById('btnRegenerateAI')?.addEventListener('click', generateAIInsights);
+    lucide.createIcons();
+}
 
 // Init
 (async () => {

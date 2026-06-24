@@ -439,7 +439,7 @@
                     </div>
                     <div class="insight-ai-badge">Pro & Elite</div>
                 </div>
-                <div class="insight-ai-preview">
+                <div class="insight-ai-preview" id="aiInsightPreview">
                     <div class="ai-insight-item blurred">
                         <div class="ai-insight-icon">⚠️</div>
                         <div class="ai-insight-text">
@@ -461,10 +461,12 @@
                             <span class="ai-insight-desc">When you follow all rules your average P&L is 3.2x higher.</span>
                         </div>
                     </div>
-                    <div class="insight-ai-lock">
+                    <div class="insight-ai-lock" id="aiLockOverlay">
                         <span class="lock-icon">🔒</span>
-                        <span class="lock-text">Coming soon...</span>
-                        <a href="#" class="btn-upgrade">Upgrade →</a>
+                        <span class="lock-text" id="aiLockText">Coming soon...</span>
+                        <button class="btn-upgrade" id="btnGenerateAI" style="display:none;">
+                            ✨ Generate Insights
+                        </button>
                     </div>
                 </div>
             </div>
