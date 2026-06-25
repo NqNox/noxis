@@ -2823,7 +2823,8 @@ select.journal-filter-input option {
    ============================================ */
 @media (max-width: 768px) {
     html, body {
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
         height: auto;
         min-height: 100%;
     }
@@ -2833,11 +2834,12 @@ select.journal-filter-input option {
 
     .main-content {
         margin-left: 0;
-        width: 100vw;
+        width: 100%;
         height: auto;
         min-height: 100vh;
+        overflow-x: hidden;
         overflow-y: visible;
-        padding: 20px 16px 100px 16px;
+        padding: 20px 12px 100px 12px;
     }
 
     .mobile-header {
@@ -2987,12 +2989,15 @@ select.journal-filter-input option {
     .streak-calendar-card { padding: 16px; }
 
     /* Insights */
-    .insights-stats { grid-template-columns: repeat(2, 1fr); }
-    .insights-charts { grid-template-columns: 1fr; }
-    .insight-card { padding: 16px; border-radius: 14px; gap: 12px; }
-    .insight-stat-card { padding: 14px 16px; border-radius: 14px; }
-    .insight-stat-value { font-size: 18px; }
-    .insight-stat-label { font-size: 11px; }
+    .insights-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .insights-charts { grid-template-columns: 1fr; gap: 10px; }
+    .insight-card { padding: 14px; border-radius: 14px; gap: 12px; max-width: 100%; overflow: hidden; }
+    .insight-full { margin-bottom: 10px; }
+    .insight-stat-card { padding: 12px 14px; border-radius: 14px; }
+    .insight-stat-value { font-size: 16px; }
+    .insight-stat-label { font-size: 10px; }
+    .insight-card-title { font-size: 13px; }
+    .chart-container { height: 160px; overflow: hidden; }
 
     /* Settings */
     .settings-float-save { bottom: 100px; right: 16px; }
@@ -4863,10 +4868,17 @@ select.journal-filter-input option {
 
     .insight-ai {
         border-radius: 14px;
+        overflow: hidden;
     }
 
     .insight-ai::before {
         border-radius: 14px;
+    }
+
+    .insight-ai::after {
+        width: 200px;
+        height: 100px;
+        top: -40px;
     }
 
     .insight-ai-header {
