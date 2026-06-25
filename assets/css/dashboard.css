@@ -2989,6 +2989,10 @@ select.journal-filter-input option {
     /* Insights */
     .insights-stats { grid-template-columns: repeat(2, 1fr); }
     .insights-charts { grid-template-columns: 1fr; }
+    .insight-card { padding: 16px; border-radius: 14px; gap: 12px; }
+    .insight-stat-card { padding: 14px 16px; border-radius: 14px; }
+    .insight-stat-value { font-size: 18px; }
+    .insight-stat-label { font-size: 11px; }
 
     /* Settings */
     .settings-float-save { bottom: 100px; right: 16px; }
@@ -4855,6 +4859,99 @@ select.journal-filter-input option {
 @media (max-width: 768px) {
     .ai-insights-layout {
         grid-template-columns: 1fr;
+    }
+
+    .insight-ai {
+        border-radius: 14px;
+    }
+
+    .insight-ai::before {
+        border-radius: 14px;
+    }
+
+    .insight-ai-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .insight-ai-sub {
+        font-size: 12px;
+    }
+
+    .insight-ai-badge {
+        align-self: flex-start;
+    }
+
+    .ai-insight-item {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+
+    .ai-insight-icon {
+        font-size: 18px;
+    }
+
+    .ai-insight-title {
+        font-size: 13px;
+    }
+
+    .ai-insight-desc {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .ai-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ai-tab {
+        font-size: 12px;
+        padding: 7px 10px;
+        white-space: nowrap;
+    }
+
+    .ai-analysis-block {
+        padding: 14px 16px;
+    }
+
+    .ai-analysis-title {
+        font-size: 12px;
+    }
+
+    .ai-analysis-list li {
+        font-size: 12px;
+    }
+
+    .ai-analysis-profile {
+        font-size: 12px;
+    }
+
+    .ai-loading {
+        padding: 32px 16px;
+    }
+
+    .btn-regenerate {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .insight-ai-lock {
+        gap: 8px;
+    }
+
+    .lock-icon {
+        font-size: 24px;
+    }
+
+    .lock-text {
+        font-size: 13px;
+        padding: 0 16px;
+    }
+
+    .btn-upgrade, #btnGenerateAI {
+        padding: 10px 22px;
+        font-size: 13px;
     }
 }
 
