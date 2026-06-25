@@ -4942,14 +4942,20 @@ select.journal-filter-input option {
     }
 
     .ai-tabs {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
     }
 
     .ai-tab {
         font-size: 12px;
-        padding: 7px 10px;
-        white-space: nowrap;
+        padding: 10px 10px;
+        border: 1px solid #1a1a1a;
+        border-radius: 10px;
+    }
+
+    .ai-tab.active {
+        border-color: rgba(0,212,212,0.3);
     }
 
     .ai-analysis-block {
