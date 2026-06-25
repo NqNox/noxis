@@ -2835,11 +2835,17 @@ select.journal-filter-input option {
     .main-content {
         margin-left: 0;
         width: 100%;
+        max-width: 100vw;
         height: auto;
         min-height: 100vh;
         overflow-x: hidden;
         overflow-y: visible;
         padding: 20px 12px 100px 12px;
+    }
+
+    .page {
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .mobile-header {
@@ -4611,10 +4617,12 @@ select.journal-filter-input option {
     border-radius: 14px;
     padding: 18px 20px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 0.4s ease, transform 0.4s ease;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .ai-insight-item.visible {
@@ -4866,6 +4874,8 @@ select.journal-filter-input option {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-top: 8px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -4876,6 +4886,18 @@ select.journal-filter-input option {
     .insight-ai {
         border-radius: 14px;
         overflow: hidden;
+        max-width: 100%;
+    }
+
+    .ai-insights-left,
+    .ai-insights-right {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .ai-insight-item {
+        padding: 14px 14px;
+        gap: 10px;
     }
 
     .insight-ai::before {
