@@ -4655,6 +4655,9 @@ select.journal-filter-input option {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .ai-insight-title {
@@ -4745,6 +4748,8 @@ select.journal-filter-input option {
     line-height: 1.7;
     padding-left: 20px;
     position: relative;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .ai-analysis-list li::before {
@@ -4759,6 +4764,8 @@ select.journal-filter-input option {
     color: #aaaaaa;
     line-height: 1.8;
     margin: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* Regenerate button */
