@@ -30,6 +30,7 @@ function esc(str) {
 }
 
 let userPlan = 'free';
+let isGeneratingAI = false;
 const PLAN_LIMITS = { free: 50, pro: 100, elite: 120 };
 
 
@@ -68,13 +69,13 @@ async function loadUserPlan() {
         .single();
 
     if (data) {
-        userPlan = 'elite';
+        userPlan = 'pro';
     } else {
     await supabaseClient.from('user_plans').insert({
         user_id: session.user.id,
         plan: 'free'
     });
-    userPlan = 'elite'; // Temporary: everyone gets Elite during beta
+    userPlan = 'pro'; // Temporary: everyone gets Pro during beta
     }
 
     // Update plan badge in sidebar
@@ -2981,28 +2982,33 @@ async function loadInsights() {
         aiItems.forEach(item => item.classList.add('blurred'));
     } else {
         // Check for cached insights first
-        const { data: cached } = await supabaseClient
+        const { data: cached, error: cacheError } = await supabaseClient
             .from('ai_insights')
             .select('insights, generated_at, last_auto_date')
             .eq('user_id', session.user.id)
             .single();
 
-            if (cached) {
-                aiLock.style.display = 'none';
-                aiItems.forEach(item => item.classList.remove('blurred'));
+        if (cached) {
+            aiLock.style.display = 'none';
+            aiItems.forEach(item => item.classList.remove('blurred'));
 
-                const today = new Date().toISOString().slice(0, 10);
-                if (cached.last_auto_date !== today) {
-                    generateAIInsights();
-                } else {
-                    displayAIInsights(cached.insights, cached.generated_at);
-                }
+            const today = new Date().toISOString().slice(0, 10);
+            if (cached.last_auto_date !== today && trades && trades.length >= 5) {
+                generateAIInsights();
             } else {
+                displayAIInsights(cached.insights, cached.generated_at);
+            }
+        } else if (!cacheError || cacheError.code === 'PGRST116') {
             aiLock.style.display = 'flex';
             aiLockText.textContent = 'Generate your personalized AI analysis';
             btnGenerate.style.display = 'block';
             aiItems.forEach(item => item.classList.add('blurred'));
             btnGenerate.onclick = generateAIInsights;
+        } else {
+            aiLock.style.display = 'flex';
+            aiLockText.textContent = 'Could not load insights. Please refresh.';
+            btnGenerate.style.display = 'none';
+            aiItems.forEach(item => item.classList.add('blurred'));
         }
     }
 
@@ -3435,12 +3441,21 @@ function renderScreenshotPreviews() {
 }
 
 async function generateAIInsights() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return;
+    if (isGeneratingAI) return;
+    isGeneratingAI = true;
+
+    let session;
+    try {
+        const result = await supabaseClient.auth.getSession();
+        session = result.data.session;
+    } catch (e) {
+        isGeneratingAI = false; return;
+    }
+    if (!session) { isGeneratingAI = false; return; }
 
     if (userPlan === 'free') {
         showAIEmpty('Upgrade to Pro to unlock AI insights.');
-        return;
+        isGeneratingAI = false; return;
     }
 
     showAILoading();
@@ -3461,9 +3476,13 @@ async function generateAIInsights() {
 
     if (alreadyGeneratedToday) {
         const limit = MANUAL_LIMITS[userPlan];
+        if (limit === 0) {
+            showAIEmpty('Manual refreshes are an Elite feature. Your insights auto-refresh daily on login.');
+            isGeneratingAI = false; return;
+        }
         if (manualUsed >= limit) {
             showAIEmpty(`You've used all ${limit} manual refresh${limit !== 1 ? 'es' : ''} for today. Come back tomorrow.`);
-            return;
+            isGeneratingAI = false; return;
         }
     }
 
@@ -3476,7 +3495,7 @@ async function generateAIInsights() {
 
     if (!trades || trades.length < 5) {
         showAIEmpty('Log at least 5 trades to generate AI insights.');
-        return;
+        isGeneratingAI = false; return;
     }
 
     // Fetch user strategy
@@ -3669,6 +3688,12 @@ Rules:
         const clean = text.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(clean);
 
+        parsed.insights = Array.isArray(parsed.insights) ? parsed.insights : [];
+        parsed.strengths = Array.isArray(parsed.strengths) ? parsed.strengths : [];
+        parsed.weaknesses = Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [];
+        parsed.improvements = Array.isArray(parsed.improvements) ? parsed.improvements : [];
+        parsed.profile = typeof parsed.profile === 'string' ? parsed.profile : '';
+
         // Cache to Supabase
         const remaining = alreadyGeneratedToday
             ? MANUAL_LIMITS[userPlan] - (manualUsed + 1)
@@ -3688,6 +3713,8 @@ Rules:
     } catch (err) {
         console.error('AI insights error:', err);
         showAIEmpty('Failed to generate insights. Please try again.');
+    } finally {
+        isGeneratingAI = false;
     }
 }
 
@@ -3732,10 +3759,10 @@ function displayAIInsights(data, generatedAt, refreshesRemaining) {
             <div class="ai-insights-left">
                 ${data.insights.map(insight => `
                     <div class="ai-insight-item ${getType(insight.icon)}">
-                        <div class="ai-insight-icon">${insight.icon}</div>
+                        <div class="ai-insight-icon">${esc(insight.icon || '💡')}</div>
                         <div class="ai-insight-text">
-                            <span class="ai-insight-title">${insight.title}</span>
-                            <span class="ai-insight-desc">${insight.description}</span>
+                            <span class="ai-insight-title">${esc(insight.title)}</span>
+                            <span class="ai-insight-desc">${esc(insight.description)}</span>
                         </div>
                     </div>
                 `).join('')}
@@ -3753,39 +3780,45 @@ function displayAIInsights(data, generatedAt, refreshesRemaining) {
                 <div class="ai-tab-content active" id="tab-strengths">
                     <div class="ai-analysis-block">
                         <ul class="ai-analysis-list">
-                            ${data.strengths.map(s => `<li>${s}</li>`).join('')}
+                            ${data.strengths.map(s => `<li>${esc(s)}</li>`).join('')}
                         </ul>
                     </div>
                 </div>
                 <div class="ai-tab-content" id="tab-weaknesses">
                     <div class="ai-analysis-block">
                         <ul class="ai-analysis-list">
-                            ${data.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                            ${data.weaknesses.map(w => `<li>${esc(w)}</li>`).join('')}
                         </ul>
                     </div>
                 </div>
                 <div class="ai-tab-content" id="tab-improvements">
                     <div class="ai-analysis-block">
                         <ul class="ai-analysis-list">
-                            ${data.improvements.map(i => `<li>${i}</li>`).join('')}
+                            ${data.improvements.map(i => `<li>${esc(i)}</li>`).join('')}
                         </ul>
                     </div>
                 </div>
                 <div class="ai-tab-content" id="tab-profile">
                     <div class="ai-analysis-block">
-                        <p class="ai-analysis-profile">${data.profile}</p>
+                        <p class="ai-analysis-profile">${esc(data.profile)}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button class="btn-regenerate" id="btnRegenerateAI">
-            <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
-            Regenerate Analysis
-        </button>
-        ${userPlan === 'elite' && refreshesRemaining !== undefined ? `<p class="ai-refresh-count">${refreshesRemaining} / 2 refreshes left today</p>` : ''}
-        ${userPlan === 'elite' && refreshesRemaining === undefined ? '<p class="ai-refresh-count">2 manual refreshes per day</p>' : ''}
-        ${userPlan === 'pro' ? '<p class="ai-refresh-count">Auto-refreshes daily on login</p>' : ''}
+        ${userPlan === 'elite' ? `
+            <button class="btn-regenerate" id="btnRegenerateAI">
+                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+                Regenerate Analysis
+            </button>
+            ${refreshesRemaining !== undefined ? `<p class="ai-refresh-count">${refreshesRemaining} / 2 refreshes left today</p>` : '<p class="ai-refresh-count">2 manual refreshes per day</p>'}
+        ` : `
+            <button class="btn-regenerate btn-regenerate-locked" disabled>
+                <i data-lucide="lock" style="width:14px;height:14px;"></i>
+                Upgrade to Elite for manual refreshes
+            </button>
+            <p class="ai-refresh-count">Auto-refreshes daily on login</p>
+        `}
         
     `;
 

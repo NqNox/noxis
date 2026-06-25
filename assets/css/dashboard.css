@@ -4803,6 +4803,20 @@ select.journal-filter-input option {
     box-shadow: 0 4px 20px rgba(0,212,212,0.1);
 }
 
+.btn-regenerate-locked {
+    background: rgba(255,255,255,0.03);
+    border-color: #222222;
+    color: #555555;
+    cursor: default;
+}
+
+.btn-regenerate-locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: #222222;
+    transform: none;
+    box-shadow: none;
+}
+
 /* AI Loading */
 .ai-loading {
     display: flex;
