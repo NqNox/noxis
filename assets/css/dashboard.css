@@ -496,6 +496,14 @@ html, body {
 
 .day-circle.active span { color: #888888; }
 
+.day-circle.broken {
+    background: rgba(255,68,68,0.15);
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.day-circle.broken span { color: #888888; }
+
 .day-circle.today {
     outline: 2px solid #00d4d4;
     outline-offset: 2px;

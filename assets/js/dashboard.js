@@ -1458,7 +1458,10 @@ document.addEventListener('click', async (e) => {
                 .delete()
                 .eq('id', tradeId);
             confirmOverlay.classList.remove('active');
-            if (!error) loadRecentTrades();
+            if (!error) {
+                loadRecentTrades();
+                loadStreak();
+            }
         };
 
         confirmCancel.onclick = () => {
@@ -1489,21 +1492,20 @@ async function loadStreak() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    // Get last 7 days of trades
     const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 7);
+    const cutoff = new Date(today);
+    cutoff.setDate(today.getDate() - 365);
 
     const { data: trades } = await supabaseClient
         .from('trades')
         .select('date, followed_rules')
         .eq('user_id', session.user.id)
+        .gte('date', cutoff.toLocaleDateString('en-CA'))
         .order('date', { ascending: true });
 
     // Get last 5 weekdays starting from Monday
     const days = [];
     let d = new Date(today);
-    let daysFound = 0;
 
     // Find the most recent Monday
     while (d.getDay() !== 1) {
@@ -1516,12 +1518,12 @@ async function loadStreak() {
         d.setDate(d.getDate() + 1);
     }
 
-    // Check which days have compliant trades
-    const tradedDays = new Set(
-        (trades || [])
-            .filter(t => t.followed_rules)
-            .map(t => t.date)
-    );
+    // Group trades by date
+    const tradesByDay = {};
+    (trades || []).forEach(t => {
+        if (!tradesByDay[t.date]) tradesByDay[t.date] = { traded: true, compliant: true };
+        if (!t.followed_rules) tradesByDay[t.date].compliant = false;
+    });
 
     // Render circles
     const streakDaysEl = document.getElementById('streakDays');
@@ -1531,25 +1533,28 @@ async function loadStreak() {
 
     days.forEach(day => {
         const dateStr = day.toLocaleDateString('en-CA');
-        const isActive = tradedDays.has(dateStr);
+        const dayData = tradesByDay[dateStr];
         const isToday = dateStr === today.toLocaleDateString('en-CA');
 
         const circle = document.createElement('div');
-        circle.className = 'day-circle' + (isActive ? ' active' : '') + (isToday ? ' today' : '');
+        let cls = 'day-circle';
+        if (dayData && dayData.compliant) cls += ' active';
+        else if (dayData && !dayData.compliant) cls += ' broken';
+        if (isToday) cls += ' today';
+        circle.className = cls;
         circle.innerHTML = `${day.getDate()}<span>${dayNames[day.getDay()]}</span>`;
         streakDaysEl.appendChild(circle);
     });
 
-    // Count consecutive trading days ending at today (or most recent)
+    // Count consecutive compliant trading days (skip non-trading days)
     let streakCount = 0;
-    const checkDate = new Date(today);
-    const todayStr = checkDate.toLocaleDateString('en-CA');
-    if (!tradedDays.has(todayStr)) {
-        checkDate.setDate(checkDate.getDate() - 1);
-    }
-    while (tradedDays.has(checkDate.toLocaleDateString('en-CA'))) {
-        streakCount++;
-        checkDate.setDate(checkDate.getDate() - 1);
+    const sortedTradeDates = Object.keys(tradesByDay).sort().reverse();
+    for (const date of sortedTradeDates) {
+        if (tradesByDay[date].compliant) {
+            streakCount++;
+        } else {
+            break;
+        }
     }
 
     const flame = document.querySelector('.streak-flame');
@@ -2215,7 +2220,7 @@ async function loadStreakPage() {
         }
     });
 
-    // Current streak
+    // Current streak (consecutive compliant trading days, skip non-trading days)
     let streak = 0;
     const sortedDates = [...tradingDates].reverse();
     for (const date of sortedDates) {
@@ -2326,6 +2331,11 @@ document.getElementById('calPrev').addEventListener('click', () => {
 });
 
 document.getElementById('calNext').addEventListener('click', () => {
+    const now = new Date();
+    if (calendarDate.getFullYear() > now.getFullYear() ||
+        (calendarDate.getFullYear() === now.getFullYear() && calendarDate.getMonth() >= now.getMonth())) {
+        return;
+    }
     calendarDate.setMonth(calendarDate.getMonth() + 1);
     loadStreakPage();
 });
