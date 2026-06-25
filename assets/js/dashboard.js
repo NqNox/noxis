@@ -2983,14 +2983,20 @@ async function loadInsights() {
         // Check for cached insights first
         const { data: cached } = await supabaseClient
             .from('ai_insights')
-            .select('insights, generated_at')
+            .select('insights, generated_at, last_auto_date')
             .eq('user_id', session.user.id)
             .single();
 
             if (cached) {
                 aiLock.style.display = 'none';
                 aiItems.forEach(item => item.classList.remove('blurred'));
-                displayAIInsights(cached.insights, cached.generated_at);
+
+                const today = new Date().toISOString().slice(0, 10);
+                if (cached.last_auto_date !== today) {
+                    generateAIInsights();
+                } else {
+                    displayAIInsights(cached.insights, cached.generated_at);
+                }
             } else {
             aiLock.style.display = 'flex';
             aiLockText.textContent = 'Generate your personalized AI analysis';
