@@ -3611,8 +3611,8 @@ async function generateAIInsights() {
     }));
 
     // Rules
-    const followedTrades = trades.filter(t => t.followed_rules);
-    const brokenTrades = trades.filter(t => !t.followed_rules);
+    const followedTrades = trades.filter(t => t.followed_rules === true);
+    const brokenTrades = trades.filter(t => t.followed_rules === false);
     const rulesData = {
         followed: {
             trades: followedTrades.length,
@@ -3710,6 +3710,9 @@ Rules:
         });
 
         const result = await response.json();
+        if (!response.ok || !result.content || !result.content[0]) {
+            throw new Error(result.error?.message || 'AI service unavailable');
+        }
         const text = result.content[0].text;
         const clean = text.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(clean);
@@ -3734,7 +3737,7 @@ Rules:
             last_manual_date: alreadyGeneratedToday ? today : insightRecord?.last_manual_date
         }, { onConflict: 'user_id' });
 
-        displayAIInsights(parsed, null, remaining);
+        displayAIInsights(parsed, new Date().toISOString(), remaining);
 
     } catch (err) {
         console.error('AI insights error:', err);
@@ -3745,6 +3748,9 @@ Rules:
 }
 
 function showAILoading() {
+    const aiLock = document.getElementById('aiLockOverlay');
+    if (aiLock) aiLock.style.display = 'none';
+    document.querySelectorAll('.ai-insight-item').forEach(item => item.classList.remove('blurred'));
     const preview = document.querySelector('.insight-ai-preview');
     preview.innerHTML = `
         <div class="ai-loading">
@@ -3755,10 +3761,17 @@ function showAILoading() {
 }
 
 function showAIEmpty(message) {
+    const aiLock = document.getElementById('aiLockOverlay');
+    const aiLockText = document.getElementById('aiLockText');
+    const btnGenerate = document.getElementById('btnGenerateAI');
+    if (aiLock) {
+        aiLock.style.display = 'flex';
+        aiLockText.textContent = message;
+        btnGenerate.style.display = 'none';
+    }
+    document.querySelectorAll('.ai-insight-item').forEach(item => item.classList.add('blurred'));
     const preview = document.querySelector('.insight-ai-preview');
-    preview.innerHTML = `
-        <div style="text-align:center;padding:32px;color:#444;font-size:14px;">${message}</div>
-    `;
+    preview.innerHTML = '';
 }
 
 function displayAIInsights(data, generatedAt, refreshesRemaining) {

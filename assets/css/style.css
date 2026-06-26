@@ -131,14 +131,15 @@ nav {
 .btn-early {
     display: inline-block;
     margin-top: 16px;
-    background: #ffffff;
-    border: 1px solid #ffffff;
-    padding: 12px 24px;
-    border-radius: 6px;
+    background: #00d4d4;
+    border: 1px solid #00d4d4;
+    padding: 12px 28px;
+    border-radius: 8px;
     color: #0a0a0a;
     text-decoration: none;
-    font-size: 14px;
-    font-weight: bolder;
+    font-size: 15px;
+    font-weight: 600;
+    width: fit-content;
     transition: all 0.2s ease;
 }
 
@@ -818,8 +819,9 @@ footer {
 .hero-preview-main {
     width: 100%;
     overflow: hidden;
-    border: 1px solid #1a1a1a;
-    box-shadow: 0 24px 80px rgba(0, 212, 212, 0.1);
+    border: 1px solid rgba(0, 212, 212, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0, 212, 212, 0.08);
 }
 
 .hero-preview-secondary {
