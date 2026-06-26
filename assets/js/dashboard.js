@@ -2520,6 +2520,22 @@ async function loadInsights() {
         document.getElementById('insightWinRate').textContent = '0%';
         document.getElementById('insightProfitFactor').textContent = '—';
         document.getElementById('insightAvgRatio').textContent = '—';
+
+        const aiLock = document.getElementById('aiLockOverlay');
+        const btnGenerate = document.getElementById('btnGenerateAI');
+        const aiLockText = document.getElementById('aiLockText');
+        const aiItems = document.querySelectorAll('.ai-insight-item');
+
+        if (userPlan === 'free') {
+            aiLock.style.display = 'flex';
+            aiLockText.textContent = 'Upgrade to Pro to unlock AI insights';
+            btnGenerate.style.display = 'none';
+        } else {
+            aiLock.style.display = 'flex';
+            aiLockText.textContent = 'Log at least 5 trades to generate AI insights';
+            btnGenerate.style.display = 'none';
+        }
+        aiItems.forEach(item => item.classList.add('blurred'));
         return;
     }
 
