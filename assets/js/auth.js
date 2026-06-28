@@ -163,4 +163,17 @@ if (passwordInput) {
     });
 }
 
-lucide.createIcons();
+const googleBtn = document.getElementById('googleBtn');
+if (googleBtn) {
+  googleBtn.addEventListener('click', async () => {
+    const { error } = await noxisClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://noxis-ai.app/pages/dashboard.html'
+      }
+    });
+    if (error) console.error(error.message);
+  });
+}
+
+if (typeof lucide !== 'undefined') lucide.createIcons();
