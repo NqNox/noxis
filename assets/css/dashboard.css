@@ -813,7 +813,6 @@ html, body {
     width: 90%;
     max-width: 560px;
     max-height: 90vh;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -842,6 +841,7 @@ html, body {
     border-bottom: 1px solid #1a1a1a;
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
 }
 
 .modal-header h2, #modalStepTitle {
@@ -1057,6 +1057,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
     align-items: center;
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
 }
 
 /* ============================================
@@ -2959,7 +2960,10 @@ select.journal-filter-input option {
 
     /* Modal */
     .modal-row { grid-template-columns: 1fr; }
-    .modal { max-height: 85vh; }
+    .modal { max-height: 85vh; max-height: 85dvh; }
+    .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .modal-step.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .modal-footer { flex-shrink: 0; }
 
     /* Table */
     .trades-header-row { display: none; }
@@ -4023,6 +4027,8 @@ select.journal-filter-input option {
 .modal-step.active {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 @keyframes modal-step-in {
@@ -4050,6 +4056,7 @@ select.journal-filter-input option {
     width: 100%;
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
 }
 
 .modal-progress-fill {
@@ -4064,6 +4071,7 @@ select.journal-filter-input option {
     justify-content: center;
     gap: 6px;
     padding: 12px 28px 0;
+    flex-shrink: 0;
 }
 
 .modal-step-dot {
