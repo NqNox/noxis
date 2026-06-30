@@ -13,7 +13,7 @@
 <body>
 
   <script>
-    const MAINTENANCE_MODE = true;
+    const MAINTENANCE_MODE = false;
     const ADMIN_BYPASS = 'AdminNoxis.';
     if (MAINTENANCE_MODE) {
         if (localStorage.getItem('noxis_admin_bypass') !== ADMIN_BYPASS) {
@@ -95,8 +95,10 @@
 
       <!-- PnL Card -->
       <div class="card pnl-card">
-        <div class="pnl-label">Total P&L</div>
-        <div class="pnl-value">+$4,234.96</div>
+        <div class="pnl-info">
+          <div class="pnl-label">Total P&L</div>
+          <div class="pnl-value">+$4,234.96</div>
+        </div>
         <div class="pnl-chart">
           <svg viewBox="0 0 120 60" fill="none">
             <defs>
@@ -141,7 +143,7 @@
 
   <!-- MISSION -->
   <section class="mission" id="mission">
-    <div class="mission-card">
+    <div class="mission-card reveal">
       <div class="mission-glow"></div>
       <h2 class="mission-title">Our Mission:</h2>
       <p>To fix you. As harsh as it sounds.<br>Profitability isn't a goal, it's a state.</p>
@@ -156,7 +158,7 @@
     <h2 class="features-heading">Everything you need to stay  <span class="accent">consistent.</span></h2>
     <p class="features-sub">Built around the real reasons traders fail.</p>
 
-    <div class="features-tabs">
+    <div class="features-tabs reveal">
       <button class="features-tab active" data-index="0">
         <span class="tab-emoji">🤖</span> | AI Insights
       </button>
@@ -171,7 +173,7 @@
       </button>
     </div>
 
-    <div class="features-card">
+    <div class="features-card reveal">
       <div class="features-card-glow"></div>
       <div class="features-card-icon">🤖</div>
       <h3 class="features-card-title">AI-Powered Insights</h3>
@@ -187,7 +189,7 @@
 
     <div class="pricing-grid">
       <!-- Free -->
-      <div class="pricing-card">
+      <div class="pricing-card reveal">
         <div class="pricing-card-header">
           <h3 class="pricing-tier">Free</h3>
           <div class="pricing-price"><span class="price-amount">$0</span><span class="price-period">/month</span></div>
@@ -207,7 +209,7 @@
       </div>
 
       <!-- Pro -->
-      <div class="pricing-card pricing-card-pro">
+      <div class="pricing-card pricing-card-pro reveal">
         <span class="pricing-popular">Most Popular</span>
         <div class="pricing-card-header">
           <h3 class="pricing-tier accent">Pro</h3>
@@ -228,7 +230,7 @@
       </div>
 
       <!-- Elite -->
-      <div class="pricing-card pricing-card-elite">
+      <div class="pricing-card pricing-card-elite reveal">
         <div class="pricing-card-header">
           <h3 class="pricing-tier pricing-tier-orange">Elite</h3>
           <div class="pricing-price"><span class="price-amount">$29.99</span><span class="price-period">/month</span></div>
@@ -251,7 +253,7 @@
 
   <!-- CTA -->
   <section class="cta">
-    <div class="cta-card">
+    <div class="cta-card reveal">
       <div class="cta-glow"></div>
       <h2 class="cta-heading">This is where it <span class="accent">starts.</span></h2>
       <p class="cta-sub">Join the waitlist and get early access to Noxis before everyone else.</p>

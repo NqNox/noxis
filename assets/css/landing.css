@@ -1,5 +1,5 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 section[id] { scroll-margin-top: 200px; }
 
 :root {
@@ -1136,7 +1136,7 @@ nav {
   nav { padding: 20px 24px; }
 
   .hero {
-    padding: 80px 24px 80px;
+    padding: 110px 24px 80px;
     gap: 40px;
   }
 
@@ -1195,7 +1195,7 @@ nav {
 
   .hero {
     flex-direction: column;
-    padding: 60px 20px 60px;
+    padding: 120px 20px 60px;
     text-align: center;
     gap: 48px;
   }
@@ -1231,7 +1231,26 @@ nav {
 
   .streak-number .num { font-size: 36px; }
   .streak-number .unit { font-size: 14px; }
-  .pnl-value { font-size: 28px; }
+
+  .pnl-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .pnl-info { text-align: left; }
+
+  .pnl-value { font-size: 26px; }
+
+  .pnl-chart {
+    position: static;
+    transform: none;
+    width: 150px;
+    height: 76px;
+    flex-shrink: 0;
+  }
 
   .mission { padding: 0 20px 60px; }
 
@@ -1322,6 +1341,10 @@ nav {
 
   .streak-card { flex-direction: column; gap: 16px; align-items: flex-start; }
 
+  .pnl-card { padding: 18px 20px; gap: 12px; }
+  .pnl-value { font-size: 22px; }
+  .pnl-chart { width: 120px; height: 60px; }
+
   .features-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1337,4 +1360,80 @@ nav {
   .pricing-card { padding: 28px 20px 24px; }
 
   .cta-form { max-width: 100%; }
+}
+
+/* ENTRANCE ANIMATIONS (on page load) */
+@keyframes navFadeDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-wrapper {
+  opacity: 0;
+  animation: navFadeDown 0.6s ease 0.1s forwards;
+}
+
+.hero-heading {
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.15s forwards;
+}
+
+.hero-sub {
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.3s forwards;
+}
+
+.hero-divider {
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.4s forwards;
+}
+
+.hero-cta {
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.5s forwards;
+}
+
+.hero-right {
+  opacity: 0;
+  animation: fadeUp 0.9s ease 0.35s forwards;
+}
+
+/* SCROLL-REVEAL (on scroll into view) */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pricing-grid .reveal:nth-child(2) { transition-delay: 0.1s; }
+.pricing-grid .reveal:nth-child(3) { transition-delay: 0.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-heading,
+  .hero-sub,
+  .hero-divider,
+  .hero-cta,
+  .hero-right,
+  .reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .nav-wrapper {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translateX(-50%) !important;
+  }
 }
