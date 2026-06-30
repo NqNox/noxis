@@ -247,6 +247,40 @@ html, body {
     overflow: hidden;
 }
 
+.sidebar.collapsed .restart-onboarding-btn {
+    justify-content: center;
+    padding: 10px;
+    gap: 0;
+}
+
+.whats-new-icon {
+    display: none;
+}
+
+.sidebar.collapsed .whats-new-btn {
+    align-items: center;
+    padding: 10px;
+    position: relative;
+}
+
+.sidebar.collapsed .whats-new-icon {
+    display: block;
+    margin: 0 auto;
+    color: #00c864;
+}
+
+.sidebar.collapsed .whats-new-btn-top {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: auto;
+}
+
+.sidebar.collapsed .whats-new-btn-title,
+.sidebar.collapsed .whats-new-btn-desc {
+    display: none;
+}
+
 /* ============================================
    MAIN CONTENT
    ============================================ */
