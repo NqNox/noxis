@@ -47,6 +47,25 @@ body {
   pointer-events: none;
 }
 
+.back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  color: var(--gray-light);
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s ease, gap 0.2s ease;
+}
+
+.back-home:hover {
+  color: var(--teal);
+  gap: 9px;
+}
+
 .login-logo {
   display: flex;
   align-items: center;

@@ -1,238 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noxis AI Journal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Familjen+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="assets/js/config.js"></script>
-    <script defer src="/_vercel/insights/script.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noxis AI — Trade with Discipline, Grow with Data</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/landing.css">
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
-    <script>
-        const MAINTENANCE_MODE = false;
-        const ADMIN_BYPASS = 'AdminNoxis.';
-        if (MAINTENANCE_MODE) {
-            if (localStorage.getItem('noxis_admin_bypass') !== ADMIN_BYPASS) {
-                window.location.href = '/maintenance.html';
-            }
+  <script>
+    const MAINTENANCE_MODE = false;
+    const ADMIN_BYPASS = 'AdminNoxis.';
+    if (MAINTENANCE_MODE) {
+        if (localStorage.getItem('noxis_admin_bypass') !== ADMIN_BYPASS) {
+            window.location.href = '/maintenance.html';
         }
-    </script>
+    }
+  </script>
 
-    <div class="bg-blobs">
-    <div class="blob b1"></div>
-    <div class="blob b2"></div>
-    <div class="blob b3"></div>
-    <div class="blob b4"></div>
-    <div class="blob b5"></div>
+  <!-- NAV -->
+  <div class="nav-wrapper">
+  <nav>
+    <a href="#" class="nav-logo">
+      <svg viewBox="0 0 100 100" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;flex-shrink:0;"><defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="50" y="11" width="50" height="50" rx="8" ry="8" transform="rotate(45 50 50)" stroke="#00D4D4" stroke-width="8" fill="none" filter="url(#glow)"/></svg>
+      <span>noxis ai</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#mission">About us</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <a href="/Noxis_v2/login.html" class="nav-login">Login</a>
+      <a href="#" class="btn-cta">Get Started →</a>
+      <button class="nav-hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <h1 class="hero-heading">
+        Trade with<br>
+        Discipline<br>
+        Grow with Data.
+      </h1>
+      <p class="hero-sub">AI-powered trading journal for serious funded traders.</p>
+      <div class="hero-divider"></div>
+      <a href="#" class="hero-cta">Get started for free →</a>
     </div>
 
-    <!-- NAVBAR -->
-    <nav>
-        <div class="nav-inner">
-            <div class="logo">
-                <span class="logo-text">noxis ai</span>
-
-            </div>
-            <div class="nav-links">
-                <a href="#mission">About us</a>
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#" class="btn-dashboard" id="btnDashboard">Dashboard</a>
-            </div>
+    <div class="hero-right">
+      <!-- Streak Card -->
+      <div class="card streak-card">
+        <div class="streak-left">
+          <div class="streak-label">My Streak</div>
+          <div class="streak-number">
+            <span class="num">24</span>
+            <span class="unit">days</span>
+          </div>
         </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero">
-        <div class="hero-top">
-            <div class="hero-text">
-                <h1>trade with discipline.<br>grow with data.</h1>
-                <p class="hero-sub" style="font-size: 16px; color: #888888;">AI-powered trading journal for serious funded traders.</p>
-                <a href="#" class="btn-early" id="btnEarlyAccess">Early access →</a>
-            </div>
-            <div class="hero-cards">
-                <div class="hero-preview .hero-preview-main">
-                    <img src="assets/dashboard-preview.png" alt="Noxis Dashboard" class="hero-img" />
-                </div>
-                <div class="hero-preview hero-preview-secondary">
-                    <img src="assets/insights-preview.png" alt="Noxis Insights" class="hero-img" />
-                </div>
-            </div>
+        <div class="streak-days">
+          <div class="streak-dot">
+            <div class="circle active">23</div>
+            <span class="day-label">Mon</span>
+          </div>
+          <div class="streak-dot">
+            <div class="circle active">24</div>
+            <span class="day-label">Tue</span>
+          </div>
+          <div class="streak-dot">
+            <div class="circle inactive"></div>
+            <span class="day-label">Wed</span>
+          </div>
+          <div class="streak-dot">
+            <div class="circle inactive"></div>
+            <span class="day-label">Thu</span>
+          </div>
+          <div class="streak-dot">
+            <div class="circle inactive"></div>
+            <span class="day-label">Fri</span>
+          </div>
         </div>
-        <div class="hero-stats">
-            <div class="stat-card">
-                <span class="stat-value">Built by traders</span>
-                <span class="stat-label">for traders</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">Free</span>
-                <span class="stat-label">during early access</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">Monthly</span>
-                <span class="stat-label">new features</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value">AI-powered</span>
-                <span class="stat-label">insights</span>
-            </div>
+      </div>
+
+      <!-- PnL Card -->
+      <div class="card pnl-card">
+        <div class="pnl-label">Total P&L</div>
+        <div class="pnl-value">+$4,234.96</div>
+        <div class="pnl-chart">
+          <svg viewBox="0 0 120 60" fill="none">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00C864" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#00C864" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 50 Q20 45 30 35 T50 28 T70 20 T90 15 T110 10 L120 8" stroke="#00C864" stroke-width="2" fill="none"/>
+            <path d="M0 50 Q20 45 30 35 T50 28 T70 20 T90 15 T110 10 L120 8 L120 60 L0 60Z" fill="url(#chartGrad)"/>
+          </svg>
         </div>
-    </section>
+      </div>
 
-    <!-- MISSION -->
-    <section class="mission" id="mission">
-        <h2>Our mission:</h2>
-        <div class="mission-content">
-            <p>To fix you. As harsh as it sounds.</p>
-            <p>Profitability isn't a goal — it's a state.<br>
-            And to reach that state you need discipline, consistency, and data.</p>
-            <p style="font-style: italic; color: #ffffff;">Noxis fixes all three.</p>
-            <p>If you're serious about your future, click the button.<br>
-            If not — enjoy blowing evals.</p>
+      <!-- Rules Card -->
+      <div class="card rules-card">
+        <div class="rules-progress">
+          <div class="rules-progress-bar"></div>
         </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section class="features" id="features">
-        <div class="features-header">
-            <h2>Everything you need to <span class="teal">stay disciplined.</span></h2>
-            <p>Built around the real reasons traders fail.</p>
+        <div class="rules-percent">66%</div>
+        <div class="rules-list">
+          <div class="rule-item checked">
+            <div class="rule-check done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            Follow the HTF trend.
+          </div>
+          <div class="rule-item checked">
+            <div class="rule-check done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            Wait for a valid manipulation leg.
+          </div>
+          <div class="rule-item unchecked">
+            <div class="rule-check pending"></div>
+            Trade only NYAM.
+          </div>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="feature-card" id="featureCard">
-            <div class="feature-content active" data-feature="ai">
-                <div class="feature-icon">🤖</div>
-                <h3>AI-Powered Insights</h3>
-                <p>Our AI analyzes your trade history and detects behavioral patterns you can't see yourself. Know exactly when, why, and how you self-sabotage.</p>
-            </div>
-            <div class="feature-content" data-feature="checklist">
-                <div class="feature-icon">✅</div>
-                <h3>Pre-Entry Checklist</h3>
-                <p>Before every trade, run through your personal rule checklist. No more impulsive entries. No more "I knew I shouldn't have taken that."</p>
-            </div>
-            <div class="feature-content" data-feature="session">
-                <div class="feature-icon">🔒</div>
-                <h3>Session Lock</h3>
-                <p>Set your trading sessions and let Noxis handle the rest. Get reminders when your session opens and automatic warnings when you're trading outside your hours.</p>
-            </div>
-            <div class="feature-content" data-feature="streak">
-                <div class="feature-icon">🔥</div>
-                <h3>Discipline Streak</h3>
-                <p>Track your rule-following streak every single day. Build the habit of consistency and watch your results follow.</p>
-            </div>
+  <!-- MISSION -->
+  <section class="mission" id="mission">
+    <div class="mission-card">
+      <div class="mission-glow"></div>
+      <h2 class="mission-title">Our Mission:</h2>
+      <p>To fix you. As harsh as it sounds.<br>Profitability isn't a goal, it's a state.</p>
+      <p>And to reach that state you need discipline,<br>consistency, and data.</p>
+      <p><em>Noxis fixes all three.</em></p>
+      <p>If you're serious about your future, click the button.<br>If not, enjoy blowing evals.</p>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <h2 class="features-heading">Everything you need to stay  <span class="accent">consistent.</span></h2>
+    <p class="features-sub">Built around the real reasons traders fail.</p>
+
+    <div class="features-tabs">
+      <button class="features-tab active" data-index="0">
+        <span class="tab-emoji">🤖</span> | AI Insights
+      </button>
+      <button class="features-tab" data-index="1">
+        <span class="tab-emoji">✅</span> | Rule Checklist
+      </button>
+      <button class="features-tab" data-index="2">
+        <span class="tab-emoji">🎯</span> | Session Reminder
+      </button>
+      <button class="features-tab" data-index="3">
+        <span class="tab-emoji">🔥</span> | Streak Tracker
+      </button>
+    </div>
+
+    <div class="features-card">
+      <div class="features-card-glow"></div>
+      <div class="features-card-icon">🤖</div>
+      <h3 class="features-card-title">AI-Powered Insights</h3>
+      <div class="features-card-divider"></div>
+      <p class="features-card-desc">Our AI analyzes your trade history and detects behavioral patterns you can't see yourself. Know exactly when, why, and how you self-sabotage.</p>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <h2 class="pricing-heading">Simple, <span class="accent">transparent</span> pricing.</h2>
+    <p class="pricing-sub">No hidden fees. No surprises. Cancel anytime.</p>
+
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="pricing-card">
+        <div class="pricing-card-header">
+          <h3 class="pricing-tier">Free</h3>
+          <div class="pricing-price"><span class="price-amount">$0</span><span class="price-period">/month</span></div>
+          <span class="pricing-badge-outline">No credit card required</span>
         </div>
-
-        <div class="feature-tabs">
-            <button class="tab-btn active" data-target="ai">🤖 | AI Insights</button>
-            <button class="tab-btn" data-target="checklist">✅ | Rule Checklist</button>
-            <button class="tab-btn" data-target="session">🔒 | Session Lock</button>
-            <button class="tab-btn" data-target="streak">🔥| Streak Tracker</button>
+        <div class="pricing-features">
+          <div class="pf-item included">✓ 50 trades per month</div>
+          <div class="pf-item included">✓ Trade journal</div>
+          <div class="pf-item included">✓ Checklist (1 set, 5 rules)</div>
+          <div class="pf-item included">✓ Streak tracking</div>
+          <div class="pf-item included">✓ Basic insights</div>
+          <div class="pf-item excluded">- Journal filters</div>
+          <div class="pf-item excluded">- AI-powered insights</div>
+          <div class="pf-item excluded">- Worldwide rank</div>
         </div>
-    </section>
+        <a href="/Noxis_v2/login.html" class="pricing-btn pricing-btn-outline">Get Started Free →</a>
+      </div>
 
-    <!-- PRICING -->
-    <section class="pricing" id="pricing">
-        <div class="pricing-header">
-            <h2>Simple, <span class="teal">transparent</span> pricing.</h2>
-            <p>No hidden fees. No surprises. Cancel anytime.</p>
+      <!-- Pro -->
+      <div class="pricing-card pricing-card-pro">
+        <span class="pricing-popular">Most Popular</span>
+        <div class="pricing-card-header">
+          <h3 class="pricing-tier accent">Pro</h3>
+          <div class="pricing-price"><span class="price-amount">$14.99</span><span class="price-period">/month</span></div>
+          <span class="pricing-badge-teal">or $9.99/month annual plan</span>
         </div>
-
-        <div class="pricing-cards">
-
-            <div class="pricing-card free-card">
-                <div class="plan-name free">Free</div>
-                <div class="plan-price">$0<span>/month</span></div>
-                <div class="plan-annual">No credit card required</div>
-                <ul class="plan-features">
-                    <li class="tick">✓ 50 trades per month</li>
-                    <li class="tick">✓ Trade journal</li>
-                    <li class="tick">✓ Checklist (1 set, 5 rules)</li>
-                    <li class="tick">✓ Streak tracking</li>
-                    <li class="tick">✓ Basic insights</li>
-                    <li class="cross">— Journal filters</li>
-                    <li class="cross">— AI-powered insights</li>
-                    <li class="cross">— Worldwide rank</li>
-                </ul>
-                <a href="/pages/login.html" class="plan-btn">Get started free →</a>
-            </div>
-
-            <div class="pricing-card featured pro-card">
-                <div class="plan-badge">Most Popular</div>
-                <div class="plan-name pro">Pro</div>
-                <div class="plan-price">$9.99<span>/month</span></div>
-                <div class="plan-annual">or $6.99/month annual plan</div>
-                <ul class="plan-features">
-                    <li class="tick">✓ 100 trades per month</li>
-                    <li class="tick">✓ Everything in Free</li>
-                    <li class="tick">✓ Journal filters</li>
-                    <li class="tick">✓ AI-powered insights</li>
-                    <li class="tick">✓ 3 rule sets, 10 rules per set</li>
-                    <li class="tick">✓ Worldwide rank</li>
-                    <li class="cross">— Advanced AI (chatbot + reports)</li>
-                    <li class="cross">— Multiple accounts</li>
-                </ul>
-                <a href="/pages/login.html" class="plan-btn btn-teal">Get started →</a>
-            </div>
-
-            <div class="pricing-card elite-card">
-                <div class="plan-name elite">Elite</div>
-                <div class="plan-price">$24.99<span>/month</span></div>
-                <div class="plan-annual"> or $14.99/month annual plan</div>
-                <ul class="plan-features">
-                    <li class="tick">✓ 120 trades per month</li>
-                    <li class="tick">✓ Everything in Pro</li>
-                    <li class="tick">✓ Advanced AI insights</li>
-                    <li class="tick">✓ AI chatbot + weekly reports</li>
-                    <li class="tick">✓ 5 rule sets, 15 rules per set</li>
-                    <li class="tick">✓ 2 accounts</li>
-                    <li class="tick">✓ Worldwide rank</li>
-                    <li class="tick">✓ Priority new features</li>
-                </ul>
-                <a href="/pages/login.html" class="plan-btn">Get started →</a>
-            </div>
-
+        <div class="pricing-features">
+          <div class="pf-item included">✓ 100 trades per month</div>
+          <div class="pf-item included">✓ Everything in Free</div>
+          <div class="pf-item included">✓ Journal filters</div>
+          <div class="pf-item included">✓ AI-powered insights</div>
+          <div class="pf-item included">✓ 3 rule sets, 10 rules per set</div>
+          <div class="pf-item included">✓ Worldwide rank</div>
+          <div class="pf-item excluded">- Advanced AI (Chatbot + weekly reports)</div>
+          <div class="pf-item excluded">- Multiple accounts</div>
         </div>
-    </section>
+        <a href="/Noxis_v2/login.html" class="pricing-btn pricing-btn-teal">Get Started →</a>
+      </div>
 
-    <!-- FINAL CTA -->
-    <section class="cta" id="waitlist">
-        <div class="cta-inner">
-            <h2>Ready to stop gambling<br>and start <span class="teal">trading?</span></h2>
-            <p>Join the waitlist and get early access to Noxis before everyone else.</p>
-            <form class="cta-form">
-                <input type="email" placeholder="Enter your email" class="cta-input" required />
-                <button type="submit" class="cta-btn">Join the waitlist →</button>
-            </form>
-            <span class="cta-sub">Free during early access. No credit card required.</span>
+      <!-- Elite -->
+      <div class="pricing-card pricing-card-elite">
+        <div class="pricing-card-header">
+          <h3 class="pricing-tier pricing-tier-orange">Elite</h3>
+          <div class="pricing-price"><span class="price-amount">$29.99</span><span class="price-period">/month</span></div>
+          <span class="pricing-badge-orange">or $24.99/month annual plan</span>
         </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-inner">
-            <div class="footer-left">
-                <span class="logo-text">noxis ai</span>
-                <span class="footer-sub">Your eval-jail getaway card.</span>
-            </div>
-            <div class="footer-links">
-                <a href="#">About us</a>
-                <a href="#">Pricing</a>
-                <a href="/pages/dashboard.html">Dashboard</a>
-                <a href="/privacy-policy.html">Privacy Policy</a>
-                <a href="/terms-of-service.html">Terms of Service</a>
-            </div>
-            <div class="footer-right">
-                <span class="footer-copy">© 2025 Noxis. All rights reserved.</span>
-            </div>
+        <div class="pricing-features">
+          <div class="pf-item included">✓ 120 trades per month</div>
+          <div class="pf-item included">✓ Everything in Pro</div>
+          <div class="pf-item included">✓ Advanced AI insights</div>
+          <div class="pf-item included">✓ AI chatbot + weekly reports</div>
+          <div class="pf-item included">✓ 5 rule sets, 15 rules per set</div>
+          <div class="pf-item included">✓ 2 accounts</div>
+          <div class="pf-item included bold">✓ Worldwide rank</div>
+          <div class="pf-item included">✓ Priority new features</div>
         </div>
-    </footer>
+        <a href="/Noxis_v2/login.html" class="pricing-btn pricing-btn-dark">Get Started →</a>
+      </div>
+    </div>
+  </section>
 
-    <script src="assets/js/script.js"></script>
+  <!-- CTA -->
+  <section class="cta">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <h2 class="cta-heading">This is where it <span class="accent">starts.</span></h2>
+      <p class="cta-sub">Join the waitlist and get early access to Noxis before everyone else.</p>
+      <form class="cta-form">
+        <input type="email" class="cta-input" placeholder="Your Email" required>
+        <button type="submit" class="cta-btn">Get Started →</button>
+      </form>
+      <p class="cta-note">Free during early access. No credit card required.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="#" class="nav-logo">
+          <svg viewBox="0 0 100 100" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;flex-shrink:0;"><defs><filter id="glow2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="50" y="11" width="50" height="50" rx="8" ry="8" transform="rotate(45 50 50)" stroke="#00D4D4" stroke-width="8" fill="none" filter="url(#glow2)"/></svg>
+          <span>noxis ai</span>
+        </a>
+        <p class="footer-copy">© 2026 Noxis. All rights reserved.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#mission">About us</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="/privacy-policy.html">Privacy Policy</a>
+        <a href="/terms-of-service.html">Terms of Service</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/landing.js"></script>
 </body>
 </html>
