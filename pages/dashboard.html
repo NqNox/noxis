@@ -6,7 +6,7 @@
     <title>Noxis AI Journal — Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/dashboard.css?v=11">
+    <link rel="stylesheet" href="../assets/css/dashboard.css?v=30">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
@@ -26,7 +26,7 @@
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="sidebar-logo">noxis ai</div>
+        <div class="sidebar-logo"><i data-lucide="diamond" class="sidebar-logo-icon"></i> noxis ai</div>
         <div class="sidebar-divider"></div>
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-page="dashboard">
@@ -83,59 +83,121 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         <div class="mobile-header">
-            <span class="mobile-logo">noxis ai</span>
+            <span class="mobile-logo"><i data-lucide="diamond" class="mobile-logo-icon"></i> noxis ai</span>
             <button class="mobile-settings-btn" data-page="settings">
                 <i data-lucide="settings"></i>
             </button>
         </div>
-        <div class="page active" id="page-dashboard">
+        <div class="page active dash-loading" id="page-dashboard">
             <!-- TOP BAR -->
             <div class="page-header">
                 <h1 class="page-title">My Dashboard</h1>
                 <button class="btn-log-trade">+ Log Trade</button>
             </div>
 
-            <!-- STATS ROW -->
-            <div class="dashboard-top">
-                <div class="stats-card">
-                    <div class="stat-item">
-                        <span class="stat-name">Balance</span>
-                        <span class="stat-value green">$50,000</span>
-                    </div>
-                    <div class="stat-divider"></div>
-                    <div class="stat-item">
-                        <span class="stat-name">RP&L</span>
-                        <span class="stat-value">$0</span>
-                    </div>
+            <!-- ROW 1: STATS -->
+            <div class="dash-row dash-row-stats">
+                <div class="dash-card dash-stat-card dash-stat-hero">
+                    <span class="dash-card-label">Balance</span>
+                    <span class="dash-stat-value" id="dashBalanceValue">$50,000</span>
+                </div>
+                <div class="dash-card dash-stat-card dash-stat-hero">
+                    <span class="dash-card-label">Total P&L</span>
+                    <span class="dash-stat-value" id="dashPnlValue">$0</span>
                 </div>
 
-                <div class="streak-card">
-                    <div class="streak-flame">🔥</div>
-                    <div class="streak-info">
-                        <span class="streak-title">My Streak</span>
-                        <div class="streak-days" id="streakDays"></div>
+                <div class="dash-card streak-card">
+                    <div class="streak-left">
+                        <span class="dash-card-label">My Streak</span>
+                        <div class="streak-number">
+                            <span class="num" id="streakCount">0</span>
+                            <span class="unit">days</span>
+                        </div>
+                    </div>
+                    <div class="streak-days" id="streakDays"></div>
+                </div>
+
+                <div class="dash-card dash-checklist-card">
+                    <div class="dash-checklist-header">
+                        <span class="dash-card-label">Today's Checklist</span>
+                        <span class="dash-checklist-count" id="dashChecklistCount">0/0</span>
+                    </div>
+                    <div class="dash-progress-track">
+                        <div class="dash-progress-fill" id="dashChecklistProgressFill"></div>
+                    </div>
+                    <div class="dash-checklist-list" id="dashChecklistList"></div>
+                </div>
+            </div>
+
+            <!-- ROW 2: CHART + GAUGES -->
+            <div class="dash-row dash-row-chart">
+                <div class="dash-card dash-chart-card">
+                    <span class="dash-card-label">P&L Over-time</span>
+                    <div class="dash-pnl-chart" id="dashPnlChart"></div>
+                </div>
+                <div class="dash-col dash-side-widgets">
+                    <div class="dash-card dash-winrate-card">
+                        <span class="dash-card-label">Winrate</span>
+                        <div class="dash-gauge-wrap" id="dashWinrateGauge"></div>
+                    </div>
+                    <div class="dash-card dash-profitfactor-card">
+                        <span class="dash-card-label">Profit Factor</span>
+                        <span class="dash-profitfactor-value" id="dashProfitFactorValue">—</span>
+                    </div>
+                    <div class="dash-card dash-aiscore-card">
+                        <span class="dash-card-label">Noxis AI score</span>
+                        <div class="dash-aiscore-value" id="dashAiScoreValue">—</div>
+                        <div class="dash-aiscore-bar" id="dashAiScoreBar">
+                            <span class="dash-aiscore-tick">0</span>
+                            <span class="dash-aiscore-tick">50</span>
+                            <span class="dash-aiscore-tick">100</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- BIG CARD -->
-            <div class="recent-card">
+            <!-- ROW 3: LATEST TRADES -->
+            <div class="dash-section-header">
+                <span class="dash-section-title">Recent Activity</span>
+                <div class="dash-section-line"></div>
+            </div>
+            <div class="dash-card dash-latest-trades-card">
                 <div class="recent-header">
-                    <span class="recent-title">Recent Trades</span>
-                    <div class="view-controls">
-                        <button class="view-btn active" data-view="table" title="Table view">
-                            <i data-lucide="table" style="width:14px;height:14px;"></i>
-                        </button>
-                        <button class="view-btn" data-view="cards" title="Card view">
-                            <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
-                        </button>
-                        <a href="#" data-page="journal" class="recent-link nav-item">View all</a>
-
-                    </div>
+                    <span class="recent-title">Latest Trades</span>
+                    <a href="#" data-page="journal" class="recent-link nav-item">View all</a>
                 </div>
-                <div class="recent-empty">
+                <div class="recent-empty" id="dashLatestEmpty">
                     <span>No trades logged yet.</span>
                     <button class="btn-log-trade-sm">+ Log your first trade</button>
+                </div>
+                <div class="dash-latest-trades" id="dashLatestTrades"></div>
+            </div>
+
+            <!-- ROW 4: CALENDAR -->
+            <div class="dash-section-header">
+                <span class="dash-section-title">Performance Calendar</span>
+                <div class="dash-section-line"></div>
+            </div>
+            <div class="dash-card streak-calendar-card dash-calendar-card">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" id="dashCalPrev">←</button>
+                    <span class="calendar-month" id="dashCalMonth"></span>
+                    <button class="calendar-nav-btn" id="dashCalNext">→</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                    <span>Sun</span>
+                </div>
+                <div class="calendar-grid" id="dashCalendarGrid"></div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><div class="legend-dot green"></div><span>Net profit day</span></div>
+                    <div class="legend-item"><div class="legend-dot red"></div><span>Net loss day</span></div>
+                    <div class="legend-item"><div class="legend-dot gray"></div><span>No trade logged</span></div>
                 </div>
             </div>
 
@@ -145,6 +207,27 @@
             <div class="page-header">
                 <h1 class="page-title">Checklist</h1>
                 <button class="btn-add-rule" id="btnAddRule">+ Add Rule</button>
+            </div>
+
+            <div class="checklist-stats-row">
+                <div class="checklist-stat-card accent-teal">
+                    <div class="checklist-stat-icon"><i data-lucide="flame"></i></div>
+                    <span class="checklist-stat-label">Compliance (7d)</span>
+                    <span class="checklist-stat-value" id="checklistCompliance7d">—</span>
+                    <span class="checklist-stat-sub" id="checklistCompliance7dSub"></span>
+                </div>
+                <div class="checklist-stat-card accent-orange">
+                    <div class="checklist-stat-icon"><i data-lucide="calendar-days"></i></div>
+                    <span class="checklist-stat-label">Compliance (30d)</span>
+                    <span class="checklist-stat-value" id="checklistCompliance30d">—</span>
+                    <span class="checklist-stat-sub" id="checklistCompliance30dSub"></span>
+                </div>
+                <div class="checklist-stat-card accent-green">
+                    <div class="checklist-stat-icon"><i data-lucide="trophy"></i></div>
+                    <span class="checklist-stat-label">All-Time Compliance</span>
+                    <span class="checklist-stat-value" id="checklistComplianceAll">—</span>
+                    <span class="checklist-stat-sub" id="checklistComplianceAllSub"></span>
+                </div>
             </div>
 
             <div class="checklist-layout">

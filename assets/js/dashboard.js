@@ -804,9 +804,6 @@ navItems.forEach(item => {
     });
 });
 
-// View toggle — declared early so loadRecentTrades can use it
-let currentView = window.innerWidth < 768 ? 'cards' : 'table';
-
 // Modal
 const modalOverlay = document.getElementById('modalOverlay');
 const modalClose = document.getElementById('modalClose');
@@ -1207,7 +1204,334 @@ document.getElementById('btnSave').addEventListener('click', async () => {
     }
 });
 
-// Fetch and display recent trades
+// ============================================
+// SHARED TRADE-STATS / CHART HELPERS
+// (used by both the Dashboard overview and the Insights page)
+// ============================================
+function computeTradeStats(trades) {
+    const wins = trades.filter(t => t.pnl > 0);
+    const losses = trades.filter(t => t.pnl < 0);
+    const totalPnl = trades.reduce((sum, t) => sum + t.pnl, 0);
+    const winRate = trades.length > 0 ? (wins.length / trades.length) * 100 : 0;
+    const grossWin = wins.reduce((sum, t) => sum + t.pnl, 0);
+    const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
+    const profitFactor = grossLoss > 0 ? grossWin / grossLoss : (grossWin > 0 ? Infinity : 0);
+    return { totalPnl, winRate, grossWin, grossLoss, profitFactor, wins, losses };
+}
+
+function buildEquityPoints(trades, startBalance) {
+    let balance = startBalance;
+    const points = [{ date: 'Start', balance }];
+    trades.forEach(trade => {
+        balance += trade.pnl;
+        points.push({ date: new Date(trade.date + 'T12:00:00').toLocaleDateString(), balance });
+    });
+    return points;
+}
+
+function renderEquityCurve(containerEl, points, startBalance) {
+    if (!containerEl) return;
+
+    if (points.length <= 1) {
+        containerEl.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;text-align:center;">Log trades to see your equity curve.</p>';
+        containerEl.style.alignItems = 'center';
+        containerEl.style.justifyContent = 'center';
+        return;
+    }
+
+    const maxBal = Math.max(...points.map(p => p.balance));
+    const minBal = Math.min(...points.map(p => p.balance));
+    const range = maxBal - minBal || 1;
+    const w = 600, h = 180, pad = 20;
+
+    const svgPoints = points.map((p, i) => {
+        const x = pad + (i / (points.length - 1)) * (w - pad * 2);
+        const y = h - pad - ((p.balance - minBal) / range) * (h - pad * 2);
+        return `${x},${y}`;
+    }).join(' ');
+
+    const lastBalance = points[points.length - 1].balance;
+    const lineColor = lastBalance >= startBalance ? '#00c864' : '#ff4444';
+    const gradId = `equityGrad-${containerEl.id}`;
+
+    const startLabel = `$${startBalance.toLocaleString()}`;
+    const endLabel = `$${lastBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const pnlLabel = (lastBalance - startBalance >= 0 ? '+' : '') + '$' + (lastBalance - startBalance).toFixed(2);
+
+    containerEl.innerHTML = `
+        <div style="position:relative;width:100%;height:100%;">
+            <div style="position:absolute;top:0;right:0;font-size:12px;font-family:'JetBrains Mono',monospace;color:${lineColor};">${endLabel} <span style="font-size:11px;">(${pnlLabel})</span></div>
+            <div style="position:absolute;bottom:0;left:0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#444;">Start: ${startLabel}</div>
+            <svg viewBox="0 0 ${w} ${h}" class="equity-line" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <polyline
+                    class="equity-polyline"
+                    points="${svgPoints}"
+                    fill="none"
+                    stroke="${lineColor}"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                />
+                <polygon
+                    class="equity-polygon"
+                    points="${svgPoints} ${w - pad},${h} ${pad},${h}"
+                    fill="url(#${gradId})"
+                />
+            </svg>
+        </div>
+    `;
+
+    // Draw the line in and wipe the fill area in from left to right
+    const polyline = containerEl.querySelector('.equity-polyline');
+    const polygon = containerEl.querySelector('.equity-polygon');
+    const length = polyline.getTotalLength();
+
+    polyline.style.strokeDasharray = length;
+    polyline.style.strokeDashoffset = length;
+    polygon.style.clipPath = 'inset(0 100% 0 0)';
+
+    requestAnimationFrame(() => {
+        polyline.style.transition = 'stroke-dashoffset 1.1s ease-out';
+        polygon.style.transition = 'clip-path 1.1s ease-out';
+        polyline.style.strokeDashoffset = '0';
+        polygon.style.clipPath = 'inset(0 0% 0 0)';
+    });
+}
+
+function computeMaxDrawdownPct(points) {
+    if (!points.length) return 0;
+    let peak = points[0].balance;
+    let maxDrawdown = 0;
+    points.forEach(p => {
+        if (p.balance > peak) peak = p.balance;
+        if (peak > 0) {
+            const dd = ((peak - p.balance) / peak) * 100;
+            if (dd > maxDrawdown) maxDrawdown = dd;
+        }
+    });
+    return maxDrawdown;
+}
+
+// Noxis AI score: weighted blend of discipline + execution-quality signals.
+// Missing components (e.g. no star ratings logged yet) are excluded and the
+// remaining weights are re-normalized to 100 rather than counted as zero.
+function computeAIScore(trades, stats, equityPoints) {
+    const components = [];
+
+    if (trades.length > 0) {
+        const compliant = trades.filter(t => t.followed_rules).length;
+        components.push({ value: (compliant / trades.length) * 100, weight: 25 });
+        components.push({ value: stats.winRate, weight: 20 });
+    }
+
+    if (stats.grossWin > 0 || stats.grossLoss > 0) {
+        const pf = stats.profitFactor === Infinity ? 2.5 : stats.profitFactor;
+        components.push({ value: Math.min(pf, 2.5) / 2.5 * 100, weight: 15 });
+    }
+
+    if (equityPoints.length > 1) {
+        const ddPct = computeMaxDrawdownPct(equityPoints);
+        components.push({ value: 100 - Math.min(ddPct, 50) / 50 * 100, weight: 15 });
+    }
+
+    const setupRatings = trades.map(t => t.setup_rating).filter(Boolean);
+    if (setupRatings.length > 0) {
+        const avg = setupRatings.reduce((a, b) => a + b, 0) / setupRatings.length;
+        components.push({ value: avg / 5 * 100, weight: 12.5 });
+    }
+
+    const mgmtRatings = trades.map(t => t.management_rating).filter(Boolean);
+    if (mgmtRatings.length > 0) {
+        const avg = mgmtRatings.reduce((a, b) => a + b, 0) / mgmtRatings.length;
+        components.push({ value: avg / 5 * 100, weight: 12.5 });
+    }
+
+    if (components.length === 0) return null;
+
+    const totalWeight = components.reduce((sum, c) => sum + c.weight, 0);
+    return components.reduce((sum, c) => sum + c.value * (c.weight / totalWeight), 0);
+}
+
+function renderWinrateGauge(containerEl, winRate, winsCount = 0, lossesCount = 0) {
+    if (!containerEl) return;
+    const pct = Math.max(0, Math.min(100, winRate || 0));
+    const r = 50, cx = 60, cy = 58;
+    const circumference = Math.PI * r;
+    const offset = circumference - (pct / 100) * circumference;
+    const gradId = `winrateGrad-${containerEl.id}`;
+
+    containerEl.innerHTML = `
+        <div class="dash-gauge-inner">
+            <svg viewBox="0 0 120 72" style="width:100%;overflow:visible;">
+                <defs>
+                    <linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#ff4444"/>
+                        <stop offset="50%" stop-color="#e08a2e"/>
+                        <stop offset="100%" stop-color="#00c864"/>
+                    </linearGradient>
+                </defs>
+                <path d="M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}" fill="none" stroke="#1a1a1a" stroke-width="9" stroke-linecap="round"/>
+                <path class="gauge-arc" d="M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}" fill="none" stroke="url(#${gradId})" stroke-width="9" stroke-linecap="round"
+                    stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"/>
+                <text x="${cx - r}" y="${cy + 16}" text-anchor="middle" font-size="9" fill="#ff4444" font-family="JetBrains Mono, monospace" font-weight="600">${lossesCount}L</text>
+                <text x="${cx + r}" y="${cy + 16}" text-anchor="middle" font-size="9" fill="#00c864" font-family="JetBrains Mono, monospace" font-weight="600">${winsCount}W</text>
+            </svg>
+            <div class="dash-gauge-value">${pct.toFixed(0)}%</div>
+        </div>
+    `;
+
+    // Animate arc filling from empty to target value
+    const arc = containerEl.querySelector('.gauge-arc');
+    requestAnimationFrame(() => {
+        arc.style.transition = 'stroke-dashoffset 1s ease-out';
+        arc.style.strokeDashoffset = offset;
+    });
+}
+
+function renderAiScoreBar(barEl, valueEl, score) {
+    if (!barEl || !valueEl) return;
+    const marker = barEl.querySelector('.dash-aiscore-marker');
+    if (marker) marker.remove();
+
+    if (score === null) {
+        valueEl.textContent = '—';
+        return;
+    }
+
+    valueEl.textContent = score.toFixed(1);
+    const target = Math.max(0, Math.min(100, score));
+    const newMarker = document.createElement('div');
+    newMarker.className = 'dash-aiscore-marker';
+    newMarker.style.left = '0%';
+    barEl.appendChild(newMarker);
+
+    // Slide the marker in from 0 to its target score
+    requestAnimationFrame(() => {
+        newMarker.style.transition = 'left 1s ease-out';
+        newMarker.style.left = `${target}%`;
+    });
+}
+
+function renderLatestTradesPreview(trades) {
+    const container = document.getElementById('dashLatestTrades');
+    const empty = document.getElementById('dashLatestEmpty');
+    if (!container || !empty) return;
+
+    if (trades.length === 0) {
+        empty.style.display = 'flex';
+        container.innerHTML = '';
+        return;
+    }
+    empty.style.display = 'none';
+
+    container.innerHTML = trades.slice(0, 5).map(trade => {
+        const d = new Date(trade.date + 'T12:00:00');
+        const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const dirLabel = trade.direction === 'long' ? 'Long' : 'Short';
+        const dirClass = trade.direction === 'long' ? 'long' : 'short';
+        const pnlStr = (trade.pnl >= 0 ? '+$' : '-$') + Math.abs(trade.pnl).toFixed(2);
+        return `
+        <div class="dash-trade-card">
+            <div class="dash-trade-card-main">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="dash-trade-card-symbol">${esc(trade.symbol)}</span>
+                    <span class="dash-trade-card-dir ${dirClass}">${dirLabel}</span>
+                    <span class="dash-trade-card-date">${dateLabel}</span>
+                </div>
+                <span class="dash-trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">${pnlStr}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Builds the day grid for a month calendar; dayCellRenderer(dateStr, day) returns { className, label }
+function buildMonthGrid(gridEl, monthDate, dayCellRenderer) {
+    if (!gridEl) return;
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const lastDay = new Date(year, month + 1, 0);
+    const today = new Date().toLocaleDateString('en-CA');
+
+    gridEl.innerHTML = '';
+
+    let startOffset = new Date(year, month, 1).getDay() - 1;
+    if (startOffset < 0) startOffset = 6;
+
+    for (let i = 0; i < startOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        gridEl.appendChild(empty);
+    }
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = dateStr === today;
+        const { className, label, extraHtml } = dayCellRenderer(dateStr, day);
+
+        const cell = document.createElement('div');
+        cell.className = `cal-day ${className}${isToday ? ' today' : ''}`;
+        cell.innerHTML = extraHtml
+            ? `<span class="cal-day-num">${day}</span>${extraHtml}`
+            : `${day}${label ? `<span class="cal-day-label">${label}</span>` : ''}`;
+        gridEl.appendChild(cell);
+    }
+}
+
+let dashCalendarDate = new Date();
+let dashTradesCache = [];
+
+function renderDashboardCalendar(trades) {
+    const grid = document.getElementById('dashCalendarGrid');
+    const monthEl = document.getElementById('dashCalMonth');
+    if (!grid || !monthEl) return;
+
+    const statsByDate = {};
+    trades.forEach(t => {
+        if (!statsByDate[t.date]) statsByDate[t.date] = { pnl: 0, count: 0 };
+        statsByDate[t.date].pnl += t.pnl;
+        statsByDate[t.date].count++;
+    });
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    monthEl.textContent = `${monthNames[dashCalendarDate.getMonth()]} ${dashCalendarDate.getFullYear()}`;
+
+    buildMonthGrid(grid, dashCalendarDate, (dateStr) => {
+        const day = statsByDate[dateStr];
+        if (!day) return { className: 'no-trade', label: '', extraHtml: null };
+        const abs = Math.abs(day.pnl);
+        const pnlStr = abs >= 1000
+            ? (day.pnl >= 0 ? '+' : '-') + '$' + (abs / 1000).toFixed(1) + 'k'
+            : (day.pnl >= 0 ? '+' : '-') + '$' + Math.round(abs);
+        const tradeWord = day.count === 1 ? 'trade' : 'trades';
+        const extraHtml = `
+            <span class="cal-day-pnl">${pnlStr}</span>
+            <span class="cal-day-trades">${day.count} ${tradeWord}</span>`;
+        return { className: day.pnl >= 0 ? 'win' : 'loss', label: '', extraHtml };
+    });
+}
+
+document.getElementById('dashCalPrev')?.addEventListener('click', () => {
+    dashCalendarDate.setMonth(dashCalendarDate.getMonth() - 1);
+    renderDashboardCalendar(dashTradesCache);
+});
+
+document.getElementById('dashCalNext')?.addEventListener('click', () => {
+    const now = new Date();
+    if (dashCalendarDate.getFullYear() > now.getFullYear() ||
+        (dashCalendarDate.getFullYear() === now.getFullYear() && dashCalendarDate.getMonth() >= now.getMonth())) {
+        return;
+    }
+    dashCalendarDate.setMonth(dashCalendarDate.getMonth() + 1);
+    renderDashboardCalendar(dashTradesCache);
+});
+
+// Fetch and display recent trades + drive all dashboard-overview widgets
 async function loadRecentTrades() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
@@ -1221,10 +1545,10 @@ async function loadRecentTrades() {
     if (error || !trades) return;
 
     const totalPnl = trades.reduce((sum, trade) => sum + trade.pnl, 0);
-    const rpnlEl = document.querySelector('.stat-value:not(.green)');
-    if (rpnlEl) {
-        rpnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
-        rpnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+    const pnlEl = document.getElementById('dashPnlValue');
+    if (pnlEl) {
+        pnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
+        pnlEl.className = 'dash-stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
     }
 
     // Update balance
@@ -1235,108 +1559,112 @@ async function loadRecentTrades() {
         .single();
     const startBalance = parseFloat(settingsData?.balance) || 50000;
     const currentBalance = startBalance + totalPnl;
-    const balanceEl = document.querySelector('.stat-value.green');
+    const balanceEl = document.getElementById('dashBalanceValue');
     if (balanceEl) {
         balanceEl.textContent = '$' + currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    const recentEmpty = document.querySelector('.recent-empty');
-    const recentCard = document.querySelector('.recent-card');
+    renderLatestTradesPreview(trades);
 
-    const oldTable = document.getElementById('tradesTable');
-    if (oldTable) oldTable.remove();
+    dashTradesCache = trades;
+    renderDashboardCalendar(trades);
 
-    if (trades.length === 0) {
-        recentEmpty.style.display = 'flex';
-        return;
+    const tradesByDateAsc = [...trades].sort((a, b) => a.date.localeCompare(b.date));
+    const equityPoints = buildEquityPoints(tradesByDateAsc, startBalance);
+    renderEquityCurve(document.getElementById('dashPnlChart'), equityPoints, startBalance);
+
+    const stats = computeTradeStats(trades);
+    renderWinrateGauge(document.getElementById('dashWinrateGauge'), stats.winRate, stats.wins.length, stats.losses.length);
+
+    const pfEl = document.getElementById('dashProfitFactorValue');
+    if (pfEl) {
+        if (stats.grossWin === 0 && stats.grossLoss === 0) {
+            pfEl.textContent = '—';
+            pfEl.className = 'dash-profitfactor-value';
+        } else {
+            pfEl.textContent = stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2);
+            pfEl.className = 'dash-profitfactor-value ' + (stats.profitFactor >= 1 ? 'positive' : 'negative');
+        }
     }
-    
-        const displayTrades = trades.slice(0, 10);
 
-    recentEmpty.style.display = 'none';
+    const aiScore = computeAIScore(trades, stats, equityPoints);
+    renderAiScoreBar(document.getElementById('dashAiScoreBar'), document.getElementById('dashAiScoreValue'), aiScore);
 
-    const container = document.createElement('div');
-    container.id = 'tradesTable';
+    renderChecklistStats(trades);
 
-    if (currentView === 'table') {
-    container.className = 'trades-table';
-    container.innerHTML = `
-        <div class="trades-header-row">
-            <span>Date</span>
-            <span>Symbol</span>
-            <span>Direction</span>
-            <span>Size</span>
-            <span>P&L</span>
-            <span>Setup</span>
-            <span>Session</span>
-            <span>Rules</span>
-            <span></span>
-        </div>
-        ${displayTrades.map(trade => `
-            <div class="trade-row">
-                <span>${esc(trade.date)}</span>
-                <span>${esc(trade.symbol)}</span>
-                <span class="${trade.direction === 'long' ? 'long' : 'short'}">
-                    ${trade.direction === 'long' ? '↑ Long' : '↓ Short'}
-                </span>
-                <span>${trade.size}</span>
-                <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                </span>
-                <span>${esc(trade.setup_type || '—')}</span>
-                <span>${esc(trade.session || '—')}</span>
-                <span>${trade.followed_rules ? '✓' : '✗'}</span>
-                <span class="trade-actions">
-                    <button class="trade-edit-btn" data-id="${trade.id}">
-                        <i data-lucide="pencil" class="pencil-icon"></i>
-                    </button>
-                    <button class="trade-delete-btn" data-id="${trade.id}">
-                        <i data-lucide="trash-2" class="trash-icon"></i>
-                    </button>
-                </span>
-            </div>
-        `).join('')}
-    `;
-} else if (currentView === 'cards') {
-    container.className = 'trades-cards';
-    container.innerHTML = displayTrades.map(trade => `
-        <div class="trade-card ${trade.pnl >= 0 ? 'win' : 'loss'}">
-            <div class="trade-card-header">
-                <span class="trade-card-symbol">${esc(trade.symbol)}</span>
-                <span class="trade-card-pnl ${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                    ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}
-                </span>
-            </div>
-            <div class="trade-card-details">
-                <span class="trade-card-tag ${trade.direction}">${trade.direction === 'long' ? '↑ Long' : '↓ Short'}</span>
-                <span class="trade-card-tag">${trade.size} contract${trade.size > 1 ? 's' : ''}</span>
-                <span class="trade-card-tag">${trade.followed_rules ? '✓ Rules' : '✗ Rules'}</span>
-                ${trade.setup_type ? `<span class="trade-card-tag" style="color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">${esc(trade.setup_type)}</span>` : ''}
-                ${trade.session ? `<span class="trade-card-tag">${esc(trade.session)}</span>` : ''}
-                ${trade.mental_state ? `<span class="trade-card-tag">${esc(trade.mental_state)}</span>` : ''}
-            </div>
-            <div class="trade-card-ratings">
-                ${trade.setup_rating ? `<span style="font-size:11px;color:#444;">Setup: ${'★'.repeat(trade.setup_rating)}${'☆'.repeat(5-trade.setup_rating)}</span>` : ''}
-                ${trade.management_rating ? `<span style="font-size:11px;color:#444;">Mgmt: ${'★'.repeat(trade.management_rating)}${'☆'.repeat(5-trade.management_rating)}</span>` : ''}
-                ${trade.take_again !== null && trade.take_again !== undefined ? `<span style="font-size:11px;color:${trade.take_again ? '#00c864' : '#ff4444'};">${trade.take_again ? '✓ Would take again' : '✗ Wouldn\'t take again'}</span>` : ''}
-            </div>
-            <div class="trade-card-footer">
-                <span class="trade-card-date">${trade.date}</span>
-                <div class="trade-card-actions">
-                    <button class="trade-edit-btn" data-id="${trade.id}">
-                        <i data-lucide="pencil" class="pencil-icon"></i>
-                    </button>
-                    <button class="trade-delete-btn" data-id="${trade.id}">
-                        <i data-lucide="trash-2" class="trash-icon"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
+    animateDashboardEntrance();
 }
-    recentCard.appendChild(container);
-    lucide.createIcons();
-    } 
+
+// Rule-compliance stats strip on the Checklist page. There's no per-rule history
+// saved anywhere (checkedRules is in-memory only) — this uses the aggregate
+// followed_rules boolean already stored per trade instead.
+function renderChecklistStats(trades) {
+    const el7 = document.getElementById('checklistCompliance7d');
+    const el30 = document.getElementById('checklistCompliance30d');
+    const elAll = document.getElementById('checklistComplianceAll');
+    if (!el7 || !el30 || !elAll) return;
+
+    const now = new Date();
+    const cutoff7 = new Date(now); cutoff7.setDate(now.getDate() - 7);
+    const cutoff30 = new Date(now); cutoff30.setDate(now.getDate() - 30);
+
+    const trades7 = trades.filter(t => new Date(t.date + 'T12:00:00') >= cutoff7);
+    const trades30 = trades.filter(t => new Date(t.date + 'T12:00:00') >= cutoff30);
+
+    const computeCompliance = (list) => {
+        if (list.length === 0) return null;
+        return Math.round((list.filter(t => t.followed_rules).length / list.length) * 100);
+    };
+
+    // Windows with a small sample often show an identical % to a wider window
+    // just because they contain the exact same trades — the trade-count caption
+    // makes that obvious instead of it looking like duplicated/broken data.
+    const setStat = (el, subEl, list) => {
+        const pct = computeCompliance(list);
+        if (pct === null) {
+            el.textContent = '—';
+            el.className = 'checklist-stat-value';
+            if (subEl) subEl.textContent = 'No trades yet';
+        } else {
+            el.textContent = pct + '%';
+            el.className = 'checklist-stat-value ' + (pct >= 70 ? 'positive' : pct < 50 ? 'negative' : '');
+            if (subEl) subEl.textContent = `${list.length} trade${list.length === 1 ? '' : 's'}`;
+        }
+    };
+
+    setStat(el7, document.getElementById('checklistCompliance7dSub'), trades7);
+    setStat(el30, document.getElementById('checklistCompliance30dSub'), trades30);
+    setStat(elAll, document.getElementById('checklistComplianceAllSub'), trades);
+}
+
+// Scroll-driven fade/slide-up reveal for the dashboard cards: cards above the fold
+// stagger in immediately, cards below the fold reveal as they scroll into view.
+let dashboardRevealObserver = null;
+let dashboardEntranceTimer = null;
+
+function animateDashboardEntrance() {
+    clearTimeout(dashboardEntranceTimer);
+    dashboardEntranceTimer = setTimeout(() => {
+        const cards = document.querySelectorAll('#page-dashboard .dash-card');
+        cards.forEach(card => card.classList.remove('visible'));
+
+        if (dashboardRevealObserver) dashboardRevealObserver.disconnect();
+
+        requestAnimationFrame(() => {
+            dashboardRevealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('visible');
+                    dashboardRevealObserver.unobserve(entry.target);
+                });
+            }, { root: document.querySelector('.main-content'), threshold: 0.15 });
+
+            cards.forEach((card, i) => {
+                setTimeout(() => dashboardRevealObserver.observe(card), i * 40);
+            });
+        });
+    }, 50);
+}
 
 
 // Edit and delete handler
@@ -1470,24 +1798,6 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// View toggle
-function setView(view) {
-    currentView = view;
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.view === view);
-    });
-    loadRecentTrades();
-}
-
-document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', () => setView(btn.dataset.view));
-});
-
-if (window.innerWidth < 768) {
-    document.querySelector('[data-view="cards"]')?.classList.add('active');
-    document.querySelector('[data-view="table"]')?.classList.remove('active');
-}
-
 async function loadStreak() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
@@ -1536,14 +1846,15 @@ async function loadStreak() {
         const dayData = tradesByDay[dateStr];
         const isToday = dateStr === today.toLocaleDateString('en-CA');
 
-        const circle = document.createElement('div');
         let cls = 'day-circle';
         if (dayData && dayData.compliant) cls += ' active';
         else if (dayData && !dayData.compliant) cls += ' broken';
         if (isToday) cls += ' today';
-        circle.className = cls;
-        circle.innerHTML = `${day.getDate()}<span>${dayNames[day.getDay()]}</span>`;
-        streakDaysEl.appendChild(circle);
+
+        const dot = document.createElement('div');
+        dot.className = 'streak-dot';
+        dot.innerHTML = `<div class="${cls}">${day.getDate()}</div><span class="day-label">${dayNames[day.getDay()]}</span>`;
+        streakDaysEl.appendChild(dot);
     });
 
     // Count consecutive compliant trading days (skip non-trading days)
@@ -1557,10 +1868,8 @@ async function loadStreak() {
         }
     }
 
-    const flame = document.querySelector('.streak-flame');
-    flame.textContent = streakCount > 0 ? '🔥' : '💤';
-    document.querySelector('.streak-title').textContent = 
-        streakCount > 0 ? `${streakCount} Day Streak` : 'No streak yet';
+    const streakCountEl = document.getElementById('streakCount');
+    if (streakCountEl) streakCountEl.textContent = streakCount;
 }
 
 // ============================================
@@ -1805,7 +2114,41 @@ async function loadRules() {
     renderRules();
 }
 
+function renderDashboardChecklistPreview() {
+    const list = document.getElementById('dashChecklistList');
+    const fill = document.getElementById('dashChecklistProgressFill');
+    const count = document.getElementById('dashChecklistCount');
+    if (!list || !fill || !count) return;
+
+    const checked = rules.filter(r => checkedRules.has(r.id)).length;
+    const total = rules.length;
+    count.textContent = `${checked}/${total}`;
+    fill.style.width = total > 0 ? `${(checked / total) * 100}%` : '0%';
+
+    if (total === 0) {
+        list.innerHTML = `<div class="dash-checklist-empty">No rules yet.</div>`;
+        return;
+    }
+
+    list.innerHTML = rules.slice(0, 3).map(rule => `
+        <div class="dash-checklist-item ${checkedRules.has(rule.id) ? 'checked' : ''}" data-id="${rule.id}">
+            <span class="dash-checklist-check">${checkedRules.has(rule.id) ? '✓' : ''}</span>
+            <span class="dash-checklist-text">${esc(rule.rule)}</span>
+        </div>
+    `).join('');
+
+    list.querySelectorAll('.dash-checklist-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.dataset.id;
+            if (checkedRules.has(id)) checkedRules.delete(id);
+            else checkedRules.add(id);
+            renderRules();
+        });
+    });
+}
+
 function renderRules() {
+    renderDashboardChecklistPreview();
     const rulesList = document.getElementById('rulesList');
     const checkedCount = document.getElementById('checkedCount');
     const totalCount = document.getElementById('totalCount');
@@ -2280,49 +2623,19 @@ async function loadStreakPage() {
 }
 
 function renderCalendar(tradesByDate) {
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth();
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'];
 
-    document.getElementById('calMonth').textContent = `${monthNames[month]} ${year}`;
+    document.getElementById('calMonth').textContent = `${monthNames[calendarDate.getMonth()]} ${calendarDate.getFullYear()}`;
 
-    const grid = document.getElementById('calendarGrid');
-    grid.innerHTML = '';
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const today = new Date().toLocaleDateString('en-CA');
-
-    // Monday-based offset
-    let startOffset = firstDay.getDay() - 1;
-    if (startOffset < 0) startOffset = 6;
-
-    for (let i = 0; i < startOffset; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'cal-day empty';
-        grid.appendChild(empty);
-    }
-
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    buildMonthGrid(document.getElementById('calendarGrid'), calendarDate, (dateStr) => {
         const dayData = tradesByDate[dateStr];
-        const isToday = dateStr === today;
-
-        const cell = document.createElement('div');
-        let className = 'cal-day';
-
-        if (dayData) {
-            className += dayData.pnl >= 0 && dayData.followed_rules ? ' win' : ' loss';
-        } else {
-            className += ' no-trade';
-        }
-
-        if (isToday) className += ' today';
-        cell.className = className;
-        cell.innerHTML = `${day}${dayData ? `<span class="cal-day-label">${dayData.followed_rules ? '✓' : '✗'}</span>` : ''}`;
-        grid.appendChild(cell);
-    }
+        if (!dayData) return { className: 'no-trade', label: '' };
+        return {
+            className: dayData.pnl >= 0 && dayData.followed_rules ? 'win' : 'loss',
+            label: dayData.followed_rules ? '✓' : '✗'
+        };
+    });
 }
 // Calendar navigation
 document.getElementById('calPrev').addEventListener('click', () => {
@@ -2370,7 +2683,7 @@ async function loadSettings() {
 
         // Update balance
         if (data.balance) {
-            const balanceEl = document.querySelector('.stat-value.green');
+            const balanceEl = document.getElementById('dashBalanceValue');
             if (balanceEl) balanceEl.textContent = '$' + Number(data.balance).toLocaleString();
         }
     }
@@ -2418,7 +2731,7 @@ async function saveSettingsAction(btn) {
 
     // Update balance
     if (settings.balance) {
-        const balanceEl = document.querySelector('.stat-value.green');
+        const balanceEl = document.getElementById('dashBalanceValue');
         if (balanceEl) balanceEl.textContent = '$' + Number(settings.balance).toLocaleString();
     }
 
@@ -2540,13 +2853,9 @@ async function loadInsights() {
     }
 
     // STATS
-    const totalPnl = trades.reduce((sum, t) => sum + t.pnl, 0);
-    const wins = trades.filter(t => t.pnl > 0);
-    const losses = trades.filter(t => t.pnl < 0);
-    const winRate = (wins.length / trades.length) * 100;
-    const grossWin = wins.reduce((sum, t) => sum + t.pnl, 0);
-    const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
-    const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '∞';
+    const stats = computeTradeStats(trades);
+    const { totalPnl, winRate, wins, losses, grossWin, grossLoss } = stats;
+    const profitFactor = stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2);
     const avgWin = wins.length > 0 ? grossWin / wins.length : 0;
     const avgLoss = losses.length > 0 ? grossLoss / losses.length : 0;
     const avgRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '∞';
@@ -2657,66 +2966,8 @@ async function loadInsights() {
         .single();
     const startBalance = parseFloat(settingsData?.balance) || 50000;
 
-    let balance = startBalance;
-    const points = [{ date: 'Start', balance }];
-    trades.forEach(trade => {
-        balance += trade.pnl;
-        points.push({ date: new Date(trade.date + 'T12:00:00').toLocaleDateString(), balance });
-    });
-
-    const maxBal = Math.max(...points.map(p => p.balance));
-    const minBal = Math.min(...points.map(p => p.balance));
-    const range = maxBal - minBal || 1;
-    const w = 600;
-    const h = 180;
-    const pad = 20;
-
-    const svgPoints = points.map((p, i) => {
-        const x = pad + (i / (points.length - 1)) * (w - pad * 2);
-        const y = h - pad - ((p.balance - minBal) / range) * (h - pad * 2);
-        return `${x},${y}`;
-    }).join(' ');
-
-    const lastBalance = points[points.length - 1].balance;
-    const lineColor = lastBalance >= startBalance ? '#00c864' : '#ff4444';
-
-    if (points.length <= 1) {
-    equityChart.innerHTML = '<p style="color:#444;font-size:13px;margin:auto;text-align:center;">Log trades to see your equity curve.</p>';
-    equityChart.style.alignItems = 'center';
-    equityChart.style.justifyContent = 'center';
-    return;
-    }
-
-    const startLabel = `$${startBalance.toLocaleString()}`;
-    const endLabel = `$${lastBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const pnlLabel = (lastBalance - startBalance >= 0 ? '+' : '') + '$' + (lastBalance - startBalance).toFixed(2);
-
-    equityChart.innerHTML = `
-        <div style="position:relative;width:100%;height:100%;">
-            <div style="position:absolute;top:0;right:0;font-size:12px;font-family:'JetBrains Mono',monospace;color:${lineColor};">${endLabel} <span style="font-size:11px;">(${pnlLabel})</span></div>
-            <div style="position:absolute;bottom:0;left:0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#444;">Start: ${startLabel}</div>
-            <svg viewBox="0 0 ${w} ${h}" class="equity-line" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.3"/>
-                        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
-                    </linearGradient>
-                </defs>
-                <polyline
-                    points="${svgPoints}"
-                    fill="none"
-                    stroke="${lineColor}"
-                    stroke-width="2"
-                    stroke-linejoin="round"
-                />
-                <polygon
-                    points="${svgPoints} ${600 - pad},${h} ${pad},${h}"
-                    fill="url(#equityGrad)"
-                />
-            </svg>
-        </div>
-    `;
-
+    const points = buildEquityPoints(trades, startBalance);
+    renderEquityCurve(equityChart, points, startBalance);
     equityChart.style.position = 'relative';
 
     // RULES FOLLOWED VS BROKEN
@@ -3889,10 +4140,10 @@ function displayAIInsights(data, generatedAt, refreshesRemaining) {
     renderSuggestions();
     await loadUserPlan();
     checkOnboarding();
-    loadRecentTrades();
-    loadStreak();
     loadRuleSets();
-    loadRules();
+    Promise.all([loadRecentTrades(), loadStreak(), loadRules()]).then(() => {
+        document.getElementById('page-dashboard')?.classList.remove('dash-loading');
+    });
     lucide.createIcons();
 
     const lastPage = sessionStorage.getItem('noxis_active_page') || 'dashboard';
@@ -3902,7 +4153,6 @@ function displayAIInsights(data, generatedAt, refreshesRemaining) {
     document.querySelectorAll(`[data-page="${lastPage}"]`).forEach(el => el.classList.add('active'));
 
     if (lastPage === 'checklist') { loadRuleSets(); loadRules(); }
-    if (lastPage === 'dashboard') { loadRecentTrades(); loadStreak(); }
     if (lastPage === 'journal') loadJournal();
     if (lastPage === 'streak') loadStreakPage();
     if (lastPage === 'settings') loadSettings();

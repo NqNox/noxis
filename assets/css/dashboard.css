@@ -1,5 +1,27 @@
 /* Noxis Dashboard v2.0 */
 
+:root {
+    --bg: #0a0a0a;
+    --teal: #00d4d4;
+    --green: #00C864;
+    --orange: #e08a2e;
+    --teal-dim: #0a2a2a;
+    --card-bg: #111111;
+    --card-border: #1a1a1a;
+}
+
+/* ============================================
+   GLOBAL GLASS CARD TREATMENT
+   Applied to all card containers across every page so the glass effect is consistent.
+   ============================================ */
+.streak-stats-card, .streak-current-card, .streak-rank-card, .streak-calendar-card,
+.checklist-card, .sets-panel, .insight-card, .insight-stat-card, .insight-full,
+.journal-entry, .settings-section, .ai-insight-item {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
 /* ============================================
    RESET & BASE
    ============================================ */
@@ -38,7 +60,7 @@ html, body {
     top: 0;
     left: 0;
     bottom: 0;
-    box-shadow: inset -1px 0 0 #00d4d4;
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
     border-radius: 0 22px 22px 0;
     transition: width 0.3s ease, padding 0.3s ease;
 }
@@ -64,6 +86,17 @@ html, body {
     transition: opacity 0.2s ease, width 0.3s ease;
     overflow: hidden;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-logo-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--teal);
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(0, 212, 212, 0.6)) drop-shadow(0 0 20px rgba(0, 212, 212, 0.3));
 }
 
 .sidebar.collapsed .sidebar-logo {
@@ -214,8 +247,12 @@ html, body {
 }
 
 .nav-item.active {
-    background: #1a1a1a;
+    background: rgba(0, 212, 212, 0.06);
     color: #ffffff;
+}
+
+.nav-item.active .nav-icon {
+    color: var(--teal);
 }
 
 .nav-icon {
@@ -322,19 +359,19 @@ html, body {
    BUTTONS
    ============================================ */
 .btn-log-trade {
-    background: #00d4d4;
-    border: none;
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     padding: 10px 20px;
     color: #0a0a0a;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     font-family: 'Space Grotesk', sans-serif;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.15s ease;
 }
 
-.btn-log-trade:hover { background: #ffffff; }
+.btn-log-trade:hover { transform: scale(0.96); }
 
 .btn-log-trade-sm {
     background: transparent;
@@ -395,105 +432,549 @@ html, body {
 #page-dashboard {
     overflow: visible;
     padding-bottom: 20px;
+    position: relative;
 }
 
-.dashboard-top {
+/* Ambient glow behind the widget grid so the glass/blur cards read clearly */
+#page-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -10%;
+    width: 55%;
+    height: 100%;
+    background: radial-gradient(ellipse 70% 50% at 80% 25%, rgba(0, 212, 212, 0.1) 0%, rgba(0, 212, 212, 0.04) 50%, transparent 75%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+#page-dashboard::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -8%;
+    width: 55%;
+    height: 100%;
+    background: radial-gradient(ellipse 70% 50% at 20% 70%, rgba(0, 200, 100, 0.07) 0%, rgba(0, 200, 100, 0.03) 50%, transparent 75%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ============================================
+   DASHBOARD OVERVIEW WIDGET GRID
+   ============================================ */
+.dash-row {
     display: grid;
-    grid-template-columns: 1fr auto;
     gap: 1.5vh;
     margin-bottom: 1.5vh;
     align-items: stretch;
     overflow: visible;
+    position: relative;
+    z-index: 1;
 }
 
-/* Stats Card */
-.stats-card {
-    background: #111111;
-    border: 1px solid #1a1a1a;
-    border-radius: 20px;
-    padding: 2.5vh 2.5vw;
-    display: flex;
-    align-items: center;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
+.dash-row > * { min-width: 0; }
 
-.stats-card:hover {
-    border-color: #222222;
-    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
-}
+.dash-row-stats { grid-template-columns: repeat(4, 1fr); }
+.dash-row-chart { grid-template-columns: 2fr 1fr; }
 
-.stat-item {
+.dash-col {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1;
+    gap: 1.5vh;
 }
 
-.stat-name {
-    font-size: 13px;
+.dash-card {
+    background: rgba(17, 17, 17, 0.25);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 2.2vh 1.6vw;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 15px rgba(0, 212, 212, 0.05);
+    opacity: 0;
+    transform: translateY(10px);
+    will-change: opacity, transform;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.45s ease, transform 0.45s ease;
+}
+
+.dash-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-card { opacity: 1; transform: none; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .dash-card:hover {
+        border-color: rgba(0, 212, 212, 0.18);
+        box-shadow: 0 0 12px rgba(0, 212, 212, 0.06);
+        transform: translateY(-2px);
+    }
+}
+
+.dash-card-label {
+    font-size: 11px;
+    color: #888888;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dash-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+}
+
+.dash-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+
+.dash-stat-value.positive { color: var(--green); }
+.dash-stat-value.negative { color: #ff4444; }
+
+/* Balance & Total P&L get extra size on wide screens since they're the headline metrics */
+@media (min-width: 1200px) {
+    .dash-stat-hero .dash-card-label { font-size: 12px; }
+    .dash-stat-hero .dash-stat-value { font-size: 40px; }
+}
+
+/* ============================================
+   DASHBOARD LOADING SKELETON
+   #page-dashboard carries .dash-loading from first paint until the initial
+   data fetch (loadRecentTrades/loadStreak/loadRules) resolves, so headline
+   numbers never flash their static HTML placeholder values.
+   ============================================ */
+@keyframes dashSkeletonShimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Cards normally stay opacity:0 until the scroll-reveal fires after data loads
+   (see animateDashboardEntrance) — show them immediately during the initial
+   fetch so the shimmer skeleton is actually visible instead of hidden behind it. */
+#page-dashboard.dash-loading .dash-card,
+#page-dashboard.dash-loading .dash-calendar-card {
+    opacity: 1;
+    transform: none;
+}
+
+#page-dashboard.dash-loading .dash-stat-value,
+#page-dashboard.dash-loading .dash-profitfactor-value,
+#page-dashboard.dash-loading .dash-aiscore-value,
+#page-dashboard.dash-loading .dash-gauge-value,
+#page-dashboard.dash-loading .streak-number .num {
+    color: transparent;
+    display: inline-block;
+    min-width: 64px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.09) 37%, rgba(255, 255, 255, 0.04) 63%);
+    background-size: 400% 100%;
+    animation: dashSkeletonShimmer 1.6s ease infinite;
+}
+
+/* Chart & gauge placeholders read as a faint flatlined curve / empty ring
+   instead of a big gray shimmer box — quieter and closer to their real content. */
+#page-dashboard.dash-loading .dash-pnl-chart {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 100' preserveAspectRatio='none'%3e%3cpath d='M0 70 L40 62 L80 68 L120 45 L160 55 L200 30 L240 40 L300 20' fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 90% 60%;
+}
+
+#page-dashboard.dash-loading .dash-gauge-wrap {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3e%3cpath d='M10 55 A45 45 0 0 1 90 55' fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='7' stroke-linecap='round'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 70% 70%;
+}
+
+#page-dashboard.dash-loading .dash-aiscore-bar {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.09) 37%, rgba(255, 255, 255, 0.04) 63%);
+    background-size: 400% 100%;
+    animation: dashSkeletonShimmer 1.6s ease infinite;
+}
+
+#page-dashboard.dash-loading .dash-aiscore-tick {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #page-dashboard.dash-loading .dash-stat-value,
+    #page-dashboard.dash-loading .dash-profitfactor-value,
+    #page-dashboard.dash-loading .dash-aiscore-value,
+    #page-dashboard.dash-loading .dash-gauge-value,
+    #page-dashboard.dash-loading .streak-number .num,
+    #page-dashboard.dash-loading .dash-aiscore-bar {
+        animation: none;
+    }
+}
+
+/* Checklist preview card */
+.dash-checklist-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dash-checklist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dash-checklist-count {
+    font-size: 12px;
     color: #888888;
     font-family: 'JetBrains Mono', monospace;
 }
 
-.stat-value {
+.dash-progress-track {
+    height: 4px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.dash-progress-fill {
+    height: 100%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(0, 200, 100, 0.5);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.dash-checklist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+}
+
+.dash-checklist-empty {
+    font-size: 12px;
+    color: #444444;
+}
+
+.dash-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    font-size: 12px;
+    color: #888888;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dash-checklist-item:hover { border-color: var(--teal); }
+
+.dash-checklist-item.checked {
+    color: #ffffff;
+    background: rgba(0, 200, 100, 0.22);
+    border-color: rgba(0, 200, 100, 0.4);
+    box-shadow: 0 0 12px rgba(0, 200, 100, 0.15);
+}
+
+.dash-checklist-check {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border-radius: 50%;
+    border: 1px solid #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: transparent;
+}
+
+.dash-checklist-item.checked .dash-checklist-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: #ffffff;
+}
+
+.dash-checklist-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* P&L chart card */
+.dash-chart-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.dash-pnl-chart {
+    flex: 1;
+    min-height: 220px;
+    display: flex;
+}
+
+/* Winrate gauge */
+.dash-winrate-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.dash-gauge-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dash-gauge-inner {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+}
+
+.dash-gauge-value {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+}
+
+/* Profit factor */
+.dash-profitfactor-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+}
+
+.dash-profitfactor-value {
     font-size: 28px;
     font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.5px;
     color: #ffffff;
+}
+
+.dash-profitfactor-value.positive { color: var(--green); }
+.dash-profitfactor-value.negative { color: #ff4444; }
+
+/* AI score bar */
+.dash-aiscore-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.dash-aiscore-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.5px;
+    color: var(--green);
+}
+
+.dash-aiscore-bar {
+    position: relative;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #ff4444 0%, var(--orange) 50%, var(--green) 100%);
+    margin-top: 4px;
+    margin-bottom: 20px;
+}
+
+.dash-aiscore-tick {
+    position: absolute;
+    top: 14px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #444444;
     font-family: 'JetBrains Mono', monospace;
 }
 
-.stat-value.green { color: #00d4d4; }
-.stat-value.positive { color: #00c864; }
-.stat-value.negative { color: #ff4444; }
+.dash-aiscore-tick:nth-child(1) { left: 0%; transform: none; }
+.dash-aiscore-tick:nth-child(2) { left: 50%; }
+.dash-aiscore-tick:nth-child(3) { left: 100%; transform: translateX(-100%); }
 
-.stat-divider {
-    width: 1px;
-    height: 48px;
-    background: #1a1a1a;
-    margin: 0 32px;
+.dash-aiscore-marker {
+    position: absolute;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #0a0a0a;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+}
+
+/* Latest trades */
+.dash-latest-trades-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dash-latest-trades {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dash-trade-card {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dash-trade-card:last-child { border-bottom: none; }
+
+.dash-trade-card-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dash-trade-card-symbol {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+.dash-trade-card-dir {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.dash-trade-card-dir.long {
+    color: var(--green);
+    background: rgba(0, 200, 100, 0.1);
+}
+
+.dash-trade-card-dir.short {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.dash-trade-card-date {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: #555555;
+}
+
+.dash-trade-card-pnl {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.dash-trade-card-pnl.positive { color: var(--green); }
+.dash-trade-card-pnl.negative { color: #ff4444; }
+
+/* Calendar card on the dashboard overview reuses .streak-calendar-card's layout
+   but needs the glass treatment (.streak-calendar-card itself stays opaque for the Streak page) */
+.streak-calendar-card.dash-calendar-card {
+    padding: 2.2vh 1.6vw;
+    background: rgba(17, 17, 17, 0.25);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 15px rgba(0, 212, 212, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .streak-calendar-card.dash-calendar-card:hover {
+        border-color: rgba(0, 212, 212, 0.18);
+        box-shadow: 0 0 12px rgba(0, 212, 212, 0.06);
+        transform: translateY(-2px);
+    }
 }
 
 /* Streak Card */
 .streak-card {
-    background: #111111;
-    border: 1px solid #1a1a1a;
-    border-radius: 20px;
-    padding: 2.5vh 2vw;
-    padding-top: 8px;
+    padding: 2.2vh 1.2vw;
     display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    min-width: 22vw;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
     overflow: visible;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.streak-card:hover {
-    border-color: #222222;
-    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
-}
-
-.streak-flame { font-size: 48px; }
-
-.streak-info {
+.streak-left {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding-top: 8px;
+    gap: 6px;
 }
 
-.streak-title {
-    font-size: 15px;
-    font-weight: 600;
+.streak-number {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.streak-number .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
     color: #ffffff;
+}
+
+.streak-number .unit {
+    font-size: 14px;
+    color: #888888;
+    font-weight: 500;
 }
 
 .streak-days {
     display: flex;
     gap: 8px;
-    padding-bottom: 28px;
     flex-wrap: nowrap;
     overflow: visible;
+}
+
+.streak-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.day-label {
+    font-size: 10px;
+    color: #555555;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .day-circle {
@@ -501,25 +982,14 @@ html, body {
     height: 32px;
     min-width: 32px;
     border-radius: 50%;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: #222222;
+    border: 1px solid #333333;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: 11px;
     font-weight: 600;
-    color: #444444;
-    position: relative;
-}
-
-.day-circle span {
-    font-size: 10px;
-    color: #888888;
-    font-weight: 500;
-    position: absolute;
-    bottom: -18px;
-    white-space: nowrap;
+    color: #555555;
 }
 
 .day-circle.active {
@@ -528,33 +998,54 @@ html, body {
     color: #0a0a0a;
 }
 
-.day-circle.active span { color: #888888; }
-
 .day-circle.broken {
-    background: rgba(255,68,68,0.15);
+    background: rgba(255, 68, 68, 0.15);
     border-color: #ff4444;
     color: #ff4444;
 }
-
-.day-circle.broken span { color: #888888; }
 
 .day-circle.today {
     outline: 2px solid #00d4d4;
     outline-offset: 2px;
 }
 
-/* Recent Trades Card */
-.recent-card {
-    background: #111111;
-    border: 1px solid #1a1a1a;
-    border-radius: 20px;
-    padding: 2.5vh 2vw;
-    min-height: calc(100vh - 35vh);
-    height: auto;
+/* Compact streak widget on the dashboard overview card (Streak page keeps full size) */
+.dash-row-stats .streak-number .num { font-size: 28px; }
+.dash-row-stats .streak-days { gap: 6px; }
+.dash-row-stats .day-circle { width: 26px; height: 26px; min-width: 26px; font-size: 10px; }
+.dash-row-stats .day-label { font-size: 9px; }
+
+/* Orange accent for compliant days, matching the landing page's streak widget */
+.dash-row-stats .day-circle.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(224, 138, 46, 0.4);
+}
+
+.dash-section-header {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    align-items: center;
+    gap: 16px;
+    margin: 8px 0 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.dash-section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #444444;
+    white-space: nowrap;
+}
+
+.dash-section-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .beta-note {
@@ -563,11 +1054,6 @@ html, body {
     color: #666666;
     padding: 16px 0 4px;
     margin: 0;
-}
-
-.recent-card:hover {
-    border-color: #222222;
-    box-shadow: 0 0 30px rgba(0, 212, 212, 0.04);
 }
 
 .recent-header {
@@ -612,87 +1098,7 @@ html, body {
     font-size: 14px;
 }
 
-/* ============================================
-   VIEW TOGGLE
-   ============================================ */
-.view-controls {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.view-btn {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    border-radius: 6px;
-    padding: 5px 7px;
-    color: #888888;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.view-btn:hover {
-    border-color: #ffffff;
-    color: #ffffff;
-}
-
-.view-btn.active {
-    border-color: #00d4d4;
-    color: #00d4d4;
-}
-
-/* ============================================
-   TABLE VIEW
-   ============================================ */
-.trades-table {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-.trades-header-row {
-    display: grid;
-    padding: 10px 16px;
-    font-size: 12px;
-    color: #444444;
-    font-family: 'JetBrains Mono', monospace;
-    border-bottom: 1px solid #1a1a1a;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.trade-card-ratings {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.trades-header-row,
-.trade-row {
-    grid-template-columns: 0.8fr 0.6fr 0.6fr 0.4fr 0.7fr 0.7fr 0.7fr 0.4fr 0.5fr;
-}
-
-.trade-row {
-    display: grid;
-    padding: 14px 16px;
-    font-size: 13px;
-    color: #cccccc;
-    border-bottom: 1px solid #1a1a1a;
-    transition: background 0.2s ease;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.trade-row:hover { background: #1a1a1a; }
-.trade-row:last-child { border-bottom: none; }
-.trade-row .long { color: #00c864; }
-.trade-row .short { color: #ff4444; }
-.trade-row .positive { color: #00c864; }
-.trade-row .negative { color: #ff4444; }
-
-/* Trade action buttons */
+/* Trade action buttons (used by the Journal page entry list) */
 .trade-actions {
     display: flex;
     gap: 4px;
@@ -734,94 +1140,6 @@ html, body {
 .trade-delete-btn:hover .trash-icon { color: #ff4444; }
 
 /* ============================================
-   CARDS VIEW
-   ============================================ */
-.trades-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    padding: 4px;
-}
-
-.trade-card {
-    background: #0a0a0a;
-    border: 1px solid #2a2a2a;
-    border-radius: 16px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.trade-card:hover {
-    border-color: #333333;
-    box-shadow: 0 0 20px rgba(0, 212, 212, 0.04);
-}
-
-.trade-card.win { border-left: 3px solid #00c864; }
-.trade-card.loss { border-left: 3px solid #ff4444; }
-
-.trade-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.trade-card-symbol {
-    font-size: 20px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.trade-card-pnl {
-    font-size: 18px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.trade-card-details {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.trade-card-tag {
-    background: #1a1a1a;
-    border-radius: 4px;
-    padding: 3px 8px;
-    font-size: 11px;
-    color: #888888;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.trade-card-tag.long {
-    background: rgba(0, 200, 100, 0.1);
-    color: #00c864;
-    border: 1px solid rgba(0, 200, 100, 0.2);
-}
-
-.trade-card-tag.short {
-    background: rgba(255, 68, 68, 0.1);
-    color: #ff4444;
-    border: 1px solid rgba(255, 68, 68, 0.2);
-}
-
-.trade-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.trade-card-date {
-    font-size: 11px;
-    color: #444444;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.trade-card-actions { display: flex; gap: 4px; }
-
-/* ============================================
    MODAL
    ============================================ */
 .modal-overlay {
@@ -841,7 +1159,7 @@ html, body {
 .modal-overlay.active { display: flex; }
 
 .modal {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 24px;
     width: 90%;
@@ -952,7 +1270,7 @@ html, body {
 }
 
 .modal-field select option {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     color: #ffffff;
 }
 
@@ -1198,7 +1516,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 .confirm-overlay.active { display: flex; }
 
 .confirm-popup {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 16px;
     padding: 32px;
@@ -1339,7 +1657,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 10px;
     z-index: 200;
@@ -1387,25 +1705,166 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 /* ============================================
    CHECKLIST
    ============================================ */
+/* Flex column (rather than the fixed vh-subtraction the layout used before) so
+   .checklist-layout can flex:1 into whatever space is actually left after the
+   header + stats row, instead of guessing their combined height in vh.
+   Scoped to #page-checklist.active (not the bare ID) — an ID selector beats
+   .page{display:none} on specificity, so an unscoped display:flex here would
+   force the page to render even while a different page is active. */
+#page-checklist {
+    position: relative;
+    z-index: 0;
+}
+
+#page-checklist.active {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 5vh);
+}
+
+/* Ambient glow behind the panels so the glass/blur effect actually reads.
+   Checklist is just two large flat panels (not a busy card grid like the
+   dashboard), so the glow needs to be wider/stronger to visibly wash across
+   them rather than only tinting a thin edge sliver.
+   z-index:-1 (rather than the dashboard's 0) because the page-header/+Add Rule
+   button here is a plain static element with no z-index of its own — a 0
+   glow would still paint above it, so the glow has to sit behind everything. */
+#page-checklist::before {
+    content: '';
+    position: absolute;
+    top: -5%;
+    right: -15%;
+    width: 75%;
+    height: 70%;
+    background: radial-gradient(ellipse 70% 60% at 75% 20%, rgba(0, 212, 212, 0.16) 0%, rgba(0, 212, 212, 0.06) 45%, transparent 75%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+#page-checklist::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    left: -15%;
+    width: 75%;
+    height: 70%;
+    background: radial-gradient(ellipse 70% 60% at 25% 80%, rgba(0, 200, 100, 0.12) 0%, rgba(0, 200, 100, 0.05) 45%, transparent 75%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+#page-checklist > .page-header,
+#page-checklist > .checklist-stats-row {
+    flex-shrink: 0;
+}
+
+.checklist-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.checklist-stat-card {
+    background: rgba(17, 17, 17, 0.25);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 0 15px rgba(0, 212, 212, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.checklist-stat-card.accent-teal { border-color: rgba(0, 212, 212, 0.2); box-shadow: 0 0 15px rgba(0, 212, 212, 0.07); }
+.checklist-stat-card.accent-orange { border-color: rgba(224, 138, 46, 0.2); box-shadow: 0 0 15px rgba(224, 138, 46, 0.07); }
+.checklist-stat-card.accent-green { border-color: rgba(0, 200, 100, 0.2); box-shadow: 0 0 15px rgba(0, 200, 100, 0.07); }
+
+@media (hover: hover) and (pointer: fine) {
+    .checklist-stat-card.accent-teal:hover { border-color: rgba(0, 212, 212, 0.4); box-shadow: 0 0 16px rgba(0, 212, 212, 0.12); }
+    .checklist-stat-card.accent-orange:hover { border-color: rgba(224, 138, 46, 0.4); box-shadow: 0 0 16px rgba(224, 138, 46, 0.12); }
+    .checklist-stat-card.accent-green:hover { border-color: rgba(0, 200, 100, 0.4); box-shadow: 0 0 16px rgba(0, 200, 100, 0.12); }
+}
+
+.checklist-stat-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+
+.checklist-stat-icon svg { width: 16px; height: 16px; }
+
+.accent-teal .checklist-stat-icon { background: rgba(0, 212, 212, 0.1); color: var(--teal); }
+.accent-orange .checklist-stat-icon { background: rgba(224, 138, 46, 0.1); color: var(--orange); }
+.accent-green .checklist-stat-icon { background: rgba(0, 200, 100, 0.1); color: var(--green); }
+
+.checklist-stat-label {
+    font-size: 11px;
+    color: #888888;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.checklist-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+}
+
+.checklist-stat-value.positive { color: var(--green); }
+.checklist-stat-value.negative { color: #ff4444; }
+
+.checklist-stat-sub {
+    font-size: 11px;
+    color: #555555;
+    font-family: 'JetBrains Mono', monospace;
+}
+
 .checklist-layout {
     display: grid;
     grid-template-columns: 200px 1fr;
     gap: 16px;
     max-width: 100%;
-    height: calc(100vh - 15vh);
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .sets-panel {
-    background: #111111;
-    border: 1px solid #1a1a1a;
+    background: rgba(17, 17, 17, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     height: fit-content;
-    max-height: calc(100vh - 20vh);
+    align-self: start;
+    max-height: 100%;
     overflow-y: auto;
+    box-shadow: 0 0 15px rgba(0, 212, 212, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sets-panel:hover {
+        border-color: rgba(0, 212, 212, 0.18);
+        box-shadow: 0 0 12px rgba(0, 212, 212, 0.06);
+    }
 }
 
 .sets-header {
@@ -1468,7 +1927,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 }
 
 .set-item.active {
-    background: #1a1a1a;
+    background: rgba(0, 212, 212, 0.06);
     color: #ffffff;
     border-left: 2px solid #00d4d4;
     padding-left: 8px;
@@ -1530,16 +1989,24 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 }
 
 .checklist-card {
-    background: #111111;
-    border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    background: rgba(17, 17, 17, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 16px;
     height: 100%;
     overflow-y: auto;
+    box-shadow: 0 0 15px rgba(0, 212, 212, 0.05);
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .checklist-card:hover {
+        border-color: rgba(0, 212, 212, 0.18);
+        box-shadow: 0 0 12px rgba(0, 212, 212, 0.06);
+    }
 }
 .checklist-header {
     display: flex;
@@ -1603,18 +2070,19 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: #0a0a0a;
-    border: 1px solid #2a2a2a;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     transition: all 0.2s ease;
     cursor: pointer;
 }
 
-.rule-item:hover { border-color: #333333; }
+.rule-item:hover { border-color: rgba(0, 212, 212, 0.3); }
 
 .rule-item.checked {
-    border-color: #00c864;
-    background: rgba(0, 200, 100, 0.05);
+    border-color: rgba(0, 200, 100, 0.4);
+    background: rgba(0, 200, 100, 0.08);
+    box-shadow: 0 0 12px rgba(0, 200, 100, 0.1);
 }
 
 .rule-checkbox {
@@ -1693,19 +2161,19 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 .rule-delete:hover svg { stroke: #ff4444 !important; }
 
 .btn-add-rule {
-    background: #00d4d4;
-    border: none;
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     padding: 10px 20px;
     color: #0a0a0a;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     font-family: 'Space Grotesk', sans-serif;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.15s ease;
 }
 
-.btn-add-rule:hover { background: #ffffff; }
+.btn-add-rule:hover { transform: scale(0.96); }
 
 .btn-add-rule-inline {
     background: transparent;
@@ -1743,9 +2211,9 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
 .rule-modal-overlay.active { display: flex; }
 
 .rule-modal {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
-    border-radius: 20px;
+    border-radius: 16px;
     width: 90%;
     max-width: 460px;
     display: flex;
@@ -1777,14 +2245,14 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff; }
     flex-wrap: wrap;
     margin-bottom: 20px;
     align-items: center;
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
     border-radius: 16px;
     padding: 16px;
 }
 
 .journal-filter-input {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 8px;
     padding: 8px 12px;
@@ -1809,7 +2277,7 @@ select.journal-filter-input {
 }
 
 select.journal-filter-input option {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     color: #ffffff;
 }
 
@@ -1844,7 +2312,7 @@ select.journal-filter-input option {
 
 /* Journal Entries */
 .journal-entry {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
     border-left: 3px solid #2a2a2a;
     border-radius: 0 12px 12px 0;
@@ -2057,7 +2525,7 @@ select.journal-filter-input option {
 }
 
 .page-btn {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 8px;
     padding: 8px 14px;
@@ -2095,9 +2563,9 @@ select.journal-filter-input option {
 }
 
 .streak-stats-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 24px 32px;
     display: flex;
     flex-direction: row;
@@ -2139,9 +2607,9 @@ select.journal-filter-input option {
 .streak-stat-value.green { color: #00c864; }
 
 .streak-current-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 24px;
     display: flex;
     flex-direction: row;
@@ -2172,9 +2640,9 @@ select.journal-filter-input option {
 }
 
 .streak-rank-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 24px 32px;
     display: flex;
     flex-direction: column;
@@ -2237,9 +2705,9 @@ select.journal-filter-input option {
 
 /* Calendar */
 .streak-calendar-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 28px;
     display: flex;
     flex-direction: column;
@@ -2329,6 +2797,56 @@ select.journal-filter-input option {
     bottom: 4px;
 }
 
+/* ============================================
+   DASHBOARD P&L CALENDAR — scoped overrides
+   (Streak page calendar is unaffected)
+   ============================================ */
+.dash-calendar-card .calendar-grid {
+    gap: 5px;
+}
+
+.dash-calendar-card .cal-day {
+    height: clamp(80px, 9vw, 140px);
+    overflow: hidden;
+    padding: 7px 8px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 4px;
+}
+
+.dash-calendar-card .cal-day.no-trade,
+.dash-calendar-card .cal-day.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cal-day-num {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.45;
+    line-height: 1;
+    margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.cal-day-pnl {
+    font-size: 16px;
+    font-weight: 700;
+    color: inherit;
+    line-height: 1.2;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.cal-day-trades {
+    font-size: 11px;
+    opacity: 0.5;
+    color: inherit;
+    line-height: 1;
+    font-family: 'JetBrains Mono', monospace;
+}
+
 .calendar-legend {
     display: flex;
     gap: 20px;
@@ -2378,9 +2896,9 @@ select.journal-filter-input option {
 .settings-section-title.danger { color: #ff4444; }
 
 .settings-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -2429,7 +2947,7 @@ select.journal-filter-input option {
     cursor: pointer;
 }
 
-.settings-field select option { background: #111111; }
+.settings-field select option { background: rgba(17, 17, 17, 0.25); }
 
 .btn-save-settings {
     background: #00d4d4;
@@ -2521,9 +3039,9 @@ select.journal-filter-input option {
 }
 
 .insight-stat-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 20px 24px;
     display: flex;
     flex-direction: column;
@@ -2560,9 +3078,9 @@ select.journal-filter-input option {
 }
 
 .insight-card {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -2724,7 +3242,7 @@ select.journal-filter-input option {
 }
 
 .toast {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 12px;
     padding: 16px 20px;
@@ -2862,6 +3380,14 @@ select.journal-filter-input option {
 }
 
 /* ============================================
+   RESPONSIVE — TABLET (sidebar still visible)
+   ============================================ */
+@media (max-width: 1100px) {
+    .dash-row-stats { grid-template-columns: repeat(2, 1fr); }
+    .dash-row-chart { grid-template-columns: 1fr; }
+}
+
+/* ============================================
    RESPONSIVE — MOBILE
    ============================================ */
 @media (max-width: 768px) {
@@ -2901,10 +3427,20 @@ select.journal-filter-input option {
     .mobile-logo {
         font-size: 20px;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .mobile-logo-icon {
+        width: 18px;
+        height: 18px;
+        color: var(--teal);
+        flex-shrink: 0;
     }
 
     .mobile-settings-btn {
-        background: #111111;
+        background: rgba(17, 17, 17, 0.25);
         border: 1px solid #1a1a1a;
         border-radius: 8px;
         padding: 8px;
@@ -2986,11 +3522,20 @@ select.journal-filter-input option {
     }
 
     /* Dashboard */
-    .dashboard-top { grid-template-columns: 1fr; }
-    .streak-card { min-width: unset; }
-    .recent-card { height: auto; min-height: unset; }
-    .stats-card { overflow: hidden; }
-    .stat-value { font-size: 20px; word-break: break-all; }
+    .dash-row-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dash-stat-value { font-size: 20px; word-break: break-all; }
+    .dash-card { padding: 16px; }
+    .dash-row-stats .streak-card,
+    .dash-checklist-card { grid-column: span 2; }
+    .dash-pnl-chart { min-height: 180px; }
+    .dash-gauge-inner { max-width: 140px; }
+    .dash-gauge-value { font-size: 18px; }
+    .dash-aiscore-value { font-size: 22px; }
+    .dash-profitfactor-value { font-size: 22px; }
+    .dash-trade-card-symbol, .dash-trade-card-pnl { font-size: 14px; }
+    .calendar-grid { gap: 4px; }
+    .calendar-legend { width: 100%; flex-wrap: wrap; justify-content: center !important; row-gap: 6px; column-gap: 14px; }
+    .legend-item { font-size: 11px; white-space: nowrap; }
 
     /* Modal */
     .modal-row { grid-template-columns: 1fr; }
@@ -2998,11 +3543,6 @@ select.journal-filter-input option {
     .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .modal-step.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .modal-footer { flex-shrink: 0; }
-
-    /* Table */
-    .trades-header-row { display: none; }
-    .trades-table .trade-row { display: none; }
-    .view-btn[data-view="table"] { display: none; }
 
     /* Journal */
     .journal-entry { grid-template-columns: 1fr; }
@@ -3021,7 +3561,11 @@ select.journal-filter-input option {
     }
 
     /* Checklist */
-    .checklist-layout { grid-template-columns: 1fr; height: auto; }
+    #page-checklist.active { height: auto; display: block; }
+    .checklist-stats-row { grid-template-columns: 1fr; gap: 10px; }
+    .checklist-stat-value { font-size: 22px; }
+    .checklist-layout { grid-template-columns: 1fr; flex: none; height: auto; }
+    .sets-panel { height: auto; }
     .sets-list { flex-direction: row; flex-wrap: wrap; gap: 6px; }
     .set-item { padding: 6px 12px; border-radius: 50px; border: 1px solid #2a2a2a; font-size: 12px; }
     .set-item.active { border-left: none; border-color: #00d4d4; padding-left: 12px; }
@@ -3038,6 +3582,11 @@ select.journal-filter-input option {
     .streak-rank-badge { padding: 10px 14px; }
     .rank-name { font-size: 18px; }
     .cal-day { height: 6vh; font-size: 11px; }
+    .dash-calendar-card .calendar-grid { gap: 3px; }
+    .dash-calendar-card .cal-day { height: 52px; padding: 4px; align-items: flex-start; justify-content: flex-start; text-align: left; gap: 0; }
+    .cal-day-num { font-size: 9px; }
+    .cal-day-pnl { font-size: 10px; }
+    .cal-day-trades { font-size: 7px; margin-top: auto; }
     .streak-calendar-card { padding: 16px; }
 
     /* Insights */
@@ -3101,7 +3650,7 @@ select.journal-filter-input option {
 .onboarding-overlay.active { display: flex; }
 
 .onboarding-modal {
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #2a2a2a;
     border-radius: 24px;
     padding: 48px 40px 36px;
@@ -3472,10 +4021,10 @@ select.journal-filter-input option {
     align-items: flex-start;
     gap: 4px;
     padding: 12px 14px;
-    border-radius: 12px;
-    background: rgba(0, 200, 100, 0.08);
-    border: 1px solid rgba(0, 200, 100, 0.2);
-    color: #00c864;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: #888888;
     font-family: 'Space Grotesk', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -3485,8 +4034,9 @@ select.journal-filter-input option {
 }
 
 .whats-new-btn:hover {
-    background: rgba(0, 200, 100, 0.15);
-    border-color: rgba(0, 200, 100, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
 }
 
 .whats-new-btn-top {
@@ -3958,7 +4508,7 @@ select.journal-filter-input option {
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
     border-radius: 8px;
     font-size: 13px;
@@ -4004,7 +4554,7 @@ select.journal-filter-input option {
 
 .clipboard-add input {
     flex: 1;
-    background: #111111;
+    background: rgba(17, 17, 17, 0.25);
     border: 1px solid #1a1a1a;
     border-radius: 8px;
     padding: 10px 14px;
@@ -4024,9 +4574,9 @@ select.journal-filter-input option {
     gap: 12px;
     padding: 10px 12px;
     border-radius: 8px;
-    background: rgba(0, 212, 212, 0.08);
-    border: 1px solid rgba(0, 212, 212, 0.2);
-    color: #00d4d4;
+    background: transparent;
+    border: none;
+    color: #888888;
     font-size: 14px;
     font-weight: 500;
     font-family: 'Space Grotesk', sans-serif;
@@ -4037,19 +4587,17 @@ select.journal-filter-input option {
 }
 
 .restart-onboarding-btn:hover {
-    background: rgba(0, 212, 212, 0.15);
-    border-color: rgba(0, 212, 212, 0.4);
+    background: #1a1a1a;
+    color: #ffffff;
 }
 
 .restart-onboarding-btn.completed {
-    background: transparent;
-    border-color: #2a2a2a;
-    color: #888888;
+    color: #555555;
 }
 
 .restart-onboarding-btn.completed:hover {
-    border-color: #444444;
-    color: #aaaaaa;
+    background: #1a1a1a;
+    color: #888888;
 }
 
 /* Modal Steps */
@@ -4577,7 +5125,7 @@ select.journal-filter-input option {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 1px;
     background: linear-gradient(135deg, rgba(0,212,212,0.3), rgba(139,92,246,0.3));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
