@@ -85,7 +85,7 @@ async function goToAppOrLogin(e) {
     if (session) {
         window.location.href = '/pages/dashboard.html';
     } else {
-        window.location.href = '/Noxis_v2/login.html';
+        window.location.href = '/pages/login.html';
     }
 }
 
